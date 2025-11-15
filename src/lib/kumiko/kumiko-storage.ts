@@ -1,3 +1,12 @@
+export interface GridViewState {
+	zoom: number;
+	panX: number;
+	panY: number;
+	showNotchPositions: boolean;
+	showHelpText: boolean;
+	showLineIds: boolean;
+}
+
 export interface SavedDesignPayload {
 	version: 1;
 	// core params
@@ -5,8 +14,33 @@ export interface SavedDesignPayload {
 	bitSize: number;
 	cutDepth: number;
 	halfCutDepth: number;
+	/**
+	 * Legacy overall strip length in mm.
+	 * Kept for backwards compatibility; new designs should use `gridCellSize`
+	 * together with `gridSizeX`/`gridSizeY` to derive total extents.
+	 */
 	stripLength: number;
+	stockLength?: number;
+	/**
+	 * Physical size of a single grid cell in mm (design scale).
+	 * New designs should always populate this; older payloads may omit it.
+	 */
+	gridCellSize?: number;
+	/**
+	 * Legacy square grid size (kept for backwards compatibility with older saves/templates).
+	 * In new designs, this should typically mirror gridSizeX.
+	 */
 	gridSize: number;
+	/**
+	 * Independent grid resolution along the X axis (columns).
+	 * When omitted (older payloads), the app falls back to `gridSize`.
+	 */
+	gridSizeX?: number;
+	/**
+	 * Independent grid resolution along the Y axis (rows).
+	 * When omitted (older payloads), the app falls back to `gridSize`.
+	 */
+	gridSizeY?: number;
 
 	// design
 	lines: {
@@ -16,6 +50,15 @@ export interface SavedDesignPayload {
 		x2: number;
 		y2: number;
 	}[];
+
+	// intersection states (id -> line1Over boolean)
+	intersectionStates?: [string, boolean][];
+
+	/**
+	 * Optional persisted view state for the grid designer.
+	 * Older payloads may omit this, in which case sensible defaults are used.
+	 */
+	gridViewState?: GridViewState;
 
 	// layout
 	groups: {

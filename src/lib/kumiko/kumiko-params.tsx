@@ -1,5 +1,5 @@
 import React from "react";
-import { formatValue } from "./kumiko-core";
+import { convertUnit, formatValue } from "./kumiko-core";
 
 export interface ParamInputProps {
 	label: string;
@@ -7,6 +7,7 @@ export interface ParamInputProps {
 	mmValue: number;
 	onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 	displayUnit: "mm" | "in";
+	precision?: number;
 }
 
 export function ParamInput({
@@ -15,8 +16,12 @@ export function ParamInput({
 	mmValue,
 	onChange,
 	displayUnit,
+	precision,
 }: ParamInputProps) {
-	const displayValue = formatValue(mmValue, displayUnit);
+	const displayValue =
+		precision != null
+			? convertUnit(mmValue, "mm", displayUnit).toFixed(precision)
+			: formatValue(mmValue, displayUnit);
 
 	return (
 		<div className="flex flex-col space-y-1">
@@ -30,7 +35,8 @@ export function ParamInput({
 				<input
 					id={id}
 					type="number"
-					defaultValue={displayValue}
+					value={displayValue}
+					onChange={onChange}
 					onBlur={onChange}
 					className="w-24 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-sm text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
 				/>

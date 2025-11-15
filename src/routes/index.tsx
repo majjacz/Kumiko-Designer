@@ -1,6 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowRight, Grid, Layout, Settings } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
+
+import {
+	KumikoHeader,
+	KumikoLoadDialog,
+	KumikoTemplateDialog,
+	KumikoSidebarParams,
+	type AppStep,
+} from "./-components/KumikoUI";
 
 import {
 	Cut,
@@ -16,7 +23,6 @@ import {
 } from "../lib/kumiko/kumiko-core";
 import { GridDesigner } from "../lib/kumiko/kumiko-grid-designer";
 import { LayoutEditor } from "../lib/kumiko/kumiko-layout-editor";
-import { ParamInput, SimpleParamInput } from "../lib/kumiko/kumiko-params";
 import {
 	clearDesign,
 	loadDesign,
@@ -26,26 +32,43 @@ import {
 	saveNamedDesign,
 	loadNamedDesign,
 	deleteNamedDesign,
+	type GridViewState,
 } from "../lib/kumiko/kumiko-storage";
+import { loadTemplate, getDefaultTemplateId } from "../lib/kumiko/kumiko-templates";
+import { generateGroupSVG } from "../lib/kumiko/kumiko-svg-export";
+import {
+	computeIntersections,
+	computeDesignStrips,
+	findLineEndingAt,
+	checkLineOverlap,
+} from "../lib/kumiko/kumiko-design-logic";
 
-// Thin route-level App orchestrating state and wiring child modules
+  // Thin route-level App orchestrating state and wiring child modules
+ 
+ const LEGACY_GRID_COLUMNS = 1000;
 
 function App() {
-	const [step, setStep] = useState<"design" | "layout">("design");
+	const [step, setStep] = useState<AppStep>("design");
 	const [units, setUnits] = useState<"mm" | "in">("mm");
 
 	// Parameters (stored internally in mm)
 	const [bitSize, setBitSize] = useState(6.35);
 	const [cutDepth, setCutDepth] = useState(19);
 	const [halfCutDepth, setHalfCutDepth] = useState(9.5);
-	const [stripLength, setStripLength] = useState(600);
-	const [gridSize, setGridSize] = useState(20);
+	// Physical size of one grid cell in mm (determines design scale)
+	const [gridCellSize, setGridCellSize] = useState(10);
+	// stockLength is the physical board/stock length used in layout & SVG
+	const [stockLength, setStockLength] = useState(600);
 
 	// Design state
 	const [lines, setLines] = useState<Map<string, Line>>(new Map());
 	const [drawingLine, setDrawingLine] = useState<Point | null>(null);
+	const [isDeleting, setIsDeleting] = useState<boolean>(false);
+	const [intersectionStates, setIntersectionStates] = useState<Map<string, boolean>>(new Map());
+	const [gridViewState, setGridViewState] = useState<GridViewState | undefined>(undefined);
 
 	// Layout state
+	const [layoutRows, setLayoutRows] = useState(10);
 	const [groups, setGroups] = useState<Map<string, Group>>(
 		() =>
 			new Map([
@@ -62,9 +85,7 @@ function App() {
 	);
 	const [activeGroupId, setActiveGroupId] = useState<string>("group1");
 	const [selectedPieceId, setSelectedPieceId] = useState<string | null>(null);
-	const [nextRotation, setNextRotation] = useState(0);
-	const [layoutTool, setLayoutTool] = useState<"place" | "cut">("place");
-	const [layoutCutStart, setLayoutCutStart] = useState<Point | null>(null);
+	const [hoveredStripId, setHoveredStripId] = useState<string | null>(null);
 
 	// Named design state
 	const [designName, setDesignName] = useState<string>("");
@@ -72,6 +93,7 @@ function App() {
 	const [namedDesigns, setNamedDesigns] = useState<
 		{ name: string; savedAt: string }[]
 	>([]);
+	const [showTemplateDialog, setShowTemplateDialog] = useState(false);
 
 	// Helper to apply a loaded design payload into state
 	const applyLoadedDesign = (loaded: SavedDesignPayload | null) => {
@@ -81,8 +103,26 @@ function App() {
 		setBitSize(loaded.bitSize);
 		setCutDepth(loaded.cutDepth);
 		setHalfCutDepth(loaded.halfCutDepth);
-		setStripLength(loaded.stripLength);
-		setGridSize(loaded.gridSize);
+
+		// Support both legacy square gridSize and new independent gridSizeX/gridSizeY
+		const loadedGridSizeX = loaded.gridSizeX ?? loaded.gridSize;
+		const loadedGridSizeY = loaded.gridSizeY ?? loaded.gridSize;
+
+		// Determine grid cell size in mm.
+		// Prefer explicit gridCellSize; fall back to legacy stripLength / gridSizeX; finally default to 10mm.
+		const derivedGridCellSize =
+			loaded.gridCellSize ??
+			(loaded.stripLength && loadedGridSizeX
+				? loaded.stripLength / loadedGridSizeX
+				: 10);
+
+		setGridCellSize(derivedGridCellSize);
+		setStockLength(
+			loaded.stockLength ??
+				(loaded.stripLength ??
+					derivedGridCellSize * (loadedGridSizeX || 1)),
+		);
+		setGridViewState(loaded.gridViewState);
 
 		setLines(() => {
 			const next = new Map<string, Line>();
@@ -107,90 +147,48 @@ function App() {
 
 		setActiveGroupId(loaded.activeGroupId);
 		setDesignName(loaded.designName ?? "");
+		
+		// Load intersection states if available
+		if (loaded.intersectionStates) {
+			setIntersectionStates(new Map(loaded.intersectionStates));
+		} else {
+			setIntersectionStates(new Map());
+		}
 	};
 
-	// Derived intersections
-	const intersections = useMemo<Map<string, Intersection>>(() => {
-		const newIntersections = new Map<string, Intersection>();
-		const lineArray = Array.from(lines.values());
+		// Derived intersections - ensures only one notch per coordinate
+		const intersections = useMemo<Map<string, Intersection>>(
+			() => computeIntersections(lines, intersectionStates),
+			[lines, intersectionStates],
+		);
 
-		for (let i = 0; i < lineArray.length; i++) {
-			for (let j = i + 1; j < lineArray.length; j++) {
-				const line1 = lineArray[i];
-				const line2 = lineArray[j];
-				const point = findIntersection(line1, line2);
-
-				if (point) {
-					const id = `int_${line1.id}_${line2.id}`;
-					newIntersections.set(id, {
-						id,
-						x: point.x,
-						y: point.y,
-						line1Id: line1.id,
-						line2Id: line2.id,
-						line1Over: true,
-					});
-				}
-			}
-		}
-		return newIntersections;
-	}, [lines]);
-
-	// Derived design strips for layout
-	const designStrips = useMemo<DesignStrip[]>(() => {
-		const gridUnitSize = stripLength / gridSize;
-
-		return Array.from(lines.values()).map((line: Line) => {
-			const { x1, y1, x2, y2 } = line;
-			const lengthGrid = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-			const lengthMM = lengthGrid * gridUnitSize;
-
-			const related = Array.from(intersections.values()).filter(
-				(int) => int.line1Id === line.id || int.line2Id === line.id,
-			);
-
-			const notches = related
-				.map((int) => {
-					const isLine1 = int.line1Id === line.id;
-					const otherLineId = isLine1 ? int.line2Id : int.line1Id;
-
-					const distGrid = Math.sqrt((int.x - x1) ** 2 + (int.y - y1) ** 2);
-					const distMM = distGrid * gridUnitSize;
-
-					let fromTop: boolean;
-					if (int.line1Over) {
-						fromTop = isLine1 ? false : true;
-					} else {
-						fromTop = isLine1 ? true : false;
-					}
-
-					return {
-						id: `${int.id}_${line.id}`,
-						otherLineId,
-						dist: distMM,
-						fromTop,
-					};
-				})
-				.sort((a, b) => a.dist - b.dist);
-
-			return {
-				...line,
-				lengthMM,
-				notches,
-			};
-		});
-	}, [lines, intersections, stripLength, gridSize]);
+		// Derived design strips for layout
+		const designStrips = useMemo<DesignStrip[]>(
+			() => computeDesignStrips(lines, intersections, gridCellSize),
+			[lines, intersections, gridCellSize],
+		);
 
 	const activeGroup = useMemo<Group | undefined>(
 		() => groups.get(activeGroupId),
 		[groups, activeGroupId],
 	);
 
-	// On mount, load the last working design (if any)
+	// On mount, load the last working design or default template
 	useEffect(() => {
 		const loaded = loadDesign();
-		if (!loaded) return;
-		applyLoadedDesign(loaded);
+		if (loaded) {
+			applyLoadedDesign(loaded);
+		} else {
+			// Load default template if no saved design exists
+			const defaultTemplateId = getDefaultTemplateId();
+			if (defaultTemplateId) {
+				loadTemplate(defaultTemplateId).then((template) => {
+					if (template) {
+						applyLoadedDesign(template);
+					}
+				});
+			}
+		}
 	}, []);
 
 	// Load named designs list (for Load dialog)
@@ -213,6 +211,7 @@ function App() {
 		// Reset design state
 		setLines(new Map());
 		setDrawingLine(null);
+		setIntersectionStates(new Map());
 
 		// Reset layout to single empty default group
 		const defaultGroupId = "group1";
@@ -231,12 +230,12 @@ function App() {
 		);
 		setActiveGroupId(defaultGroupId);
 		setSelectedPieceId(null);
-		setNextRotation(0);
-		setLayoutTool("place");
-		setLayoutCutStart(null);
 
 		// Reset named design metadata
 		setDesignName("");
+
+		// Reset grid designer view state (let the designer choose a centered default)
+		setGridViewState(undefined);
 	};
 	// Persist to local storage whenever the core design/layout state changes
 	useEffect(() => {
@@ -246,8 +245,15 @@ function App() {
 			bitSize,
 			cutDepth,
 			halfCutDepth,
-			stripLength,
-			gridSize,
+			// Derived legacy stripLength for backwards compatibility: treat as a wide grid
+			stripLength: gridCellSize * LEGACY_GRID_COLUMNS,
+			stockLength,
+			// Physical grid cell size (mm)
+			gridCellSize,
+			// Keep legacy square gridSize for backwards compatibility.
+			gridSize: LEGACY_GRID_COLUMNS,
+			gridSizeX: LEGACY_GRID_COLUMNS,
+			gridSizeY: LEGACY_GRID_COLUMNS,
 			lines: Array.from(lines.values()),
 			groups: Array.from(groups.values()).map((g) => ({
 				id: g.id,
@@ -257,6 +263,8 @@ function App() {
 			})),
 			activeGroupId,
 			designName: designName || undefined,
+			intersectionStates: Array.from(intersectionStates.entries()),
+			gridViewState,
 		};
 
 		saveDesign(payload);
@@ -265,12 +273,14 @@ function App() {
 		bitSize,
 		cutDepth,
 		halfCutDepth,
-		stripLength,
-		gridSize,
+		gridCellSize,
+		stockLength,
 		lines,
 		groups,
 		activeGroupId,
 		designName,
+		intersectionStates,
+		gridViewState,
 	]);
 
 	// Explicit save-as of current state under a name
@@ -287,8 +297,13 @@ function App() {
 			bitSize,
 			cutDepth,
 			halfCutDepth,
-			stripLength,
-			gridSize,
+			// Derived legacy stripLength for backwards compatibility: treat as a wide grid
+			stripLength: gridCellSize * LEGACY_GRID_COLUMNS,
+			stockLength,
+			gridCellSize,
+			gridSize: LEGACY_GRID_COLUMNS,
+			gridSizeX: LEGACY_GRID_COLUMNS,
+			gridSizeY: LEGACY_GRID_COLUMNS,
 			lines: Array.from(lines.values()),
 			groups: Array.from(groups.values()).map((g) => ({
 				id: g.id,
@@ -298,6 +313,8 @@ function App() {
 			})),
 			activeGroupId,
 			designName: name,
+			intersectionStates: Array.from(intersectionStates.entries()),
+			gridViewState,
 		};
 
 		saveNamedDesign(name, payload);
@@ -329,15 +346,44 @@ function App() {
 		setNamedDesigns(listNamedDesigns());
 	};
 
+	// Open the template dialog
+	const openTemplateDialog = () => {
+		setShowTemplateDialog(true);
+	};
+
+	// Load a template
+	const handleLoadTemplate = async (templateId: string) => {
+		const template = await loadTemplate(templateId);
+		if (!template) {
+			alert(`Failed to load template.`);
+			return;
+		}
+
+		// Confirm before overwriting current design
+		if (lines.size > 0 || groups.size > 0) {
+			if (!window.confirm("Load this template? Your current work will be replaced.")) {
+				return;
+			}
+		}
+
+		applyLoadedDesign(template);
+		setShowTemplateDialog(false);
+	};
+
 	// Handlers
 
 	const toggleIntersection = (id: string) => {
 		const int = intersections.get(id);
 		if (!int) return;
-		int.line1Over = !int.line1Over;
-		// intersections derived from lines; we need a lines update to retrigger
-		setLines(new Map(lines));
+		// Update the intersection state
+		setIntersectionStates((prev) => {
+			const next = new Map(prev);
+			next.set(id, !int.line1Over);
+			return next;
+		});
 	};
+
+
 
 	const handleGridClick = (point: Point) => {
 		// Use coordinates directly from getGridPoint (already snapped to grid)
@@ -345,38 +391,157 @@ function App() {
 
 		if (!drawingLine) {
 			setDrawingLine(gridPoint);
+			setIsDeleting(false);
 			return;
 		}
 
 		if (drawingLine.x === gridPoint.x && drawingLine.y === gridPoint.y) {
 			setDrawingLine(null);
+			setIsDeleting(false);
 			return;
 		}
 
-		const id = newId();
-		const newLine: Line = {
-			id,
-			x1: drawingLine.x,
-			y1: drawingLine.y,
-			x2: gridPoint.x,
-			y2: gridPoint.y,
-		};
-		setLines((prev) => new Map(prev).set(id, newLine));
+				// Check if the new line overlaps with an existing line
+				const overlap = checkLineOverlap(lines, drawingLine, gridPoint);
+		
+		if (overlap) {
+			// Split the line: remove overlapping segment and keep non-overlapping parts
+			const { line, tStart, tEnd } = overlap;
+			setLines((prev) => {
+				const next = new Map(prev);
+				next.delete(line.id);
+				
+				// Keep segment before overlap (if exists)
+				if (tStart > 0.001) {
+					const id = newId();
+					const beforeSegment: Line = {
+						id,
+						x1: line.x1,
+						y1: line.y1,
+						x2: Math.round(line.x1 + tStart * (line.x2 - line.x1)),
+						y2: Math.round(line.y1 + tStart * (line.y2 - line.y1)),
+					};
+					next.set(id, beforeSegment);
+				}
+				
+				// Keep segment after overlap (if exists)
+				if (tEnd < 0.999) {
+					const id = newId();
+					const afterSegment: Line = {
+						id,
+						x1: Math.round(line.x1 + tEnd * (line.x2 - line.x1)),
+						y1: Math.round(line.y1 + tEnd * (line.y2 - line.y1)),
+						x2: line.x2,
+						y2: line.y2,
+					};
+					next.set(id, afterSegment);
+				}
+				
+				return next;
+			});
+		} else {
+			// Check if there's an existing line that ends where the new line starts
+			const existingLine = findLineEndingAt(lines, drawingLine);
+			
+			if (existingLine) {
+				// Merge: extend the existing line to the new end point
+				const updatedLine: Line = {
+					...existingLine,
+					x2: gridPoint.x,
+					y2: gridPoint.y,
+				};
+				setLines((prev) => new Map(prev).set(existingLine.id, updatedLine));
+			} else {
+				// Create new line
+				const id = newId();
+				const newLine: Line = {
+					id,
+					x1: drawingLine.x,
+					y1: drawingLine.y,
+					x2: gridPoint.x,
+					y2: gridPoint.y,
+				};
+				setLines((prev) => new Map(prev).set(id, newLine));
+			}
+		}
+		
 		setDrawingLine(null);
+		setIsDeleting(false);
+	};
+
+	const handleDragUpdate = (start: Point, end: Point) => {
+		// Update isDeleting state based on whether we're overlapping an existing line
+		const overlap = checkLineOverlap(lines, start, end);
+		setIsDeleting(!!overlap);
 	};
 
 	const handleCreateLine = (start: Point, end: Point) => {
-		// Create a complete line directly from drag operation
-		const id = newId();
-		const newLine: Line = {
-			id,
-			x1: start.x,
-			y1: start.y,
-			x2: end.x,
-			y2: end.y,
-		};
-		setLines((prev) => new Map(prev).set(id, newLine));
+				// Check if the new line overlaps with an existing line
+				const overlap = checkLineOverlap(lines, start, end);
+		
+		if (overlap) {
+			// Split the line: remove overlapping segment and keep non-overlapping parts
+			const { line, tStart, tEnd } = overlap;
+			setLines((prev) => {
+				const next = new Map(prev);
+				next.delete(line.id);
+				
+				// Keep segment before overlap (if exists)
+				if (tStart > 0.001) {
+					const id = newId();
+					const beforeSegment: Line = {
+						id,
+						x1: line.x1,
+						y1: line.y1,
+						x2: Math.round(line.x1 + tStart * (line.x2 - line.x1)),
+						y2: Math.round(line.y1 + tStart * (line.y2 - line.y1)),
+					};
+					next.set(id, beforeSegment);
+				}
+				
+				// Keep segment after overlap (if exists)
+				if (tEnd < 0.999) {
+					const id = newId();
+					const afterSegment: Line = {
+						id,
+						x1: Math.round(line.x1 + tEnd * (line.x2 - line.x1)),
+						y1: Math.round(line.y1 + tEnd * (line.y2 - line.y1)),
+						x2: line.x2,
+						y2: line.y2,
+					};
+					next.set(id, afterSegment);
+				}
+				
+				return next;
+			});
+		} else {
+			// Check if there's an existing line that ends where the new line starts
+			const existingLine = findLineEndingAt(lines, start);
+			
+			if (existingLine) {
+				// Merge: extend the existing line to the new end point
+				const updatedLine: Line = {
+					...existingLine,
+					x2: end.x,
+					y2: end.y,
+				};
+				setLines((prev) => new Map(prev).set(existingLine.id, updatedLine));
+			} else {
+				// Create new line from drag operation
+				const id = newId();
+				const newLine: Line = {
+					id,
+					x1: start.x,
+					y1: start.y,
+					x2: end.x,
+					y2: end.y,
+				};
+				setLines((prev) => new Map(prev).set(id, newLine));
+			}
+		}
+		
 		setDrawingLine(null);
+		setIsDeleting(false);
 	};
 
 	const handleParamChange =
@@ -431,11 +596,10 @@ function App() {
 		});
 	};
 
-	const handleLayoutClick = (point: Point) => {
+	const handleLayoutClick = (point: Point, rowIndex: number) => {
 		const { x, y } = point;
 
-		if (layoutTool === "place" && selectedPieceId) {
-			if (!activeGroup) return;
+		if (selectedPieceId && activeGroup) {
 			const id = newId();
 			setGroups((prev) => {
 				const next = new Map(prev);
@@ -446,189 +610,32 @@ function App() {
 						lineId: selectedPieceId,
 						x,
 						y,
-						rotation: nextRotation,
+						rotation: rowIndex, // Store row index in rotation field
 					});
 				}
 				return next;
 			});
-			return;
-		}
-
-		if (layoutTool === "cut") {
-			if (!layoutCutStart) {
-				setLayoutCutStart({ x, y });
-			} else {
-				const id = newId();
-				setGroups((prev) => {
-					const next = new Map(prev);
-					const group = next.get(activeGroupId);
-					if (group) {
-						group.fullCuts.set(id, {
-							id,
-							x1: layoutCutStart.x,
-							y1: layoutCutStart.y,
-							x2: x,
-							y2: y,
-						});
-					}
-					return next;
-				});
-				setLayoutCutStart(null);
-			}
 		}
 	};
 
-	const deleteLayoutItem = (type: "piece" | "cut", id: string) => {
+	const deleteLayoutItem = (type: "piece", id: string) => {
 		setGroups((prev) => {
 			const next = new Map(prev);
 			const group = next.get(activeGroupId);
 			if (group) {
-				if (type === "piece") group.pieces.delete(id);
-				if (type === "cut") group.fullCuts.delete(id);
+				group.pieces.delete(id);
 			}
 			return next;
 		});
 	};
 
-	const generateSVG = (group: Group | undefined): string | null => {
-		if (!group) return null;
-
-		const pieces = Array.from(group.pieces.values());
-		const cuts = Array.from(group.fullCuts.values());
-
-		let minX = 0;
-		let minY = 0;
-		let maxX = stripLength;
-		let maxY = stripLength;
-
-		if (pieces.length > 0 || cuts.length > 0) {
-			const allPoints = [
-				...pieces.map((p) => {
-					const strip = designStrips.find((s) => s.id === p.lineId);
-					const w = strip ? strip.lengthMM : 0;
-					const h = bitSize;
-					return [p.x, p.y, p.x + w, p.y + h];
-				}),
-				...cuts.map((c) => [c.x1, c.y1, c.x2, c.y2]),
-			].flat() as number[];
-			minX = Math.min(0, ...allPoints) - 50;
-			minY = Math.min(0, ...allPoints) - 50;
-			maxX = Math.max(stripLength, ...allPoints) + 50;
-			maxY = Math.max(stripLength, ...allPoints) + 50;
-		}
-
-		const viewBoxWidth = maxX - minX;
-		const viewBoxHeight = maxY - minY;
-
-		const segments: string[] = [];
-
-		pieces.forEach((piece) => {
-			const strip = designStrips.find((s) => s.id === piece.lineId);
-			if (!strip) return;
-
-			const { x, y, rotation } = piece;
-			const w = strip.lengthMM;
-			const h = bitSize;
-			const fullDepth = `${cutDepth.toFixed(3)}mm`;
-			const halfDepth = `${halfCutDepth.toFixed(3)}mm`;
-
-			const transform = `translate(${x}, ${y}) rotate(${rotation}, 0, ${h / 2})`;
-
-			const notches = strip.notches
-				.map((notch) => {
-					const center = notch.dist;
-					const left = center - bitSize / 2;
-					const right = center + bitSize / 2;
-					return { id: notch.id, left, right, fromTop: notch.fromTop };
-				})
-				.sort((a, b) => a.left - b.left);
-
-			const pieceLines: string[] = [];
-			let currentX = 0;
-
-			if (notches.length === 0) {
-				pieceLines.push(
-					`<line x1="0" y1="0" x2="${w}" y2="0" shaper:cutDepth="${fullDepth}" />`,
-				);
-			} else {
-				pieceLines.push(
-					`<line x1="${currentX}" y1="0" x2="${notches[0].left}" y2="0" shaper:cutDepth="${fullDepth}" />`,
-				);
-				currentX = notches[0].left;
-			}
-
-			for (let i = 0; i < notches.length; i++) {
-				const notch = notches[i];
-				pieceLines.push(
-					`<line x1="${notch.left.toFixed(
-						3,
-					)}" y1="0" x2="${notch.left.toFixed(
-						3,
-					)}" y2="${h.toFixed(3)}" shaper:cutDepth="${halfDepth}" />`,
-				);
-				pieceLines.push(
-					`<line x1="${notch.left.toFixed(
-						3,
-					)}" y1="${h.toFixed(3)}" x2="${notch.right.toFixed(
-						3,
-					)}" y2="${h.toFixed(3)}" shaper:cutDepth="${halfDepth}" />`,
-				);
-				pieceLines.push(
-					`<line x1="${notch.right.toFixed(
-						3,
-					)}" y1="${h.toFixed(3)}" x2="${notch.right.toFixed(
-						3,
-					)}" y2="0" shaper:cutDepth="${halfDepth}" />`,
-				);
-				currentX = notch.right;
-
-				if (i < notches.length - 1) {
-					const next = notches[i + 1];
-					pieceLines.push(
-						`<line x1="${currentX}" y1="0" x2="${next.left}" y2="0" shaper:cutDepth="${fullDepth}" />`,
-					);
-					currentX = next.left;
-				}
-			}
-
-			if (currentX < w) {
-				pieceLines.push(
-					`<line x1="${currentX}" y1="0" x2="${w}" y2="0" shaper:cutDepth="${fullDepth}" />`,
-				);
-			}
-
-			pieceLines.push(
-				`<line x1="0" y1="${h}" x2="${w}" y2="${h}" shaper:cutDepth="${fullDepth}" />`,
-			);
-			pieceLines.push(
-				`<line x1="0" y1="0" x2="0" y2="${h}" shaper:cutDepth="${fullDepth}" />`,
-			);
-			pieceLines.push(
-				`<line x1="${w}" y1="0" x2="${w}" y2="${h}" shaper:cutDepth="${fullDepth}" />`,
-			);
-
-			segments.push(
-				`<g transform="${transform}">\n${pieceLines
-					.map((l) => `  ${l}`)
-					.join("\n")}\n</g>`,
-			);
-		});
-
-		cuts.forEach((cut) => {
-			segments.push(
-				`<line x1="${cut.x1}" y1="${cut.y1}" x2="${cut.x2}" y2="${cut.y2}" shaper:cutDepth="${cutDepth.toFixed(
-					3,
-				)}mm" />`,
-			);
-		});
-
-		return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${viewBoxWidth} ${viewBoxHeight}" shaper:cutDepthUnit="mm">\n${segments.join(
-			"\n",
-		)}\n</svg>`;
-	};
-
 	const downloadSVG = () => {
-		const svg = generateSVG(activeGroup);
+		const svg = generateGroupSVG({
+			group: activeGroup,
+			designStrips,
+			bitSize,
+			stockLength,
+		});
 		if (!svg) return;
 		const blob = new Blob([svg], { type: "image/svg+xml" });
 		const url = URL.createObjectURL(blob);
@@ -641,6 +648,108 @@ function App() {
 		URL.revokeObjectURL(url);
 	};
 
+	const downloadAllGroupsSVG = () => {
+		for (const group of groups.values()) {
+			const svg = generateGroupSVG({
+				group,
+				designStrips,
+				bitSize,
+				stockLength,
+			});
+			if (!svg) continue;
+
+			const blob = new Blob([svg], { type: "image/svg+xml" });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `${group.name || "kumiko-group"}.svg`;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			URL.revokeObjectURL(url);
+		}
+	};
+	// Export current design to JSON file
+	const handleExportJSON = () => {
+		const payload: SavedDesignPayload = {
+			version: 1 as const,
+			units,
+			bitSize,
+			cutDepth,
+			halfCutDepth,
+			// Derived legacy stripLength for backwards compatibility: treat as a wide grid
+			stripLength: gridCellSize * LEGACY_GRID_COLUMNS,
+			stockLength,
+			gridCellSize,
+			gridSize: LEGACY_GRID_COLUMNS,
+			gridSizeX: LEGACY_GRID_COLUMNS,
+			gridSizeY: LEGACY_GRID_COLUMNS,
+			lines: Array.from(lines.values()),
+			groups: Array.from(groups.values()).map((g) => ({
+				id: g.id,
+				name: g.name,
+				pieces: Array.from(g.pieces.values()),
+				fullCuts: Array.from(g.fullCuts.values()),
+			})),
+			activeGroupId,
+			designName: designName || undefined,
+			intersectionStates: Array.from(intersectionStates.entries()),
+		};
+
+		const jsonString = JSON.stringify(payload, null, 2);
+		const blob = new Blob([jsonString], { type: "application/json" });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = `${designName || "kumiko-design"}.json`;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+	};
+
+	// Import design from JSON file
+	const handleImportJSON = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (!file) return;
+
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			try {
+				const content = e.target?.result as string;
+				const parsed = JSON.parse(content) as SavedDesignPayload;
+				
+				if (parsed.version !== 1) {
+					alert("Invalid file format or version.");
+					return;
+				}
+
+				if (!parsed.lines || !parsed.groups) {
+					alert("Invalid design file: missing required data.");
+					return;
+				}
+
+				// Confirm before overwriting current design
+				if (lines.size > 0 || groups.size > 0) {
+					if (!window.confirm("Import this design? Your current work will be replaced.")) {
+						return;
+					}
+				}
+
+				applyLoadedDesign(parsed);
+				alert(`Design "${parsed.designName || "Untitled"}" imported successfully!`);
+			} catch (error) {
+				console.error("Failed to import design:", error);
+				alert("Failed to import design. Please check the file format.");
+			}
+		};
+		reader.readAsText(file);
+		
+		// Reset the input so the same file can be imported again
+		event.target.value = "";
+	};
+
+
 
 
 	const displayUnit = units;
@@ -649,94 +758,20 @@ function App() {
 		<div className="flex flex-col md:flex-row h-screen bg-gray-900 text-gray-100 font-sans">
 			{/* Main content */}
 			<main className="flex-1 flex flex-col overflow-hidden">
-				{/* Header */}
-				<header className="flex-shrink-0 bg-gray-800 p-3 flex justify-between items-center shadow-md z-10">
-					<div className="flex items-center space-x-2">
-						<Settings className="w-4 h-4 text-indigo-400" />
-						<h1 className="text-sm font-semibold tracking-wide text-gray-100">
-							Kumiko Grid & Layout Designer
-						</h1>
-					</div>
-					<div className="flex items-center space-x-3">
-						<input
-							type="text"
-							value={designName}
-							onChange={(e) => setDesignName(e.target.value)}
-							placeholder="Design name"
-							className="px-2 py-1 text-[10px] rounded bg-gray-900 text-gray-200 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-						/>
-						<button
-							type="button"
-							onClick={handleSaveAs}
-							className="inline-flex items-center px-2 py-1 text-[10px] rounded bg-indigo-600 text-white hover:bg-indigo-500"
-						>
-							Save As
-						</button>
-						<button
-							type="button"
-							onClick={openLoadDialog}
-							className="inline-flex items-center px-2 py-1 text-[10px] rounded bg-gray-700 text-gray-200 hover:bg-gray-600"
-						>
-							Load
-						</button>
-						<button
-							type="button"
-							onClick={() => setStep("design")}
-							className={`inline-flex items-center px-2 py-1 text-xs rounded ${
-								step === "design"
-									? "bg-indigo-600 text-white"
-									: "bg-gray-700 text-gray-300"
-							}`}
-						>
-							<Grid className="w-3 h-3 mr-1" />
-							Design Grid
-						</button>
-						<button
-							type="button"
-							onClick={() => setStep("layout")}
-							className={`inline-flex items-center px-2 py-1 text-xs rounded ${
-								step === "layout"
-									? "bg-indigo-600 text-white"
-									: "bg-gray-700 text-gray-300"
-							}`}
-						>
-							<Layout className="w-3 h-3 mr-1" />
-							Layout Strips
-						</button>
-						<button
-							type="button"
-							onClick={handleClear}
-							className="inline-flex items-center px-2 py-1 text-xs rounded bg-gray-900 text-gray-300 border border-gray-700 hover:bg-red-600 hover:text-white hover:border-red-500"
-						>
-							Clear Saved
-						</button>
-					</div>
-				</header>
+				<KumikoHeader
+					designName={designName}
+					step={step}
+					onStepChange={setStep}
+					onDesignNameChange={setDesignName}
+					onSaveAs={handleSaveAs}
+					onOpenLoadDialog={openLoadDialog}
+					onOpenTemplateDialog={openTemplateDialog}
+					onExportJSON={handleExportJSON}
+					onImportJSON={handleImportJSON}
+					onClear={handleClear}
+				/>
 
-				{/* Step indicator */}
-				<div className="flex-shrink-0 bg-gray-900 px-4 py-2 border-b border-gray-800 text-[10px] text-gray-400 flex items-center gap-2">
-					<span
-						className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${
-							step === "design"
-								? "bg-indigo-600/20 text-indigo-300 border border-indigo-500/40"
-								: "bg-gray-800 text-gray-400 border border-gray-700"
-						}`}
-					>
-						<span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-						Grid design
-					</span>
-					<ArrowRight className="w-3 h-3 text-gray-600" />
-					<span
-						className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${
-							step === "layout"
-								? "bg-indigo-600/20 text-indigo-300 border border-indigo-500/40"
-								: "bg-gray-800 text-gray-400 border border-gray-700"
-						}`}
-					>
-						<span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-						Strip layout
-					</span>
-				</div>
+
 
 				{/* Main workspace */}
 				{step === "design" && (
@@ -747,9 +782,13 @@ function App() {
 						onGridClick={handleGridClick}
 						onCreateLine={handleCreateLine}
 						onToggleIntersection={toggleIntersection}
+						onDragUpdate={handleDragUpdate}
+						isDeleting={isDeleting}
 						bitSize={bitSize}
-						stripLength={stripLength}
-						gridSize={gridSize}
+						gridCellSize={gridCellSize}
+						hoveredStripId={hoveredStripId}
+						viewState={gridViewState}
+						onViewStateChange={setGridViewState}
 					/>
 				)}
 
@@ -764,137 +803,62 @@ function App() {
 						deleteGroup={deleteGroup}
 						selectedPieceId={selectedPieceId}
 						setSelectedPieceId={setSelectedPieceId}
-						layoutTool={layoutTool}
-						setLayoutTool={setLayoutTool}
-						nextRotation={nextRotation}
-						setNextRotation={setNextRotation}
 						onLayoutClick={handleLayoutClick}
-						layoutCutStart={layoutCutStart}
-						stripLength={stripLength}
+						stockLength={stockLength}
 						bitSize={bitSize}
 						halfCutDepth={halfCutDepth}
 						cutDepth={cutDepth}
 						onDownload={downloadSVG}
+						onDownloadAllGroups={downloadAllGroupsSVG}
 						onDeleteLayoutItem={deleteLayoutItem}
+						onHoverStrip={setHoveredStripId}
+						layoutRows={layoutRows}
+						displayUnit={displayUnit}
 					/>
 				)}
 
-				{/* Simple inline "modal" for Load dialog */}
+				{/* Load dialog */}
 				{showLoadDialog && (
-					<div className="absolute inset-0 bg-black/40 flex items-center justify-center z-20">
-						<div className="bg-gray-900 border border-gray-700 rounded-md p-4 w-80 space-y-3">
-							<div className="flex items-center justify-between">
-								<h2 className="text-xs font-semibold text-gray-200">
-									Load saved design
-								</h2>
-								<button
-									type="button"
-									onClick={() => setShowLoadDialog(false)}
-									className="text-gray-500 hover:text-gray-300 text-xs"
-								>
-									✕
-								</button>
-							</div>
-							{namedDesigns.length === 0 ? (
-								<p className="text-[10px] text-gray-400">
-									No named designs saved in this browser yet.
-								</p>
-							) : (
-								<ul className="space-y-1 max-h-52 overflow-y-auto text-[10px]">
-									{namedDesigns.map((d) => (
-										<li
-											key={d.name}
-											className="flex items-center justify-between gap-2 bg-gray-800/80 px-2 py-1 rounded"
-										>
-											<div className="flex flex-col">
-												<span className="text-gray-100">{d.name}</span>
-												<span className="text-[8px] text-gray-500">
-													{new Date(d.savedAt).toLocaleString()}
-												</span>
-											</div>
-											<div className="flex items-center gap-1">
-												<button
-													type="button"
-													onClick={() => handleLoadNamed(d.name)}
-													className="px-1.5 py-0.5 rounded bg-indigo-600 text-[8px] text-white hover:bg-indigo-500"
-												>
-													Load
-												</button>
-												<button
-													type="button"
-													onClick={() => handleDeleteNamed(d.name)}
-													className="px-1.5 py-0.5 rounded bg-gray-700 text-[8px] text-red-300 hover:bg-red-600 hover:text-white"
-												>
-													Delete
-												</button>
-											</div>
-										</li>
-									))}
-								</ul>
-							)}
-						</div>
-					</div>
+					<KumikoLoadDialog
+						namedDesigns={namedDesigns}
+						onClose={() => setShowLoadDialog(false)}
+						onLoadNamed={handleLoadNamed}
+						onDeleteNamed={handleDeleteNamed}
+					/>
+				)}
+
+				{/* Template dialog */}
+				{showTemplateDialog && (
+					<KumikoTemplateDialog
+						onClose={() => setShowTemplateDialog(false)}
+						onLoadTemplate={handleLoadTemplate}
+					/>
 				)}
 			</main>
 
 			{/* Sidebar */}
-			<aside className="w-full md:w-80 lg:w-96 flex-shrink-0 bg-gray-800 border-t md:border-t-0 md:border-l border-gray-700 p-4 overflow-y-auto">
-				<div className="flex items-center justify-between mb-4">
-					<h2 className="text-xs font-semibold text-gray-300 uppercase tracking-wide">
-						Parameters
-					</h2>
-					<button
-						type="button"
-						onClick={toggleUnits}
-						className="px-2 py-1 text-[10px] rounded bg-gray-900 text-gray-300 border border-gray-700 hover:bg-gray-700"
-					>
-						Units: {displayUnit.toUpperCase()}
-					</button>
-				</div>
-
-				<div className="space-y-4">
-					<ParamInput
-						label="Bit Size"
-						id="bitSize"
-						mmValue={bitSize}
-						onChange={handleParamChange(setBitSize)}
-						displayUnit={displayUnit}
-					/>
-					<ParamInput
-						label="Cut Depth"
-						id="cutDepth"
-						mmValue={cutDepth}
-						onChange={handleParamChange(setCutDepth)}
-						displayUnit={displayUnit}
-					/>
-					<ParamInput
-						label="Half Cut Depth"
-						id="halfCutDepth"
-						mmValue={halfCutDepth}
-						onChange={handleHalfCutParamChange(setHalfCutDepth)}
-						displayUnit={displayUnit}
-					/>
-					<ParamInput
-						label="Strip Length"
-						id="stripLength"
-						mmValue={stripLength}
-						onChange={handleParamChange(setStripLength)}
-						displayUnit={displayUnit}
-					/>
-					<SimpleParamInput
-						label="Grid Size"
-						id="gridSize"
-						value={gridSize}
-						onChange={(e) =>
-							setGridSize(
-								Number.isFinite(parseInt(e.target.value, 10))
-									? parseInt(e.target.value, 10)
-									: gridSize,
-							)
-						}
-					/>
-				</div>
-			</aside>
+			<KumikoSidebarParams
+				displayUnit={displayUnit}
+				onToggleUnits={toggleUnits}
+				bitSize={bitSize}
+				cutDepth={cutDepth}
+				halfCutDepth={halfCutDepth}
+				gridCellSize={gridCellSize}
+				stockLength={stockLength}
+				layoutRows={layoutRows}
+				onBitSizeChange={handleParamChange(setBitSize)}
+				onCutDepthChange={handleParamChange(setCutDepth)}
+				onHalfCutDepthChange={handleHalfCutParamChange(setHalfCutDepth)}
+				onGridCellSizeChange={handleParamChange(setGridCellSize)}
+				onStockLengthChange={handleParamChange(setStockLength)}
+				onLayoutRowsChange={(e) =>
+					setLayoutRows(
+						Number.isFinite(parseInt(e.target.value, 10))
+							? parseInt(e.target.value, 10)
+							: layoutRows,
+					)
+				}
+			/>
 		</div>
 	);
 }

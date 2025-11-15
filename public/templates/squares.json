@@ -1,0 +1,605 @@
+{
+  "version": 1,
+  "units": "mm",
+  "bitSize": 3.175,
+  "cutDepth": 19,
+  "halfCutDepth": 9.5,
+  "stripLength": 330,
+  "stockLength": 600,
+  "gridCellSize": 7.5,
+  "lines": [
+    {
+      "id": "id_b0ke2hdo6",
+      "x1": 202,
+      "y1": 201,
+      "x2": 202,
+      "y2": 237
+    },
+    {
+      "id": "id_2hv8tjyrv",
+      "x1": 204,
+      "y1": 201,
+      "x2": 204,
+      "y2": 237
+    },
+    {
+      "id": "id_0z80cq8bu",
+      "x1": 200,
+      "y1": 205,
+      "x2": 222,
+      "y2": 205
+    },
+    {
+      "id": "id_0p83wsrq4",
+      "x1": 201,
+      "y1": 207,
+      "x2": 209,
+      "y2": 207
+    },
+    {
+      "id": "id_hmo1o9q09",
+      "x1": 205,
+      "y1": 209,
+      "x2": 217,
+      "y2": 209
+    },
+    {
+      "id": "id_pp9qc8yiq",
+      "x1": 213,
+      "y1": 207,
+      "x2": 221,
+      "y2": 207
+    },
+    {
+      "id": "id_fp2dw4mq7",
+      "x1": 216,
+      "y1": 202,
+      "x2": 216,
+      "y2": 210
+    },
+    {
+      "id": "id_mcqpo5194",
+      "x1": 218,
+      "y1": 201,
+      "x2": 218,
+      "y2": 237
+    },
+    {
+      "id": "id_lg4ufg1uu",
+      "x1": 220,
+      "y1": 201,
+      "x2": 220,
+      "y2": 237
+    },
+    {
+      "id": "id_4677rgqcx",
+      "x1": 206,
+      "y1": 202,
+      "x2": 206,
+      "y2": 210
+    },
+    {
+      "id": "id_ndijla71l",
+      "x1": 200,
+      "y1": 203,
+      "x2": 222,
+      "y2": 203
+    },
+    {
+      "id": "id_0aw2jwqv2",
+      "x1": 205,
+      "y1": 215,
+      "x2": 217,
+      "y2": 215
+    },
+    {
+      "id": "id_r4lrl7t07",
+      "x1": 208,
+      "y1": 206,
+      "x2": 208,
+      "y2": 218
+    },
+    {
+      "id": "id_iy9q06yj0",
+      "x1": 214,
+      "y1": 206,
+      "x2": 214,
+      "y2": 218
+    },
+    {
+      "id": "id_p8ussegp6",
+      "x1": 205,
+      "y1": 223,
+      "x2": 217,
+      "y2": 223
+    },
+    {
+      "id": "id_4clis3m0l",
+      "x1": 206,
+      "y1": 214,
+      "x2": 206,
+      "y2": 224
+    },
+    {
+      "id": "id_ptlsigqb8",
+      "x1": 216,
+      "y1": 214,
+      "x2": 216,
+      "y2": 224
+    },
+    {
+      "id": "id_c4eci9a3y",
+      "x1": 208,
+      "y1": 220,
+      "x2": 208,
+      "y2": 232
+    },
+    {
+      "id": "id_hhx1v45cf",
+      "x1": 214,
+      "y1": 220,
+      "x2": 214,
+      "y2": 232
+    },
+    {
+      "id": "id_2pgl18urf",
+      "x1": 205,
+      "y1": 229,
+      "x2": 217,
+      "y2": 229
+    },
+    {
+      "id": "id_2mc03j4s2",
+      "x1": 206,
+      "y1": 228,
+      "x2": 206,
+      "y2": 237
+    },
+    {
+      "id": "id_d9m4ck75l",
+      "x1": 216,
+      "y1": 228,
+      "x2": 216,
+      "y2": 237
+    },
+    {
+      "id": "id_ubzxt8nj8",
+      "x1": 200,
+      "y1": 233,
+      "x2": 222,
+      "y2": 233
+    },
+    {
+      "id": "id_wdwjd8qoh",
+      "x1": 200,
+      "y1": 219,
+      "x2": 222,
+      "y2": 219
+    },
+    {
+      "id": "id_f60x4te9a",
+      "x1": 200,
+      "y1": 235,
+      "x2": 222,
+      "y2": 235
+    },
+    {
+      "id": "id_z784rgfjk",
+      "x1": 201,
+      "y1": 231,
+      "x2": 209,
+      "y2": 231
+    },
+    {
+      "id": "id_x87go6jxe",
+      "x1": 213,
+      "y1": 231,
+      "x2": 221,
+      "y2": 231
+    },
+    {
+      "id": "id_xjehvtruf",
+      "x1": 213,
+      "y1": 217,
+      "x2": 221,
+      "y2": 217
+    },
+    {
+      "id": "id_74ymxmeh3",
+      "x1": 201,
+      "y1": 217,
+      "x2": 209,
+      "y2": 217
+    },
+    {
+      "id": "id_wm2wh84o5",
+      "x1": 209,
+      "y1": 221,
+      "x2": 201,
+      "y2": 221
+    },
+    {
+      "id": "id_c62zckyko",
+      "x1": 213,
+      "y1": 221,
+      "x2": 221,
+      "y2": 221
+    }
+  ],
+  "groups": [
+    {
+      "id": "group1",
+      "name": "Long |",
+      "pieces": [
+        {
+          "id": "id_ca366pbv1",
+          "lineId": "id_b0ke2hdo6",
+          "x": 0,
+          "y": 0,
+          "rotation": 0
+        },
+        {
+          "id": "id_cvlmo8gah",
+          "lineId": "id_b0ke2hdo6",
+          "x": 0,
+          "y": 20,
+          "rotation": 1
+        },
+        {
+          "id": "id_8srooxix9",
+          "lineId": "id_24zw2hyza",
+          "x": 240,
+          "y": 100,
+          "rotation": 5
+        },
+        {
+          "id": "id_2n1fzgkpm",
+          "lineId": "id_24zw2hyza",
+          "x": 420,
+          "y": 100,
+          "rotation": 5
+        },
+        {
+          "id": "id_1pir86erp",
+          "lineId": "id_2hv8tjyrv",
+          "x": 0,
+          "y": 40,
+          "rotation": 2
+        },
+        {
+          "id": "id_ehab4jz0z",
+          "lineId": "id_2hv8tjyrv",
+          "x": 0,
+          "y": 60,
+          "rotation": 3
+        }
+      ],
+      "fullCuts": []
+    },
+    {
+      "id": "id_uqo99gceg",
+      "name": "Long -",
+      "pieces": [
+        {
+          "id": "id_78nv7doh0",
+          "lineId": "id_0z80cq8bu",
+          "x": 0,
+          "y": 0,
+          "rotation": 0
+        },
+        {
+          "id": "id_bes0ly8gj",
+          "lineId": "id_0z80cq8bu",
+          "x": 0,
+          "y": 20,
+          "rotation": 1
+        },
+        {
+          "id": "id_ba6kad9q3",
+          "lineId": "id_0z80cq8bu",
+          "x": 0,
+          "y": 40,
+          "rotation": 2
+        },
+        {
+          "id": "id_t89663580",
+          "lineId": "id_0z80cq8bu",
+          "x": 0,
+          "y": 60,
+          "rotation": 3
+        },
+        {
+          "id": "id_7j0oyoxwi",
+          "lineId": "id_0z80cq8bu",
+          "x": 0,
+          "y": 80,
+          "rotation": 4
+        }
+      ],
+      "fullCuts": []
+    },
+    {
+      "id": "id_0twjyjrpt",
+      "name": "Group 3",
+      "pieces": [
+        {
+          "id": "id_qj5oyk9hk",
+          "lineId": "id_hmo1o9q09",
+          "x": 0,
+          "y": 0,
+          "rotation": 0
+        },
+        {
+          "id": "id_yki8kduwj",
+          "lineId": "id_hmo1o9q09",
+          "x": 244.625,
+          "y": 0,
+          "rotation": 0
+        },
+        {
+          "id": "id_d697fucsk",
+          "lineId": "id_hmo1o9q09",
+          "x": 489.25,
+          "y": 0,
+          "rotation": 0
+        },
+        {
+          "id": "id_gbrgb7fr1",
+          "lineId": "id_hmo1o9q09",
+          "x": 0,
+          "y": 20,
+          "rotation": 1
+        },
+        {
+          "id": "id_4ceru9f4y",
+          "lineId": "id_hmo1o9q09",
+          "x": 244.625,
+          "y": 20,
+          "rotation": 1
+        },
+        {
+          "id": "id_uzo8vp04o",
+          "lineId": "id_hmo1o9q09",
+          "x": 0,
+          "y": 40,
+          "rotation": 2
+        },
+        {
+          "id": "id_oewdonnxd",
+          "lineId": "id_hmo1o9q09",
+          "x": 244.625,
+          "y": 40,
+          "rotation": 2
+        },
+        {
+          "id": "id_efclrc28l",
+          "lineId": "id_hmo1o9q09",
+          "x": 489.25,
+          "y": 20,
+          "rotation": 1
+        },
+        {
+          "id": "id_v9bfcds93",
+          "lineId": "id_hmo1o9q09",
+          "x": 489.25,
+          "y": 40,
+          "rotation": 2
+        }
+      ],
+      "fullCuts": []
+    },
+    {
+      "id": "id_ejchz9amr",
+      "name": "Group 4",
+      "pieces": [
+        {
+          "id": "id_l4cls8guj",
+          "lineId": "id_4clis3m0l",
+          "x": 0,
+          "y": 0,
+          "rotation": 0
+        },
+        {
+          "id": "id_m92q53pnj",
+          "lineId": "id_4clis3m0l",
+          "x": 0,
+          "y": 20,
+          "rotation": 1
+        },
+        {
+          "id": "id_gjmu3bfzd",
+          "lineId": "id_ptlsigqb8",
+          "x": 0,
+          "y": 40,
+          "rotation": 2
+        },
+        {
+          "id": "id_tbazn5mb0",
+          "lineId": "id_ptlsigqb8",
+          "x": 0,
+          "y": 60,
+          "rotation": 3
+        },
+        {
+          "id": "id_abyg8f2pe",
+          "lineId": "id_0p83wsrq4",
+          "x": 204.375,
+          "y": 0,
+          "rotation": 0
+        },
+        {
+          "id": "id_llqmqceye",
+          "lineId": "id_0p83wsrq4",
+          "x": 204.375,
+          "y": 20,
+          "rotation": 1
+        },
+        {
+          "id": "id_2zdootz1s",
+          "lineId": "id_0p83wsrq4",
+          "x": 204.375,
+          "y": 40,
+          "rotation": 2
+        },
+        {
+          "id": "id_1linisnx5",
+          "lineId": "id_0p83wsrq4",
+          "x": 204.375,
+          "y": 60,
+          "rotation": 3
+        },
+        {
+          "id": "id_7sbba77ja",
+          "lineId": "id_2mc03j4s2",
+          "x": 399.52500000000003,
+          "y": 0,
+          "rotation": 0
+        },
+        {
+          "id": "id_crjhcbhns",
+          "lineId": "id_2mc03j4s2",
+          "x": 399.52500000000003,
+          "y": 20,
+          "rotation": 1
+        },
+        {
+          "id": "id_u1tmavuqc",
+          "lineId": "id_2mc03j4s2",
+          "x": 399.52500000000003,
+          "y": 40,
+          "rotation": 2
+        },
+        {
+          "id": "id_l1dneijob",
+          "lineId": "id_2mc03j4s2",
+          "x": 399.52500000000003,
+          "y": 60,
+          "rotation": 3
+        }
+      ],
+      "fullCuts": []
+    },
+    {
+      "id": "id_f90y10xac",
+      "name": "Group 5",
+      "pieces": [
+        {
+          "id": "id_2e2b7cwuj",
+          "lineId": "id_8hlctjbpf",
+          "x": 0,
+          "y": 0,
+          "rotation": 0
+        },
+        {
+          "id": "id_4pg3bxnaf",
+          "lineId": "id_8hlctjbpf",
+          "x": 0,
+          "y": 20,
+          "rotation": 1
+        },
+        {
+          "id": "id_1w2drgcnx",
+          "lineId": "id_8hlctjbpf",
+          "x": 0,
+          "y": 40,
+          "rotation": 2
+        },
+        {
+          "id": "id_pw9sepbak",
+          "lineId": "id_8hlctjbpf",
+          "x": 0,
+          "y": 60,
+          "rotation": 3
+        },
+        {
+          "id": "id_09wa6k4zc",
+          "lineId": "id_8hlctjbpf",
+          "x": 184.25,
+          "y": 0,
+          "rotation": 0
+        },
+        {
+          "id": "id_w1vrxtzee",
+          "lineId": "id_8hlctjbpf",
+          "x": 184.25,
+          "y": 20,
+          "rotation": 1
+        },
+        {
+          "id": "id_l5d3s9a2w",
+          "lineId": "id_8hlctjbpf",
+          "x": 184.25,
+          "y": 40,
+          "rotation": 2
+        },
+        {
+          "id": "id_bkk0kqoig",
+          "lineId": "id_8hlctjbpf",
+          "x": 184.25,
+          "y": 60,
+          "rotation": 3
+        },
+        {
+          "id": "id_3jum266k8",
+          "lineId": "id_0p83wsrq4",
+          "x": 0,
+          "y": 0,
+          "rotation": 0
+        },
+        {
+          "id": "id_cn9b7yjnk",
+          "lineId": "id_0p83wsrq4",
+          "x": 123.175,
+          "y": 0,
+          "rotation": 0
+        },
+        {
+          "id": "id_g3kj0eape",
+          "lineId": "id_2mc03j4s2",
+          "x": 369.52500000000003,
+          "y": 0,
+          "rotation": 0
+        },
+        {
+          "id": "id_e0e58rf4e",
+          "lineId": "id_pp9qc8yiq",
+          "x": 0,
+          "y": 20,
+          "rotation": 1
+        },
+        {
+          "id": "id_4iwt2oy4l",
+          "lineId": "id_pp9qc8yiq",
+          "x": 123.175,
+          "y": 20,
+          "rotation": 1
+        },
+        {
+          "id": "id_xprzletn4",
+          "lineId": "id_d9m4ck75l",
+          "x": 246.35000000000002,
+          "y": 20,
+          "rotation": 1
+        },
+        {
+          "id": "id_3bzbl1sfv",
+          "lineId": "id_fp2dw4mq7",
+          "x": 384.52500000000003,
+          "y": 0,
+          "rotation": 0
+        },
+        {
+          "id": "id_3911jt6k6",
+          "lineId": "id_fp2dw4mq7",
+          "x": 384.52500000000003,
+          "y": 20,
+          "rotation": 1
+        }
+      ],
+      "fullCuts": []
+    }
+  ],
+  "activeGroupId": "id_0twjyjrpt",
+  "designName": "squares",
+  "intersectionStates": []
+}
