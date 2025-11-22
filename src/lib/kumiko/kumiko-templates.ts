@@ -14,6 +14,12 @@ export const TEMPLATES: TemplateInfo[] = [
 		description: "Geometric pattern featuring square shapes",
 		path: "/templates/squares.json",
 	},
+	{
+		id: "temlate-1",
+		name: "Template 1",
+		description: "Template design 1",
+		path: "/templates/temlate-1.json",
+	},
 ];
 
 /**
