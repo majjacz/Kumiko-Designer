@@ -19,6 +19,12 @@ export const TEMPLATES: TemplateInfo[] = [
 		name: "Template 1",
 		description: "Template design 1",
 		path: "/templates/temlate-1.json",
+	},	
+	{
+		id: "complex",
+		name: "Complex",
+		description: "Complex",
+		path: "/templates/complex.json",
 	},
 ];
 
