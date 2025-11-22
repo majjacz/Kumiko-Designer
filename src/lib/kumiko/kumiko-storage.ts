@@ -15,32 +15,14 @@ export interface SavedDesignPayload {
 	cutDepth: number;
 	halfCutDepth: number;
 	/**
-	 * Legacy overall strip length in mm.
-	 * Kept for backwards compatibility; new designs should use `gridCellSize`
-	 * together with `gridSizeX`/`gridSizeY` to derive total extents.
-	 */
-	stripLength: number;
-	stockLength?: number;
-	/**
 	 * Physical size of a single grid cell in mm (design scale).
-	 * New designs should always populate this; older payloads may omit it.
+	 * All persisted designs must provide this.
 	 */
-	gridCellSize?: number;
+	gridCellSize: number;
 	/**
-	 * Legacy square grid size (kept for backwards compatibility with older saves/templates).
-	 * In new designs, this should typically mirror gridSizeX.
+	 * Physical board/stock length in mm used in layout and SVG export.
 	 */
-	gridSize: number;
-	/**
-	 * Independent grid resolution along the X axis (columns).
-	 * When omitted (older payloads), the app falls back to `gridSize`.
-	 */
-	gridSizeX?: number;
-	/**
-	 * Independent grid resolution along the Y axis (rows).
-	 * When omitted (older payloads), the app falls back to `gridSize`.
-	 */
-	gridSizeY?: number;
+	stockLength: number;
 
 	// design
 	lines: {
@@ -106,12 +88,17 @@ export function loadDesign(): SavedDesignPayload | null {
 
 	try {
 		const raw = window.localStorage.getItem(STORAGE_KEY);
-		if (!raw) return null;
+		if (!raw) {
+			console.log("[kumiko-storage] No saved design found in localStorage");
+			return null;
+		}
 
 		const parsed = JSON.parse(raw) as SavedDesignPayload;
 		if (parsed.version !== 1) return null;
 
 		if (!parsed.lines || !parsed.groups) return null;
+		if (typeof parsed.gridCellSize !== "number") return null;
+		if (typeof parsed.stockLength !== "number") return null;
 
 		return parsed;
 	} catch (error) {
@@ -154,7 +141,9 @@ export function listNamedDesigns(): NamedDesignSummary[] {
 		if (!raw) return [];
 		const parsed = JSON.parse(raw) as NamedDesignSummary[];
 		if (!Array.isArray(parsed)) return [];
-		return parsed.filter((d) => typeof d.name === "string" && typeof d.savedAt === "string");
+		return parsed.filter(
+			(d) => typeof d.name === "string" && typeof d.savedAt === "string",
+		);
 	} catch (error) {
 		// eslint-disable-next-line no-console
 		console.error("[kumiko-storage] Failed to list named designs", error);
@@ -179,7 +168,10 @@ function saveNamedIndex(index: NamedDesignSummary[]): void {
  * Save a full design payload under the given name.
  * Overwrites existing entry of the same name.
  */
-export function saveNamedDesign(name: string, payload: SavedDesignPayload): void {
+export function saveNamedDesign(
+	name: string,
+	payload: SavedDesignPayload,
+): void {
 	if (!isBrowser) return;
 	if (!name.trim()) return;
 
@@ -229,6 +221,8 @@ export function loadNamedDesign(name: string): SavedDesignPayload | null {
 		const parsed = JSON.parse(raw) as SavedDesignPayload;
 		if (parsed.version !== 1) return null;
 		if (!parsed.lines || !parsed.groups) return null;
+		if (typeof parsed.gridCellSize !== "number") return null;
+		if (typeof parsed.stockLength !== "number") return null;
 		return parsed;
 	} catch (error) {
 		// eslint-disable-next-line no-console

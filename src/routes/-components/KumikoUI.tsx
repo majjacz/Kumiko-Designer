@@ -1,6 +1,7 @@
-import React from "react";
-import { Grid, Layout, Settings, Upload, Download } from "lucide-react";
-import { ParamInput, SimpleParamInput } from "../../lib/kumiko/kumiko-params";
+import { Download, Grid, Layout, Settings, Upload } from "lucide-react";
+import type React from "react";
+import { useId } from "react";
+import { ParamInput } from "../../lib/kumiko/kumiko-params";
 import { TEMPLATES } from "../../lib/kumiko/kumiko-templates";
 
 export type AppStep = "design" | "layout";
@@ -214,9 +215,7 @@ export function KumikoTemplateDialog({
 		<div className="absolute inset-0 bg-black/40 flex items-center justify-center z-20">
 			<div className="bg-gray-900 border border-gray-700 rounded-md p-4 w-80 space-y-3">
 				<div className="flex items-center justify-between">
-					<h2 className="text-xs font-semibold text-gray-200">
-						Load Template
-					</h2>
+					<h2 className="text-xs font-semibold text-gray-200">Load Template</h2>
 					<button
 						type="button"
 						onClick={onClose}
@@ -226,9 +225,7 @@ export function KumikoTemplateDialog({
 					</button>
 				</div>
 				{TEMPLATES.length === 0 ? (
-					<p className="text-[10px] text-gray-400">
-						No templates available.
-					</p>
+					<p className="text-[10px] text-gray-400">No templates available.</p>
 				) : (
 					<ul className="space-y-1 max-h-52 overflow-y-auto text-[10px]">
 						{TEMPLATES.map((template) => (
@@ -268,13 +265,11 @@ export interface KumikoSidebarParamsProps {
 	halfCutDepth: number;
 	gridCellSize: number;
 	stockLength: number;
-	layoutRows: number;
-	onBitSizeChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-	onCutDepthChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-	onHalfCutDepthChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-	onGridCellSizeChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-	onStockLengthChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-	onLayoutRowsChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+	onBitSizeChange: (mmValue: number) => void;
+	onCutDepthChange: (mmValue: number) => void;
+	onHalfCutDepthChange: (mmValue: number) => void;
+	onGridCellSizeChange: (mmValue: number) => void;
+	onStockLengthChange: (mmValue: number) => void;
 }
 
 export function KumikoSidebarParams({
@@ -285,14 +280,18 @@ export function KumikoSidebarParams({
 	halfCutDepth,
 	gridCellSize,
 	stockLength,
-	layoutRows,
 	onBitSizeChange,
 	onCutDepthChange,
 	onHalfCutDepthChange,
 	onGridCellSizeChange,
 	onStockLengthChange,
-	onLayoutRowsChange,
 }: KumikoSidebarParamsProps) {
+	const bitSizeId = useId();
+	const cutDepthId = useId();
+	const halfCutDepthId = useId();
+	const gridCellSizeId = useId();
+	const stockLengthId = useId();
+
 	return (
 		<aside className="w-full md:w-80 lg:w-50 flex-shrink-0 bg-gray-800 border-t md:border-t-0 md:border-l border-gray-700 p-4 overflow-y-auto">
 			<div className="flex items-center justify-between mb-4">
@@ -311,7 +310,7 @@ export function KumikoSidebarParams({
 			<div className="space-y-4">
 				<ParamInput
 					label="Bit Size"
-					id="bitSize"
+					id={bitSizeId}
 					mmValue={bitSize}
 					onChange={onBitSizeChange}
 					displayUnit={displayUnit}
@@ -319,37 +318,31 @@ export function KumikoSidebarParams({
 				/>
 				<ParamInput
 					label="Cut Depth"
-					id="cutDepth"
+					id={cutDepthId}
 					mmValue={cutDepth}
 					onChange={onCutDepthChange}
 					displayUnit={displayUnit}
 				/>
 				<ParamInput
 					label="Half Cut Depth"
-					id="halfCutDepth"
+					id={halfCutDepthId}
 					mmValue={halfCutDepth}
 					onChange={onHalfCutDepthChange}
 					displayUnit={displayUnit}
 				/>
 				<ParamInput
 					label="Grid Cell Size"
-					id="gridCellSize"
+					id={gridCellSizeId}
 					mmValue={gridCellSize}
 					onChange={onGridCellSizeChange}
 					displayUnit={displayUnit}
 				/>
 				<ParamInput
 					label="Stock Length (board max)"
-					id="stockLength"
+					id={stockLengthId}
 					mmValue={stockLength}
 					onChange={onStockLengthChange}
 					displayUnit={displayUnit}
-				/>
-				<SimpleParamInput
-					label="Layout Rows"
-					id="layoutRows"
-					value={layoutRows}
-					onChange={onLayoutRowsChange}
 				/>
 			</div>
 		</aside>

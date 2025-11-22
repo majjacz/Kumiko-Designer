@@ -55,7 +55,7 @@ export function generateGroupSVG({
 		if (!rowMap.has(rowIndex)) {
 			rowMap.set(rowIndex, []);
 		}
-		rowMap.get(rowIndex)!.push(piece);
+		rowMap.get(rowIndex)?.push(piece);
 	}
 
 	for (const [rowIndex, rowPieces] of rowMap) {
@@ -119,7 +119,7 @@ export function generateGroupSVG({
 							y1: seg.y2,
 							y2: seg.y1,
 							type: seg.type,
-					  };
+						};
 			segmentsByType[seg.type].push(normalized);
 		}
 
@@ -163,7 +163,7 @@ export function generateGroupSVG({
 		line.y2 = globalMaxY;
 	}
 
-	let minX = 0;
+	const minX = 0;
 	let maxX = 0;
 
 	for (const line of mergedLines) {
@@ -211,9 +211,9 @@ export function generateGroupSVG({
 		3,
 	)}" height="${mmToCm(boxHeightMM).toFixed(
 		3,
-	)}" fill="none" stroke="${BOUNDING_STROKE}" stroke-width="${mmToCm(0.5).toFixed(
-		3,
-	)}" />`;
+	)}" fill="none" stroke="${BOUNDING_STROKE}" stroke-width="${mmToCm(
+		0.5,
+	).toFixed(3)}" />`;
 
 	return `<?xml version="1.0" encoding="utf-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${widthCM.toFixed(
@@ -222,9 +222,7 @@ export function generateGroupSVG({
 		3,
 	)}cm" version="1.1" x="0cm" y="0cm" viewBox="0 0 ${widthCM.toFixed(
 		3,
-	)} ${heightCM.toFixed(
-		3,
-	)}" xml:space="preserve">
+	)} ${heightCM.toFixed(3)}" xml:space="preserve">
 ${boxRect}
 ${linesSvg}
 </svg>`;

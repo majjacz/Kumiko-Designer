@@ -19,7 +19,9 @@ export const TEMPLATES: TemplateInfo[] = [
 /**
  * Load a template design from the public folder
  */
-export async function loadTemplate(templateId: string): Promise<SavedDesignPayload | null> {
+export async function loadTemplate(
+	templateId: string,
+): Promise<SavedDesignPayload | null> {
 	const template = TEMPLATES.find((t) => t.id === templateId);
 	if (!template) {
 		console.error(`Template ${templateId} not found`);
@@ -27,20 +29,36 @@ export async function loadTemplate(templateId: string): Promise<SavedDesignPaylo
 	}
 
 	try {
-		const response = await fetch(template.path);
+		// Resolve template path relative to the Vite base URL so it works on GitHub Pages
+		// where the app is served from a sub-path (e.g. /USERNAME/REPO/).
+		const resolvedPath = `${import.meta.env.BASE_URL}${template.path.replace(/^\//, "")}`;
+		console.log(`[kumiko-templates] Fetching template from: ${resolvedPath}`);
+
+		const response = await fetch(resolvedPath);
 		if (!response.ok) {
 			throw new Error(`Failed to load template: ${response.statusText}`);
 		}
 
-		const data = await response.json() as SavedDesignPayload;
-		
-		// Validate the template
+		const data = (await response.json()) as SavedDesignPayload;
+		console.log(
+			`[kumiko-templates] Loaded data for ${templateId}, designName: ${data.designName}`,
+		);
+
+		// Validate the template against the current non-legacy format
 		if (data.version !== 1) {
 			throw new Error("Invalid template version");
 		}
-		
+
 		if (!data.lines || !data.groups) {
-			throw new Error("Invalid template: missing required data");
+			throw new Error("Invalid template: missing required design data");
+		}
+
+		if (typeof data.gridCellSize !== "number") {
+			throw new Error("Invalid template: missing gridCellSize");
+		}
+
+		if (typeof data.stockLength !== "number") {
+			throw new Error("Invalid template: missing stockLength");
 		}
 
 		return data;

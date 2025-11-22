@@ -27,9 +27,31 @@ export interface Notch {
 	fromTop: boolean;
 }
 
+/**
+ * DesignStrip represents a physical strip derived from a grid Line plus
+ * intersections.
+ *
+ * - `id` is a geometry-derived identifier (length + notch pattern) used as the
+ *   canonical strip ID in the layout (Piece.lineId, strip bank, export, etc.).
+ * - `sourceLineId` keeps a reference to the originating grid Line.id so the
+ *   grid UI can still label and highlight lines even though strips are
+ *   deduplicated by geometry.
+ */
 export interface DesignStrip extends Line {
 	lengthMM: number;
 	notches: Notch[];
+	/**
+	 * The originating grid Line.id this strip was derived from. This is used
+	 * for correlating strips back to particular lines in the grid UI.
+	 */
+	sourceLineId: string;
+	/**
+	 * Short, user-friendly code (e.g. 4-character base36) derived from the
+	 * strip's geometry. This is what we show in the grid and layout UIs.
+	 *
+	 * It is stable for identical geometry and independent of sourceLineId.
+	 */
+	displayCode: string;
 }
 
 export interface Piece {
