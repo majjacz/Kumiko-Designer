@@ -14,7 +14,7 @@ import {
 } from "../lib/kumiko/kumiko-design-logic";
 import type { GridViewState } from "../lib/kumiko/kumiko-storage";
 
-export function useKumikoDesign(gridCellSize: number) {
+export function useKumikoDesign(gridCellSize: number, bitSize: number) {
 	const [lines, setLines] = useState<Map<string, Line>>(new Map());
 	const [drawingLine, setDrawingLine] = useState<Point | null>(null);
 	const [isDeleting, setIsDeleting] = useState<boolean>(false);
@@ -37,8 +37,8 @@ export function useKumikoDesign(gridCellSize: number) {
 
 	// Derived design strips for layout
 	const designStrips = useMemo<DesignStrip[]>(
-		() => computeDesignStrips(lines, intersections, gridCellSize),
-		[lines, intersections, gridCellSize],
+		() => computeDesignStrips(lines, intersections, gridCellSize, bitSize),
+		[lines, intersections, gridCellSize, bitSize],
 	);
 
 	/**

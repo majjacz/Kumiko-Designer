@@ -79,7 +79,13 @@ describe("computeDesignStrips()", () => {
 		const intersections = computeIntersections(lines, intersectionStates);
 
 		const gridCellSize = 1; // 1 unit == 1 mm
-		const strips = computeDesignStrips(lines, intersections, gridCellSize);
+		const bitSize = 3.175;
+		const strips = computeDesignStrips(
+			lines,
+			intersections,
+			gridCellSize,
+			bitSize,
+		);
 
 		// both strips should be non-degenerate and present
 		expect(strips).toHaveLength(2);
@@ -122,9 +128,20 @@ describe("computeDesignStrips()", () => {
 
 		const intersections = new Map<string, Intersection>();
 		const gridCellSize = 1;
-
-		const strips1 = computeDesignStrips(lines1, intersections, gridCellSize);
-		const strips2 = computeDesignStrips(lines2, intersections, gridCellSize);
+		const bitSize = 3.175;
+	
+		const strips1 = computeDesignStrips(
+			lines1,
+			intersections,
+			gridCellSize,
+			bitSize,
+		);
+		const strips2 = computeDesignStrips(
+			lines2,
+			intersections,
+			gridCellSize,
+			bitSize,
+		);
 
 		expect(strips1).toHaveLength(1);
 		expect(strips2).toHaveLength(1);
@@ -143,8 +160,14 @@ describe("computeDesignStrips()", () => {
 
 		const intersections = new Map<string, Intersection>();
 		const gridCellSize = 1;
-
-		const strips = computeDesignStrips(lines, intersections, gridCellSize);
+		const bitSize = 3.175;
+	
+		const strips = computeDesignStrips(
+			lines,
+			intersections,
+			gridCellSize,
+			bitSize,
+		);
 
 		expect(strips).toHaveLength(0);
 	});

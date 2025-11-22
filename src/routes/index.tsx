@@ -39,6 +39,7 @@ function App() {
 	const { params, actions: paramActions } = useKumikoParams();
 	const { state: designState, actions: designActions } = useKumikoDesign(
 		params.gridCellSize,
+		params.bitSize,
 	);
 	const { state: layoutState, actions: layoutActions } = useKumikoLayout();
 
