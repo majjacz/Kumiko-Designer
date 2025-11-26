@@ -76,8 +76,9 @@ function overlapArea(
 /**
  * LineRenderer renders user-drawn lines as SVG strokes with optional labels.
  * Labels are positioned to avoid overlapping with each other and with lines.
+ * Returns strokes and labels separately for z-order control.
  */
-export function LineRenderer({
+export function useLineRenderer({
 	svgLines,
 	bitSize,
 	zoom,
@@ -104,10 +105,10 @@ export function LineRenderer({
 		}
 
 		const baseFontPx = 80;
-		const paddingXPx = 10;
-		const paddingYPx = 6;
+		const paddingXPx = 24;
+		const paddingYPx = 16;
 		const fontSize = baseFontPx / zoom;
-		const approxCharWidthPx = baseFontPx * 0.6;
+		const approxCharWidthPx = baseFontPx * 0.7;
 
 		const labelDataList: LabelData[] = [];
 
@@ -305,8 +306,7 @@ export function LineRenderer({
 						y={rectY}
 						width={rectWidth}
 						height={rectHeight}
-						fill={isHovered ? "rgba(251,191,36,0.15)" : "rgba(0,0,0,0.8)"}
-						rx={2}
+						fill={isHovered ? "rgba(120,80,20,0.95)" : "rgba(0,0,0,0.8)"}
 					/>
 					<text
 						x={labelCenterX}
@@ -337,6 +337,16 @@ export function LineRenderer({
 		cellSize,
 		onHoverLine,
 	]);
+
+	return { lineStrokes, lineLabels };
+}
+
+/**
+ * LineRenderer component that renders both strokes and labels together.
+ * Use useLineRenderer hook directly if you need separate z-order control.
+ */
+export function LineRenderer(props: LineRendererProps) {
+	const { lineStrokes, lineLabels } = useLineRenderer(props);
 
 	return (
 		<>

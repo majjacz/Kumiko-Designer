@@ -3,7 +3,7 @@ import type { Intersection, Line, Point } from "../../lib/kumiko";
 import { DragPreview } from "./DragPreview";
 import { GridBackground } from "./GridBackground";
 import { IntersectionMarker } from "./IntersectionMarker";
-import { LineRenderer, type SvgLine } from "./LineRenderer";
+import { type SvgLine, useLineRenderer } from "./LineRenderer";
 
 interface GridRendererProps {
 	lines: Map<string, Line>;
@@ -64,6 +64,20 @@ export function GridRenderer({
 			})),
 		[lines, gridToSvg],
 	);
+
+	// Get line strokes and labels separately for z-order control
+	const { lineStrokes, lineLabels } = useLineRenderer({
+		svgLines,
+		bitSize,
+		zoom,
+		cellSize,
+		hoveredStripId,
+		showLineIds,
+		showDimensions,
+		displayUnit,
+		lineLabelById,
+		onHoverLine,
+	});
 
 	// Render intersections as notch symbols
 	const intersectionElements = useMemo(
@@ -150,22 +164,14 @@ export function GridRenderer({
 			/>
 			{hoverElement}
 
-			{/* User-drawn lines */}
-			<LineRenderer
-				svgLines={svgLines}
-				bitSize={bitSize}
-				zoom={zoom}
-				cellSize={cellSize}
-				hoveredStripId={hoveredStripId}
-				showLineIds={showLineIds}
-				showDimensions={showDimensions}
-				displayUnit={displayUnit}
-				lineLabelById={lineLabelById}
-				onHoverLine={onHoverLine}
-			/>
+			{/* User-drawn lines (strokes only) */}
+			{lineStrokes}
 
 			{/* Intersection markers */}
 			{showNotchPositions && intersectionElements}
+
+			{/* Line labels on top of everything */}
+			{lineLabels}
 		</>
 	);
 }
