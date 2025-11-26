@@ -8,6 +8,7 @@ import {
 	StripBank,
 } from "../../components/kumiko/StripBank";
 import { useKumiko } from "../../context/KumikoContext";
+import type { NotificationType } from "../../lib/errors";
 import { GRID_CELL_HEIGHT, GRID_MARGIN } from "./config";
 import type { DesignStrip, Group, Piece, Point } from "./kumiko-core";
 import { generateGroupSVG } from "./kumiko-svg-export";
@@ -73,6 +74,8 @@ export interface LayoutEditorProps {
 	onDeleteLayoutItem: (type: "piece", id: string) => void;
 	onHoverStrip?: (id: string | null) => void;
 	displayUnit: "mm" | "in";
+	/** Optional callback for showing notifications to the user */
+	onNotify?: (type: NotificationType, message: string) => void;
 }
 
 export function computeKerfedLayoutRows(
@@ -166,6 +169,7 @@ export const LayoutEditor = memo(function LayoutEditor({
 	onDownloadAllGroups,
 	onDeleteLayoutItem,
 	displayUnit,
+	onNotify,
 }: LayoutEditorProps) {
 	const [_svgElement, setSvgElement] = useState<SVGSVGElement | null>(null);
 
@@ -295,6 +299,7 @@ export const LayoutEditor = memo(function LayoutEditor({
 					onLayoutClick={onLayoutClick}
 					onDeletePiece={handleDeletePiece}
 					displayUnit={displayUnit}
+					onNotify={onNotify}
 				/>
 			</div>
 
@@ -316,6 +321,7 @@ export function LayoutEditorConnected() {
 		params,
 		handleDownloadSVG,
 		handleDownloadAllGroupsSVG,
+		notify,
 	} = useKumiko();
 
 	return (
@@ -340,6 +346,7 @@ export function LayoutEditorConnected() {
 			onDeleteLayoutItem={layoutActions.deleteLayoutItem}
 			onHoverStrip={layoutActions.setHoveredStripId}
 			displayUnit={params.units}
+			onNotify={notify}
 		/>
 	);
 }

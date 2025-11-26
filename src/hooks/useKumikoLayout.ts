@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import type { NotificationType } from "../lib/errors";
 import {
 	type Cut,
 	type Group,
@@ -7,7 +8,23 @@ import {
 	type Point,
 } from "../lib/kumiko";
 
-export function useKumikoLayout() {
+export interface UseKumikoLayoutOptions {
+	/** Optional callback for showing notifications to the user */
+	onNotify?: (type: NotificationType, message: string) => void;
+}
+
+export function useKumikoLayout(options: UseKumikoLayoutOptions = {}) {
+	const { onNotify } = options;
+
+	// Keep ref for notify callback
+	const onNotifyRef = useRef(onNotify);
+	onNotifyRef.current = onNotify;
+
+	/** Helper to show notification if callback is provided */
+	const notify = useCallback((type: NotificationType, message: string) => {
+		onNotifyRef.current?.(type, message);
+	}, []);
+
 	const [groups, setGroups] = useState<Map<string, Group>>(
 		() =>
 			new Map([
@@ -48,7 +65,7 @@ export function useKumikoLayout() {
 	const deleteGroup = useCallback(
 		(id: string) => {
 			if (groups.size <= 1) {
-				console.warn("Cannot delete the last group.");
+				notify("warning", "Cannot delete the last group.");
 				return;
 			}
 			setGroups((prev) => {
@@ -61,7 +78,7 @@ export function useKumikoLayout() {
 				return next;
 			});
 		},
-		[groups, activeGroupId],
+		[groups, activeGroupId, notify],
 	);
 
 	const renameGroup = useCallback((id: string, newName: string) => {

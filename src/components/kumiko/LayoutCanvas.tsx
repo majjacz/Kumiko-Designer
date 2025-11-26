@@ -1,6 +1,7 @@
 import { Trash2 } from "lucide-react";
 import type React from "react";
 import { memo, useState } from "react";
+import type { NotificationType } from "../../lib/errors";
 import {
 	type DesignStrip,
 	formatValue,
@@ -35,6 +36,8 @@ export interface LayoutCanvasProps {
 	onDeletePiece: (pieceId: string) => void;
 	/** Display unit */
 	displayUnit: "mm" | "in";
+	/** Optional callback for showing notifications to the user */
+	onNotify?: (type: NotificationType, message: string) => void;
 }
 
 /**
@@ -55,6 +58,7 @@ export const LayoutCanvas = memo(function LayoutCanvas({
 	onLayoutClick,
 	onDeletePiece,
 	displayUnit,
+	onNotify,
 }: LayoutCanvasProps) {
 	const [svgElement, setSvgElementInternal] = useState<SVGSVGElement | null>(
 		null,
@@ -144,8 +148,9 @@ export const LayoutCanvas = memo(function LayoutCanvas({
 					GRID_CELL_HEIGHT,
 				)
 			) {
-				console.warn(
-					"Cannot place strip: It would extend more than half its width beyond the stock length.",
+				onNotify?.(
+					"warning",
+					"Cannot place strip: It would extend beyond the stock length.",
 				);
 				return;
 			}

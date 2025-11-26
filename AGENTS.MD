@@ -83,6 +83,42 @@ Kumiko Designer is a client-only web application for designing traditional Kumik
   - Run E2E tests: `pnpm test:e2e`
   - Run E2E with UI: `pnpm test:e2e:ui`
 
+## Hook Return Type Convention
+
+Custom hooks that manage state should follow a consistent return pattern:
+
+```typescript
+// For hooks with both state and actions
+return {
+  state: { /* reactive state values */ },
+  actions: { /* functions to mutate state */ }
+};
+
+// For hooks with only actions (utility functions)
+return { functionA, functionB };
+```
+
+**Examples:**
+- `useKumikoDesign` → `{ state, actions }` - manages lines, intersections
+- `useKumikoLayout` → `{ state, actions }` - manages groups, pieces
+- `useKumikoParams` → `{ params, actions }` - manages parameters
+- `useZoomPan` → `{ state, actions }` - manages zoom/pan state
+- `useDesignPersistence` → `{ state, actions }` - manages persistence
+- `useGridCoordinates` → `{ screenToGrid, gridToSvg }` - pure utilities, no state
+
+Hooks that accept an optional `onNotify` callback can display user-facing notifications:
+```typescript
+interface UseMyHookOptions {
+  onNotify?: (type: NotificationType, message: string) => void;
+}
+```
+
+## Error Handling
+
+- **Toast Notifications:** User-facing errors use the toast system via `useToast()` hook or `onNotify` callback.
+- **Error Boundaries:** Major UI sections are wrapped with `<ErrorBoundary>` components.
+- **Typed Errors:** Use error classes from `src/lib/errors.ts` for structured error handling.
+
 ## Commands
 - `pnpm dev`: Start development server (port 3000).
 - `pnpm build`: Build for production.

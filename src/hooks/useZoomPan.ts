@@ -341,5 +341,10 @@ export function useZoomPan({
 		return () => clearTimeout(timer);
 	}, [resetView, viewState]);
 
-	return { zoom, panX, panY, resetView, zoomBy, DEFAULT_ZOOM };
+	return {
+		state: { zoom, panX, panY },
+		actions: { resetView, zoomBy },
+		/** @deprecated Use state.zoom instead. Included for backward compatibility. */
+		DEFAULT_ZOOM,
+	};
 }

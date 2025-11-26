@@ -29,11 +29,11 @@ describe("useZoomPan", () => {
 			}),
 		);
 
-		expect(result.current.zoom).toBe(40); // DEFAULT_ZOOM
-		expect(result.current.panX).toBe(0);
-		expect(result.current.panY).toBe(0);
-		expect(typeof result.current.resetView).toBe("function");
-		expect(typeof result.current.zoomBy).toBe("function");
+		expect(result.current.state.zoom).toBe(40); // DEFAULT_ZOOM
+		expect(result.current.state.panX).toBe(0);
+		expect(result.current.state.panY).toBe(0);
+		expect(typeof result.current.actions.resetView).toBe("function");
+		expect(typeof result.current.actions.zoomBy).toBe("function");
 	});
 
 	it("should initialize with provided view state", () => {
@@ -61,8 +61,8 @@ describe("useZoomPan", () => {
 			}),
 		);
 
-		expect(result.current.zoom).toBe(100);
-		expect(result.current.panX).toBe(50);
-		expect(result.current.panY).toBe(50);
+		expect(result.current.state.zoom).toBe(100);
+		expect(result.current.state.panX).toBe(50);
+		expect(result.current.state.panY).toBe(50);
 	});
 });

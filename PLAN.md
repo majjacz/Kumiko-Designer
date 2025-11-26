@@ -98,17 +98,17 @@ This document outlines planned refactoring tasks to improve code extendability a
 - [x] Update `KumikoSidebarParams` to consume context
 
 ### 10. Add Error Handling Infrastructure
-- [ ] Create `src/lib/errors.ts` with typed error classes
-- [ ] Create `src/components/ui/Toast.tsx` notification component
-- [ ] Create `src/context/ToastContext.tsx` for toast state
-- [ ] Create `src/components/ErrorBoundary.tsx`
-- [ ] Replace `console.warn` calls with user-facing notifications
-- [ ] Add error boundaries around major sections
+- [x] Create `src/lib/errors.ts` with typed error classes
+- [x] Create `src/components/ui/Toast.tsx` notification component
+- [x] Create `src/context/ToastContext.tsx` for toast state
+- [x] Create `src/components/ErrorBoundary.tsx`
+- [x] Replace `console.warn` calls with user-facing notifications
+- [x] Add error boundaries around major sections
 
 ### 11. Standardize Hook Return Types
-- [ ] Update `useZoomPan.ts` to return `{ state, actions }` shape
-- [ ] Update `useGridCoordinates.ts` to return `{ state, actions }` shape (if applicable)
-- [ ] Document hook return type convention in `AGENTS.MD`
+- [x] Update `useZoomPan.ts` to return `{ state, actions }` shape
+- [x] Update `useGridCoordinates.ts` to return `{ state, actions }` shape (if applicable) - N/A, returns only utility functions
+- [x] Document hook return type convention in `AGENTS.MD`
 
 ### 12. Extract Notch Visualization
 - [ ] Create `src/components/kumiko/NotchToggleMarker.tsx`

@@ -2,6 +2,7 @@
  * Hook for managing design persistence - save, load, import, export operations
  */
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { NotificationType } from "../lib/errors";
 import type { Group, Line, SavedDesignPayload } from "../lib/kumiko";
 import {
 	clearDesign,
@@ -70,6 +71,8 @@ export interface DesignPayloadData {
 export interface UseDesignPersistenceOptions extends ApplyDesignParams {
 	/** Function to get current design data for saving/exporting */
 	getCurrentPayloadData: () => DesignPayloadData;
+	/** Optional callback for showing notifications to the user */
+	onNotify?: (type: NotificationType, message: string) => void;
 }
 
 export interface DesignPersistenceActions {
@@ -91,6 +94,7 @@ export function useDesignPersistence({
 	designActions,
 	layoutActions,
 	getCurrentPayloadData,
+	onNotify,
 }: UseDesignPersistenceOptions): {
 	state: DesignPersistenceState;
 	actions: DesignPersistenceActions;
@@ -110,6 +114,15 @@ export function useDesignPersistence({
 	// Keep a ref for getCurrentPayloadData to avoid dependency issues
 	const getCurrentPayloadDataRef = useRef(getCurrentPayloadData);
 	getCurrentPayloadDataRef.current = getCurrentPayloadData;
+
+	// Keep ref for notify callback
+	const onNotifyRef = useRef(onNotify);
+	onNotifyRef.current = onNotify;
+
+	/** Helper to show notification if callback is provided */
+	const notify = useCallback((type: NotificationType, message: string) => {
+		onNotifyRef.current?.(type, message);
+	}, []);
 
 	// Helper to apply a loaded design payload into state
 	const applyLoadedDesign = useCallback(
@@ -225,7 +238,7 @@ export function useDesignPersistence({
 	const handleSaveAs = useCallback(() => {
 		const name = designNameRef.current.trim();
 		if (!name) {
-			console.warn("Enter a design name before saving.");
+			notify("warning", "Enter a design name before saving.");
 			return;
 		}
 
@@ -237,8 +250,8 @@ export function useDesignPersistence({
 
 		saveNamedDesign(name, payload);
 		setNamedDesigns(listNamedDesigns());
-		console.log(`Saved design "${name}" to this browser.`);
-	}, []);
+		notify("success", `Saved design "${name}" to this browser.`);
+	}, [notify]);
 
 	const handleLoadNamed = useCallback(
 		(name: string) => {
@@ -247,10 +260,10 @@ export function useDesignPersistence({
 				applyLoadedDesign(loaded);
 				setShowLoadDialog(false);
 			} else {
-				console.warn(`No data found for design "${name}".`);
+				notify("error", `No data found for design "${name}".`);
 			}
 		},
-		[applyLoadedDesign],
+		[applyLoadedDesign, notify],
 	);
 
 	const handleDeleteNamed = useCallback(
@@ -268,10 +281,10 @@ export function useDesignPersistence({
 				applyLoadedDesign(template);
 				setShowTemplateDialog(false);
 			} else {
-				console.warn("Failed to load template.");
+				notify("error", "Failed to load template.");
 			}
 		},
-		[applyLoadedDesign],
+		[applyLoadedDesign, notify],
 	);
 
 	const handleExportJSON = useCallback(() => {
@@ -296,12 +309,12 @@ export function useDesignPersistence({
 					const parsed = JSON.parse(content) as SavedDesignPayload;
 
 					if (parsed.version !== 1) {
-						console.warn("Invalid file format or version.");
+						notify("error", "Invalid file format or version.");
 						return;
 					}
 
 					if (!parsed.lines || !parsed.groups) {
-						console.warn("Invalid design file: missing required data.");
+						notify("error", "Invalid design file: missing required data.");
 						return;
 					}
 
@@ -309,19 +322,22 @@ export function useDesignPersistence({
 						typeof parsed.gridCellSize !== "number" ||
 						typeof parsed.stockLength !== "number"
 					) {
-						console.warn(
+						notify(
+							"error",
 							"Invalid design file: missing required scale information.",
 						);
 						return;
 					}
 
 					applyLoadedDesign(parsed);
-					console.log(
+					notify(
+						"success",
 						`Design "${parsed.designName || "Untitled"}" imported successfully!`,
 					);
 				} catch (error) {
 					console.error("Failed to import design:", error);
-					console.warn(
+					notify(
+						"error",
 						"Failed to import design. Please check the file format.",
 					);
 				}
@@ -331,7 +347,7 @@ export function useDesignPersistence({
 			// Reset the input so the same file can be imported again
 			event.target.value = "";
 		},
-		[applyLoadedDesign],
+		[applyLoadedDesign, notify],
 	);
 
 	return {

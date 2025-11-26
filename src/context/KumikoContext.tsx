@@ -11,6 +11,7 @@ import { useDesignPersistence } from "../hooks/useDesignPersistence";
 import { useKumikoDesign } from "../hooks/useKumikoDesign";
 import { useKumikoLayout } from "../hooks/useKumikoLayout";
 import { useKumikoParams } from "../hooks/useKumikoParams";
+import type { NotificationType } from "../lib/errors";
 import {
 	createDesignPayload,
 	type DesignStrip,
@@ -24,6 +25,7 @@ import {
 	saveDesign,
 } from "../lib/kumiko";
 import { downloadSVG } from "../lib/utils/download";
+import { useToastOptional } from "./ToastContext";
 
 export type AppStep = "design" | "layout";
 
@@ -143,6 +145,9 @@ export interface KumikoContextValue {
 	openTemplateDialog: () => void;
 	handleDownloadSVG: () => void;
 	handleDownloadAllGroupsSVG: () => void;
+
+	// Notifications
+	notify: (type: NotificationType, message: string) => void;
 }
 
 // ============================================================================
@@ -162,13 +167,26 @@ export interface KumikoProviderProps {
 export function KumikoProvider({ children }: KumikoProviderProps) {
 	const [step, setStep] = useState<AppStep>("design");
 
+	// Get toast context if available
+	const toast = useToastOptional();
+
+	// Create stable notification callback
+	const onNotify = useCallback(
+		(type: NotificationType, message: string) => {
+			toast?.showToast(type, message);
+		},
+		[toast],
+	);
+
 	// Core hooks
 	const { params, actions: paramActions } = useKumikoParams();
 	const { state: designState, actions: designActions } = useKumikoDesign(
 		params.gridCellSize,
 		params.bitSize,
 	);
-	const { state: layoutState, actions: layoutActions } = useKumikoLayout();
+	const { state: layoutState, actions: layoutActions } = useKumikoLayout({
+		onNotify,
+	});
 
 	// Create stable callback for getting current payload data
 	const getCurrentPayloadData = useCallback(
@@ -259,6 +277,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 			designActions: persistenceDesignActions,
 			layoutActions: persistenceLayoutActions,
 			getCurrentPayloadData,
+			onNotify,
 		});
 
 	// Autosave effect
@@ -347,6 +366,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 			openTemplateDialog,
 			handleDownloadSVG,
 			handleDownloadAllGroupsSVG,
+			notify: onNotify,
 		}),
 		[
 			step,
@@ -362,6 +382,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 			openTemplateDialog,
 			handleDownloadSVG,
 			handleDownloadAllGroupsSVG,
+			onNotify,
 		],
 	);
 

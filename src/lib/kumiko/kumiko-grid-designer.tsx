@@ -97,7 +97,11 @@ export function GridDesigner({
 		gridExtentCells: GRID_EXTENT_CELLS,
 	});
 
-	const { zoom, panX, panY, resetView, zoomBy, DEFAULT_ZOOM } = useZoomPan({
+	const {
+		state: { zoom, panX, panY },
+		actions: { resetView, zoomBy },
+		DEFAULT_ZOOM,
+	} = useZoomPan({
 		svgRef,
 		contentGroupRef,
 		lines,

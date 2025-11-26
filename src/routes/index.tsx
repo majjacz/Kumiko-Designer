@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 import { KumikoProvider, useKumiko } from "../context/KumikoContext";
+import { ToastProvider } from "../context/ToastContext";
 import { GridDesignerConnected, LayoutEditorConnected } from "../lib/kumiko";
 import {
 	KumikoHeader,
@@ -37,9 +39,17 @@ function AppContent() {
 				/>
 
 				{/* Main workspace */}
-				{step === "design" && <GridDesignerConnected />}
+				{step === "design" && (
+					<ErrorBoundary sectionName="Grid Designer">
+						<GridDesignerConnected />
+					</ErrorBoundary>
+				)}
 
-				{step === "layout" && <LayoutEditorConnected />}
+				{step === "layout" && (
+					<ErrorBoundary sectionName="Layout Editor">
+						<LayoutEditorConnected />
+					</ErrorBoundary>
+				)}
 
 				{/* Load dialog */}
 				{persistenceState.showLoadDialog && (
@@ -61,7 +71,9 @@ function AppContent() {
 			</main>
 
 			{/* Sidebar */}
-			<KumikoSidebarParamsConnected />
+			<ErrorBoundary sectionName="Sidebar">
+				<KumikoSidebarParamsConnected />
+			</ErrorBoundary>
 		</div>
 	);
 }
@@ -69,9 +81,11 @@ function AppContent() {
 // Wrapper component that provides the context
 function App() {
 	return (
-		<KumikoProvider>
-			<AppContent />
-		</KumikoProvider>
+		<ToastProvider>
+			<KumikoProvider>
+				<AppContent />
+			</KumikoProvider>
+		</ToastProvider>
 	);
 }
 
