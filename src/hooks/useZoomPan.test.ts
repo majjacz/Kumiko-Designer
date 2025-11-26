@@ -7,12 +7,6 @@ describe("useZoomPan", () => {
 	const designWidth = 1000;
 	const designHeight = 1000;
 	const lines = new Map();
-	const flags = {
-		showNotchPositions: true,
-		showHelpText: true,
-		showLineIds: true,
-		showDimensions: false,
-	};
 
 	it("should initialize with default zoom and pan", () => {
 		const svgRef = { current: null };
@@ -26,7 +20,6 @@ describe("useZoomPan", () => {
 				cellSize,
 				designWidth,
 				designHeight,
-				flags,
 			}),
 		);
 
@@ -37,17 +30,13 @@ describe("useZoomPan", () => {
 		expect(typeof result.current.actions.zoomBy).toBe("function");
 	});
 
-	it("should initialize with provided view state", () => {
+	it("should initialize with provided zoom/pan state", () => {
 		const svgRef = { current: null };
 		const contentGroupRef = { current: null };
-		const viewState = {
+		const zoomPanState = {
 			zoom: 100,
 			panX: 50,
 			panY: 50,
-			showNotchPositions: true,
-			showHelpText: true,
-			showLineIds: true,
-			showDimensions: false,
 		};
 
 		const { result } = renderHook(() =>
@@ -58,8 +47,7 @@ describe("useZoomPan", () => {
 				cellSize,
 				designWidth,
 				designHeight,
-				viewState,
-				flags,
+				zoomPanState,
 			}),
 		);
 

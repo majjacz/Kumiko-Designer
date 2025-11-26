@@ -3,13 +3,14 @@ import type React from "react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useKumiko } from "../../context/KumikoContext";
 import { useGridCoordinates } from "../../hooks/useGridCoordinates";
+import type { GridViewSettings } from "../../hooks/useGridViewSettings";
 import { useZoomPan } from "../../hooks/useZoomPan";
 import { DEFAULT_ZOOM, GRID_EXTENT_CELLS } from "../../lib/kumiko/config";
 import type {
-	GridViewState,
 	Intersection,
 	Line,
 	Point,
+	ZoomPanState,
 } from "../../lib/kumiko/types";
 import { GridRenderer } from "./GridRenderer";
 
@@ -22,8 +23,6 @@ import { GridRenderer } from "./GridRenderer";
  * - Smooth pan/zoom with middle mouse or wheel
  * - Grid snapping for precise alignment
  */
-
-export type { GridViewState };
 
 export interface GridDesignerProps {
 	lines: Map<string, Line>;
@@ -46,10 +45,19 @@ export interface GridDesignerProps {
 	 * opaque, ever-changing line ids.
 	 */
 	lineLabelById?: Map<string, string>;
-	/** Optional externally-controlled view state (for persistence across reloads). */
-	viewState?: GridViewState;
-	/** Notify parent when view state changes so it can be persisted. */
-	onViewStateChange?: (state: GridViewState) => void;
+	/** Optional externally-controlled zoom/pan state (for persistence across reloads). */
+	zoomPanState?: ZoomPanState;
+	/** Notify parent when zoom/pan state changes so it can be persisted. */
+	onZoomPanChange?: (state: ZoomPanState) => void;
+	/** View settings for UI toggles (passed from context) */
+	viewSettings: GridViewSettings;
+	/** Actions to update view settings */
+	viewSettingsActions: {
+		setShowNotchPositions: (value: boolean) => void;
+		setShowHelpText: (value: boolean) => void;
+		setShowLineIds: (value: boolean) => void;
+		setShowDimensions: (value: boolean) => void;
+	};
 }
 
 interface DragState {
@@ -72,25 +80,17 @@ export function GridDesigner({
 	hoveredStripId,
 	onHoverLine,
 	lineLabelById,
-	viewState,
-	onViewStateChange,
+	zoomPanState,
+	onZoomPanChange,
+	viewSettings,
+	viewSettingsActions,
 }: GridDesignerProps) {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	const contentGroupRef = useRef<SVGGElement | null>(null);
 
-	// Viewport state flags (zoom/pan are handled by useZoomPan)
-	// We maintain local state for uncontrolled usage, but prefer viewState prop if available.
-	const [localShowNotchPositions, setLocalShowNotchPositions] = useState(true);
-	const [localShowHelpText, setLocalShowHelpText] = useState(true);
-	const [localShowLineIds, setLocalShowLineIds] = useState(true);
-	const [localShowDimensions, setLocalShowDimensions] = useState(false);
-
-	// Effective values (Prop > Local)
-	const showNotchPositions =
-		viewState?.showNotchPositions ?? localShowNotchPositions;
-	const showHelpText = viewState?.showHelpText ?? localShowHelpText;
-	const showLineIds = viewState?.showLineIds ?? localShowLineIds;
-	const showDimensions = viewState?.showDimensions ?? localShowDimensions;
+	// View settings from props (managed by context with localStorage persistence)
+	const { showNotchPositions, showHelpText, showLineIds, showDimensions } =
+		viewSettings;
 
 	// Interaction state
 	const [hoverPoint, setHoverPoint] = useState<Point | null>(null);
@@ -112,7 +112,7 @@ export function GridDesigner({
 	});
 
 	const {
-		state: { zoom, panX, panY },
+		state: { zoom },
 		actions: { resetView, zoomBy },
 	} = useZoomPan({
 		svgRef,
@@ -121,55 +121,9 @@ export function GridDesigner({
 		cellSize,
 		designWidth,
 		designHeight,
-		viewState,
-		onViewStateChange,
-		flags: { showNotchPositions, showHelpText, showLineIds, showDimensions },
+		zoomPanState,
+		onZoomPanChange,
 	});
-
-	// Helper to update view state flags
-	const updateViewStateFlag = useCallback(
-		(key: keyof GridViewState, value: boolean) => {
-			// Update local state
-			switch (key) {
-				case "showNotchPositions":
-					setLocalShowNotchPositions(value);
-					break;
-				case "showHelpText":
-					setLocalShowHelpText(value);
-					break;
-				case "showLineIds":
-					setLocalShowLineIds(value);
-					break;
-				case "showDimensions":
-					setLocalShowDimensions(value);
-					break;
-			}
-
-			// Notify parent if controlled
-			if (onViewStateChange) {
-				onViewStateChange({
-					zoom,
-					panX,
-					panY,
-					showNotchPositions:
-						key === "showNotchPositions" ? value : showNotchPositions,
-					showHelpText: key === "showHelpText" ? value : showHelpText,
-					showLineIds: key === "showLineIds" ? value : showLineIds,
-					showDimensions: key === "showDimensions" ? value : showDimensions,
-				});
-			}
-		},
-		[
-			onViewStateChange,
-			zoom,
-			panX,
-			panY,
-			showNotchPositions,
-			showHelpText,
-			showLineIds,
-			showDimensions,
-		],
-	);
 
 	/**
 	 * Handle mouse down - start drawing
@@ -319,7 +273,7 @@ export function GridDesigner({
 								className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900"
 								checked={showNotchPositions}
 								onChange={(e) =>
-									updateViewStateFlag("showNotchPositions", e.target.checked)
+									viewSettingsActions.setShowNotchPositions(e.target.checked)
 								}
 							/>
 							<span className="text-sm text-gray-300">Notch markers</span>
@@ -330,7 +284,7 @@ export function GridDesigner({
 								className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900"
 								checked={showLineIds}
 								onChange={(e) =>
-									updateViewStateFlag("showLineIds", e.target.checked)
+									viewSettingsActions.setShowLineIds(e.target.checked)
 								}
 							/>
 							<span className="text-sm text-gray-300">Strip IDs</span>
@@ -341,7 +295,7 @@ export function GridDesigner({
 								className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900"
 								checked={showDimensions}
 								onChange={(e) =>
-									updateViewStateFlag("showDimensions", e.target.checked)
+									viewSettingsActions.setShowDimensions(e.target.checked)
 								}
 							/>
 							<span className="text-sm text-gray-300">Dimensions</span>
@@ -353,7 +307,7 @@ export function GridDesigner({
 								className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900"
 								checked={showHelpText}
 								onChange={(e) =>
-									updateViewStateFlag("showHelpText", e.target.checked)
+									viewSettingsActions.setShowHelpText(e.target.checked)
 								}
 							/>
 							<span className="text-sm text-gray-300">Help tips</span>
@@ -482,8 +436,15 @@ export function GridDesigner({
  * Automatically consumes state from KumikoContext.
  */
 export function GridDesignerConnected() {
-	const { designState, designActions, layoutState, layoutActions, params } =
-		useKumiko();
+	const {
+		designState,
+		designActions,
+		layoutState,
+		layoutActions,
+		params,
+		viewSettings,
+		viewSettingsActions,
+	} = useKumiko();
 
 	return (
 		<GridDesigner
@@ -501,8 +462,10 @@ export function GridDesignerConnected() {
 			hoveredStripId={layoutState.hoveredStripId}
 			onHoverLine={layoutActions.setHoveredStripId}
 			lineLabelById={designState.lineLabelById}
-			viewState={designState.gridViewState}
-			onViewStateChange={designActions.setGridViewState}
+			zoomPanState={designState.zoomPanState}
+			onZoomPanChange={designActions.setZoomPanState}
+			viewSettings={viewSettings}
+			viewSettingsActions={viewSettingsActions}
 		/>
 	);
 }

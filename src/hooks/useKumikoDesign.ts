@@ -4,12 +4,12 @@ import {
 	computeIntersections,
 	computeLineOverlaps,
 	type DesignStrip,
-	type GridViewState,
 	type Intersection,
 	type Line,
 	newId,
 	normalizeLines,
 	type Point,
+	type ZoomPanState,
 } from "../lib/kumiko";
 
 export function useKumikoDesign(gridCellSize: number, bitSize: number) {
@@ -19,7 +19,7 @@ export function useKumikoDesign(gridCellSize: number, bitSize: number) {
 	const [intersectionStates, setIntersectionStates] = useState<
 		Map<string, boolean>
 	>(new Map());
-	const [gridViewState, setGridViewState] = useState<GridViewState | undefined>(
+	const [zoomPanState, setZoomPanState] = useState<ZoomPanState | undefined>(
 		undefined,
 	);
 
@@ -169,7 +169,7 @@ export function useKumikoDesign(gridCellSize: number, bitSize: number) {
 		setLines(new Map());
 		setDrawingLine(null);
 		setIntersectionStates(new Map());
-		setGridViewState(undefined);
+		setZoomPanState(undefined);
 	}, []);
 
 	const state = useMemo(
@@ -178,7 +178,7 @@ export function useKumikoDesign(gridCellSize: number, bitSize: number) {
 			drawingLine,
 			isDeleting,
 			intersectionStates,
-			gridViewState,
+			zoomPanState,
 			intersections,
 			designStrips,
 			lineLabelById,
@@ -188,7 +188,7 @@ export function useKumikoDesign(gridCellSize: number, bitSize: number) {
 			drawingLine,
 			isDeleting,
 			intersectionStates,
-			gridViewState,
+			zoomPanState,
 			intersections,
 			designStrips,
 			lineLabelById,
@@ -199,7 +199,7 @@ export function useKumikoDesign(gridCellSize: number, bitSize: number) {
 		() => ({
 			setLines,
 			setIntersectionStates,
-			setGridViewState,
+			setZoomPanState,
 			handleGridClick,
 			handleDragUpdate,
 			handleCreateLine,

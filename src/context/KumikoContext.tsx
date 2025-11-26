@@ -9,17 +9,21 @@ import {
 } from "react";
 import type { ExportPassType } from "../components/kumiko/GroupToolbar";
 import { useDesignPersistence } from "../hooks/useDesignPersistence";
+import {
+	type GridViewSettings,
+	useGridViewSettings,
+} from "../hooks/useGridViewSettings";
 import { useKumikoDesign } from "../hooks/useKumikoDesign";
 import { useKumikoLayout } from "../hooks/useKumikoLayout";
 import { useKumikoParams } from "../hooks/useKumikoParams";
 import type { NotificationType } from "../lib/errors";
 import type {
 	DesignStrip,
-	GridViewState,
 	Group,
 	Intersection,
 	Line,
 	Point,
+	ZoomPanState,
 } from "../lib/kumiko";
 import {
 	createDesignPayload,
@@ -77,7 +81,7 @@ export interface DesignContextValue {
 		drawingLine: Point | null;
 		isDeleting: boolean;
 		intersectionStates: Map<string, boolean>;
-		gridViewState: GridViewState | undefined;
+		zoomPanState: ZoomPanState | undefined;
 		intersections: Map<string, Intersection>;
 		designStrips: DesignStrip[];
 		lineLabelById: Map<string, string>;
@@ -93,7 +97,7 @@ export interface DesignContextValue {
 				| Map<string, boolean>
 				| ((states: Map<string, boolean>) => Map<string, boolean>),
 		) => void;
-		setGridViewState: (state: GridViewState | undefined) => void;
+		setZoomPanState: (state: ZoomPanState | undefined) => void;
 		handleGridClick: (point: Point) => void;
 		handleDragUpdate: (start: Point, end: Point, isDeleting: boolean) => void;
 		handleCreateLine: (start: Point, end: Point) => void;
@@ -157,6 +161,21 @@ export interface PersistenceContextValue {
 	};
 }
 
+/**
+ * View settings context value - manages UI toggles for the grid designer.
+ * This is separate from zoom/pan state and persisted independently.
+ */
+export interface ViewSettingsContextValue {
+	viewSettings: GridViewSettings;
+	viewSettingsActions: {
+		setShowNotchPositions: (value: boolean) => void;
+		setShowHelpText: (value: boolean) => void;
+		setShowLineIds: (value: boolean) => void;
+		setShowDimensions: (value: boolean) => void;
+		resetSettings: () => void;
+	};
+}
+
 // ============================================================================
 // Combined Context Value Interface
 // ============================================================================
@@ -169,6 +188,7 @@ export interface KumikoContextValue
 	extends ParamsContextValue,
 		DesignContextValue,
 		LayoutContextValue,
+		ViewSettingsContextValue,
 		PersistenceContextValue {
 	// Current workflow step
 	step: AppStep;
@@ -221,6 +241,9 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 	const { state: layoutState, actions: layoutActions } = useKumikoLayout({
 		onNotify,
 	});
+	// View settings hook - handles UI toggles with independent localStorage persistence
+	const { state: viewSettingsState, actions: viewSettingsActions } =
+		useGridViewSettings();
 
 	// Create stable callback for getting current payload data
 	const getCurrentPayloadData = useCallback(
@@ -235,7 +258,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 			groups: layoutState.groups,
 			activeGroupId: layoutState.activeGroupId,
 			intersectionStates: designState.intersectionStates,
-			gridViewState: designState.gridViewState,
+			zoomPanState: designState.zoomPanState,
 		}),
 		[
 			params.units,
@@ -248,7 +271,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 			layoutState.groups,
 			layoutState.activeGroupId,
 			designState.intersectionStates,
-			designState.gridViewState,
+			designState.zoomPanState,
 		],
 	);
 
@@ -274,7 +297,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 
 	const persistenceDesignActions = useMemo(
 		() => ({
-			setGridViewState: designActions.setGridViewState,
+			setZoomPanState: designActions.setZoomPanState,
 			setLines: designActions.setLines as (
 				updater: (lines: Map<string, Line>) => Map<string, Line>,
 			) => void,
@@ -282,7 +305,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 			clearDesignState: designActions.clearDesignState,
 		}),
 		[
-			designActions.setGridViewState,
+			designActions.setZoomPanState,
 			designActions.setLines,
 			designActions.setIntersectionStates,
 			designActions.clearDesignState,
@@ -540,6 +563,8 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 			designActions,
 			layoutState,
 			layoutActions,
+			viewSettings: viewSettingsState.settings,
+			viewSettingsActions,
 			persistenceState,
 			persistenceActions,
 			openLoadDialog,
@@ -556,6 +581,8 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 			designActions,
 			layoutState,
 			layoutActions,
+			viewSettingsState.settings,
+			viewSettingsActions,
 			persistenceState,
 			persistenceActions,
 			openLoadDialog,
@@ -619,4 +646,12 @@ export function useKumikoLayoutContext(): LayoutContextValue {
 export function useKumikoPersistenceContext(): PersistenceContextValue {
 	const { persistenceState, persistenceActions } = useKumiko();
 	return { persistenceState, persistenceActions };
+}
+
+/**
+ * Hook to consume only view settings context values.
+ */
+export function useKumikoViewSettingsContext(): ViewSettingsContextValue {
+	const { viewSettings, viewSettingsActions } = useKumiko();
+	return { viewSettings, viewSettingsActions };
 }

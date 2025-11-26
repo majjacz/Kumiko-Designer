@@ -92,6 +92,7 @@ export type {
 	Notch,
 	Piece,
 	Point,
+	ZoomPanState,
 } from "./types";
 // Utilities
 export {

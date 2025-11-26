@@ -251,7 +251,7 @@ export function deleteNamedDesign(name: string): void {
 // Payload Serialization
 // =============================================================================
 
-import type { Group, Line } from "./types";
+import type { Group, Line, ZoomPanState } from "./types";
 
 export interface CreateDesignPayloadOptions {
 	units: "mm" | "in";
@@ -265,7 +265,8 @@ export interface CreateDesignPayloadOptions {
 	activeGroupId: string;
 	designName?: string;
 	intersectionStates: Map<string, boolean>;
-	gridViewState?: GridViewState;
+	/** Zoom/pan state to persist (view settings are stored separately) */
+	zoomPanState?: ZoomPanState;
 }
 
 /**
@@ -287,7 +288,7 @@ export function createDesignPayload(
 		activeGroupId,
 		designName,
 		intersectionStates,
-		gridViewState,
+		zoomPanState,
 	} = options;
 
 	return {
@@ -308,6 +309,13 @@ export function createDesignPayload(
 		activeGroupId,
 		designName: designName || undefined,
 		intersectionStates: Array.from(intersectionStates.entries()),
-		gridViewState,
+		// Store zoom/pan state as gridViewState for backward compatibility
+		gridViewState: zoomPanState
+			? {
+					zoom: zoomPanState.zoom,
+					panX: zoomPanState.panX,
+					panY: zoomPanState.panY,
+				}
+			: undefined,
 	};
 }

@@ -16,17 +16,27 @@ export interface Line {
 }
 
 /**
- * View state for the grid designer.
- * Used for persisting and restoring the user's viewport settings.
+ * Zoom and pan transform state for the grid designer.
+ * Used for persisting and restoring the user's viewport position.
+ *
+ * Note: UI toggles (showNotchPositions, showHelpText, etc.) are managed
+ * separately by useGridViewSettings and stored in their own localStorage key.
  */
-export interface GridViewState {
+export interface ZoomPanState {
 	zoom: number;
 	panX: number;
 	panY: number;
-	showNotchPositions: boolean;
-	showHelpText: boolean;
-	showLineIds: boolean;
-	showDimensions: boolean;
+}
+
+/**
+ * @deprecated Use ZoomPanState instead. This type is kept for backward
+ * compatibility with saved designs that include view settings.
+ */
+export interface GridViewState extends ZoomPanState {
+	showNotchPositions?: boolean;
+	showHelpText?: boolean;
+	showLineIds?: boolean;
+	showDimensions?: boolean;
 }
 
 export interface Intersection {

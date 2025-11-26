@@ -17,10 +17,10 @@ import {
 } from "../lib/d3-types";
 import {
 	DEFAULT_ZOOM,
-	type GridViewState,
 	type Line,
 	MAX_ZOOM,
 	MIN_ZOOM,
+	type ZoomPanState,
 } from "../lib/kumiko";
 
 interface UseZoomPanProps {
@@ -30,14 +30,10 @@ interface UseZoomPanProps {
 	cellSize: number;
 	designWidth: number;
 	designHeight: number;
-	viewState?: GridViewState;
-	onViewStateChange?: (state: GridViewState) => void;
-	flags: {
-		showNotchPositions: boolean;
-		showHelpText: boolean;
-		showLineIds: boolean;
-		showDimensions: boolean;
-	};
+	/** Optional externally-controlled zoom/pan state (for persistence). */
+	zoomPanState?: ZoomPanState;
+	/** Notify parent when zoom/pan state changes so it can be persisted. */
+	onZoomPanChange?: (state: ZoomPanState) => void;
 }
 
 export function useZoomPan({
@@ -47,27 +43,21 @@ export function useZoomPan({
 	cellSize,
 	designWidth,
 	designHeight,
-	viewState,
-	onViewStateChange,
-	flags,
+	zoomPanState,
+	onZoomPanChange,
 }: UseZoomPanProps) {
-	const [zoom, setZoom] = useState(viewState?.zoom ?? DEFAULT_ZOOM);
-	const [panX, setPanX] = useState(viewState?.panX ?? 0);
-	const [panY, setPanY] = useState(viewState?.panY ?? 0);
+	const [zoom, setZoom] = useState(zoomPanState?.zoom ?? DEFAULT_ZOOM);
+	const [panX, setPanX] = useState(zoomPanState?.panX ?? 0);
+	const [panY, setPanY] = useState(zoomPanState?.panY ?? 0);
 
 	const zoomBehaviorRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(
 		null,
 	);
-	const flagsRef = useRef(flags);
-	const onViewStateChangeRef = useRef(onViewStateChange);
+	const onZoomPanChangeRef = useRef(onZoomPanChange);
 
 	useEffect(() => {
-		flagsRef.current = flags;
-	}, [flags]);
-
-	useEffect(() => {
-		onViewStateChangeRef.current = onViewStateChange;
-	}, [onViewStateChange]);
+		onZoomPanChangeRef.current = onZoomPanChange;
+	}, [onZoomPanChange]);
 
 	/**
 	 * Reset view (Fit)
@@ -194,22 +184,11 @@ export function useZoomPan({
 				setPanX(t.x);
 				setPanY(t.y);
 
-				if (onViewStateChangeRef.current) {
-					const {
-						showNotchPositions,
-						showHelpText,
-						showLineIds,
-						showDimensions,
-					} = flagsRef.current;
-
-					onViewStateChangeRef.current({
+				if (onZoomPanChangeRef.current) {
+					onZoomPanChangeRef.current({
 						zoom: t.k,
 						panX: t.x,
 						panY: t.y,
-						showNotchPositions,
-						showHelpText,
-						showLineIds,
-						showDimensions,
 					});
 				}
 			});
@@ -225,20 +204,20 @@ export function useZoomPan({
 		};
 	}, [svgRef, contentGroupRef]);
 
-	// Sync viewState prop to d3 transform
+	// Sync zoomPanState prop to d3 transform
 	useEffect(() => {
 		const svgEl = svgRef.current;
 		const behavior = zoomBehaviorRef.current;
-		if (!svgEl || !behavior || !viewState?.zoom) return;
+		if (!svgEl || !behavior || !zoomPanState?.zoom) return;
 
 		const selection = select(svgEl) as SVGSelection;
 
-		const initialZoom = Number.isFinite(viewState.zoom)
-			? viewState.zoom
+		const initialZoom = Number.isFinite(zoomPanState.zoom)
+			? zoomPanState.zoom
 			: DEFAULT_ZOOM;
 		const clampedZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, initialZoom));
 		const targetTransform = zoomIdentity
-			.translate(viewState.panX ?? 0, viewState.panY ?? 0)
+			.translate(zoomPanState.panX ?? 0, zoomPanState.panY ?? 0)
 			.scale(clampedZoom);
 
 		const currentTransform = zoomTransform(svgEl);
@@ -249,7 +228,7 @@ export function useZoomPan({
 		if (kDiff > 0.001 || xDiff > 0.1 || yDiff > 0.1) {
 			applyZoomTransform(selection, behavior, targetTransform);
 		}
-	}, [viewState, svgRef]);
+	}, [zoomPanState, svgRef]);
 
 	// Trackpad pan/zoom
 	useEffect(() => {
@@ -343,10 +322,10 @@ export function useZoomPan({
 
 	// Initialize view on mount
 	useEffect(() => {
-		if (viewState) return;
+		if (zoomPanState) return;
 		const timer = setTimeout(resetView, 50);
 		return () => clearTimeout(timer);
-	}, [resetView, viewState]);
+	}, [resetView, zoomPanState]);
 
 	return {
 		state: { zoom, panX, panY },

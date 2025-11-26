@@ -3,7 +3,12 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { NotificationType, NotifyCallback } from "../lib/errors";
-import type { Group, Line, SavedDesignPayload } from "../lib/kumiko";
+import type {
+	Group,
+	Line,
+	SavedDesignPayload,
+	ZoomPanState,
+} from "../lib/kumiko";
 import {
 	clearDesign,
 	createDesignPayload,
@@ -35,9 +40,7 @@ export interface ApplyDesignParams {
 		setStockLength: (length: number) => void;
 	};
 	designActions: {
-		setGridViewState: (
-			state: SavedDesignPayload["gridViewState"] | undefined,
-		) => void;
+		setZoomPanState: (state: ZoomPanState | undefined) => void;
 		setLines: (
 			updater: (lines: Map<string, Line>) => Map<string, Line>,
 		) => void;
@@ -65,7 +68,7 @@ export interface DesignPayloadData {
 	groups: Map<string, Group>;
 	activeGroupId: string;
 	intersectionStates: Map<string, boolean>;
-	gridViewState?: SavedDesignPayload["gridViewState"];
+	zoomPanState?: ZoomPanState;
 }
 
 export interface UseDesignPersistenceOptions extends ApplyDesignParams {
@@ -138,7 +141,15 @@ export function useDesignPersistence({
 			paramActions.setStockLength(
 				typeof loaded.stockLength === "number" ? loaded.stockLength : 600,
 			);
-			designActions.setGridViewState(loaded.gridViewState);
+
+			// Extract zoom/pan state from gridViewState (for backward compatibility)
+			// View settings (showNotchPositions, etc.) are now stored separately
+			if (loaded.gridViewState) {
+				const { zoom, panX, panY } = loaded.gridViewState;
+				designActions.setZoomPanState({ zoom, panX, panY });
+			} else {
+				designActions.setZoomPanState(undefined);
+			}
 
 			designActions.setLines(() => {
 				const next = new Map<string, Line>();

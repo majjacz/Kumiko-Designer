@@ -112,7 +112,7 @@ export function useLineRenderer({
 			? lineLabelById?.get(hoveredStripId)
 			: null;
 		const siblingLineIds = hoveredDisplayCode
-			? lineIdsByDisplayCode.get(hoveredDisplayCode)
+			? (lineIdsByDisplayCode.get(hoveredDisplayCode) ?? null)
 			: null;
 
 		// Pre-calculate label data for all lines
