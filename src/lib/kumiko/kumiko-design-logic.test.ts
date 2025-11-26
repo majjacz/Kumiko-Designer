@@ -178,6 +178,42 @@ describe("computeDesignStrips()", () => {
 		expect(strips2[0].sourceLineId).toBe("b");
 	});
 
+	it("produces same id for flipped strips (notch orientation invariance)", () => {
+		// Two crossing lines: horizontal and vertical
+		// The horizontal strip with a notch from the bottom is physically
+		// identical to a vertical strip with a notch from the top when flipped.
+		const lines1 = new Map<string, Line>();
+		lines1.set("h", makeLine("h", 0, 0, 10, 0)); // horizontal
+		lines1.set("v", makeLine("v", 5, -5, 5, 5)); // vertical crossing at (5,0)
+
+		const intersectionStates = new Map<string, boolean>();
+		const intersections1 = computeIntersections(lines1, intersectionStates);
+
+		const gridCellSize = 1;
+		const bitSize = 3.175;
+
+		const strips1 = computeDesignStrips(
+			lines1,
+			intersections1,
+			gridCellSize,
+			bitSize,
+		);
+
+		// Find horizontal and vertical strips
+		const horizontal = strips1.find((s) => s.y1 === s.y2);
+		const vertical = strips1.find((s) => s.x1 === s.x2);
+
+		if (!horizontal || !vertical) {
+			throw new Error("Horizontal or vertical strip not found");
+		}
+
+		// Both strips have the same length and notch at the midpoint.
+		// The only difference is fromTop (one is T, other is B).
+		// They should have the same geometry ID because the strip can be flipped.
+		expect(horizontal.id).toBe(vertical.id);
+		expect(horizontal.displayCode).toBe(vertical.displayCode);
+	});
+
 	it("filters out degenerate short strips", () => {
 		const lines = new Map<string, Line>();
 		// ~0.5 mm long segment

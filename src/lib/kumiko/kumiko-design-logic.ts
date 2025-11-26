@@ -425,15 +425,20 @@ export function normalizeLines(lines: Map<string, Line>): Map<string, Line> {
 /**
  * Compute a stable, geometry-derived identifier for a strip based on its
  * physical length and notch pattern (distances + orientation). The id is
- * chosen to be invariant to which endpoint is considered the "start" of
- * the grid line: we consider both the forward distances and distances
- * measured from the other end, and pick the lexicographically smaller
- * representation.
+ * chosen to be invariant to:
+ * 1. Which endpoint is considered the "start" of the grid line (reversibility).
+ * 2. Which face of the strip the notches are on (flippability).
  *
- * This ensures:
- * - If the underlying line is recreated with the same geometry (possibly
- *   reversed), the computed strip id stays the same.
- * - If length or notch positions/orientations change, the id changes.
+ * To achieve this, we consider all four transformations:
+ * - Forward direction with original orientation
+ * - Reverse direction with original orientation
+ * - Forward direction with flipped orientation
+ * - Reverse direction with flipped orientation
+ *
+ * We pick the lexicographically smallest representation. This ensures:
+ * - Identical physical strips get the same ID regardless of how they're
+ *   oriented in the grid (horizontal vs vertical, left-to-right vs right-to-left).
+ * - If length or notch positions change, the id changes.
  */
 function computeStripGeometryId(
 	lengthMM: number,
@@ -442,25 +447,45 @@ function computeStripGeometryId(
 	const precision = 3;
 	const lengthKey = lengthMM.toFixed(precision);
 
+	// Helper to build a notch pattern string
+	const buildPattern = (
+		notchList: { dist: number; fromTop: boolean }[],
+		flipOrientation: boolean,
+	) =>
+		notchList
+			.map((n) => {
+				const d = n.dist.toFixed(precision);
+				// XOR: if flipOrientation, invert the fromTop value
+				const orient = n.fromTop !== flipOrientation ? "T" : "B";
+				return `${d}:${orient}`;
+			})
+			.join("|");
+
 	// Forward representation: distances from the current start point.
-	const forward = notches.map((n) => {
-		const d = n.dist.toFixed(precision);
-		const orient = n.fromTop ? "T" : "B";
-		return `${d}:${orient}`;
-	});
+	const forward = buildPattern(notches, false);
+	const forwardFlipped = buildPattern(notches, true);
 
 	// Reverse representation: distances measured from the other end.
-	const reverse = notches.map((n) => {
-		const d = (lengthMM - n.dist).toFixed(precision);
-		const orient = n.fromTop ? "T" : "B";
-		return `${d}:${orient}`;
-	});
+	const reversedNotches = notches.map((n) => ({
+		dist: lengthMM - n.dist,
+		fromTop: n.fromTop,
+	}));
+	// Sort by distance since reversing changes the order
+	reversedNotches.sort((a, b) => a.dist - b.dist);
 
-	const forwardKey = forward.join("|");
-	const reverseKey = reverse.join("|");
+	const reverse = buildPattern(reversedNotches, false);
+	const reverseFlipped = buildPattern(reversedNotches, true);
 
+	// Pick the lexicographically smallest of all four variants
+	const candidates = [forward, forwardFlipped, reverse, reverseFlipped].filter(
+		(s) => s.length > 0,
+	);
+
+	// If no notches, all variants are empty strings
 	const notchesKey =
-		reverseKey.length > 0 && reverseKey < forwardKey ? reverseKey : forwardKey;
+		candidates.length > 0
+			? candidates.reduce((min, cur) => (cur < min ? cur : min))
+			: "";
 
 	return `${lengthKey}|${notchesKey}`;
 }
