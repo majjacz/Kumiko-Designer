@@ -93,6 +93,28 @@ export function useLineRenderer({
 	const { lineStrokes, lineLabels } = useMemo(() => {
 		const strokes: React.ReactElement[] = [];
 
+		// Build reverse mapping: displayCode -> Set of line IDs
+		// This allows highlighting all lines with the same display code
+		const lineIdsByDisplayCode = new Map<string, Set<string>>();
+		if (lineLabelById) {
+			for (const [lineId, displayCode] of lineLabelById) {
+				const existing = lineIdsByDisplayCode.get(displayCode);
+				if (existing) {
+					existing.add(lineId);
+				} else {
+					lineIdsByDisplayCode.set(displayCode, new Set([lineId]));
+				}
+			}
+		}
+
+		// Get the display code of the hovered line to find siblings
+		const hoveredDisplayCode = hoveredStripId
+			? lineLabelById?.get(hoveredStripId)
+			: null;
+		const siblingLineIds = hoveredDisplayCode
+			? lineIdsByDisplayCode.get(hoveredDisplayCode)
+			: null;
+
 		// Pre-calculate label data for all lines
 		interface LabelData {
 			line: Line;
@@ -102,6 +124,7 @@ export function useLineRenderer({
 			rectWidth: number;
 			rectHeight: number;
 			isHovered: boolean;
+			isSibling: boolean;
 		}
 
 		const baseFontPx = 80;
@@ -114,6 +137,19 @@ export function useLineRenderer({
 
 		for (const { line, start, end } of svgLines) {
 			const isHovered = line.id === hoveredStripId;
+			const isSibling =
+				!isHovered &&
+				siblingLineIds !== null &&
+				siblingLineIds.size > 1 &&
+				siblingLineIds.has(line.id);
+
+			// Determine stroke color: hovered (bright yellow), sibling (muted amber), default (blue)
+			let strokeColor = "#60A5FA"; // default blue
+			if (isHovered) {
+				strokeColor = "#FBBF24"; // bright yellow
+			} else if (isSibling) {
+				strokeColor = "#D97706"; // muted amber for siblings
+			}
 
 			strokes.push(
 				// biome-ignore lint/a11y/useSemanticElements: SVG line hover for visual feedback
@@ -125,7 +161,7 @@ export function useLineRenderer({
 					y1={start.y}
 					x2={end.x}
 					y2={end.y}
-					stroke={isHovered ? "#FBBF24" : "#60A5FA"}
+					stroke={strokeColor}
 					strokeWidth={
 						isHovered ? Math.max(2, bitSize / 2) : Math.max(1, bitSize / 4)
 					}
@@ -171,6 +207,7 @@ export function useLineRenderer({
 				rectWidth,
 				rectHeight,
 				isHovered,
+				isSibling,
 			});
 		}
 
@@ -186,8 +223,16 @@ export function useLineRenderer({
 		const offsetMultipliers = [1, 1.5, 2, 2.5, 3];
 
 		for (const data of labelDataList) {
-			const { line, start, end, labelText, rectWidth, rectHeight, isHovered } =
-				data;
+			const {
+				line,
+				start,
+				end,
+				labelText,
+				rectWidth,
+				rectHeight,
+				isHovered,
+				isSibling,
+			} = data;
 
 			const dx = end.x - start.x;
 			const dy = end.y - start.y;
@@ -292,6 +337,17 @@ export function useLineRenderer({
 			const rectX = labelCenterX - rectWidth / 2;
 			const rectY = labelCenterY - rectHeight / 2;
 
+			// Determine label colors: hovered (bright), sibling (muted), default
+			let rectFill = "rgba(0,0,0,0.8)";
+			let textFill = "#E5E7EB";
+			if (isHovered) {
+				rectFill = "rgba(120,80,20,0.95)";
+				textFill = "#FBBF24";
+			} else if (isSibling) {
+				rectFill = "rgba(80,50,10,0.9)";
+				textFill = "#D97706";
+			}
+
 			labels.push(
 				// biome-ignore lint/a11y/useSemanticElements: SVG group for label hover
 				<g
@@ -306,12 +362,12 @@ export function useLineRenderer({
 						y={rectY}
 						width={rectWidth}
 						height={rectHeight}
-						fill={isHovered ? "rgba(120,80,20,0.95)" : "rgba(0,0,0,0.8)"}
+						fill={rectFill}
 					/>
 					<text
 						x={labelCenterX}
 						y={labelCenterY}
-						fill={isHovered ? "#FBBF24" : "#E5E7EB"}
+						fill={textFill}
 						fontSize={fontSize}
 						textAnchor="middle"
 						dominantBaseline="middle"
