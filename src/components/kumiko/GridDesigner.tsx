@@ -38,6 +38,8 @@ export interface GridDesignerProps {
 	gridCellSize: number; // Physical size of one grid cell in mm
 	displayUnit: "mm" | "in"; // Unit for displaying dimensions
 	hoveredStripId?: string | null;
+	/** Callback when hovering over a line or label */
+	onHoverLine?: (lineId: string | null) => void;
 	/**
 	 * Optional mapping from grid Line.id to a user-facing label. This lets the
 	 * grid show stable strip IDs derived from physical geometry instead of
@@ -68,6 +70,7 @@ export function GridDesigner({
 	gridCellSize,
 	displayUnit,
 	hoveredStripId,
+	onHoverLine,
 	lineLabelById,
 	viewState,
 	onViewStateChange,
@@ -468,6 +471,7 @@ export function GridDesigner({
 						lineLabelById={lineLabelById}
 						onToggleIntersection={onToggleIntersection}
 						setIsHoveringNotch={setIsHoveringNotch}
+						onHoverLine={onHoverLine}
 						gridToSvg={gridToSvg}
 					/>
 				</g>
@@ -481,7 +485,8 @@ export function GridDesigner({
  * Automatically consumes state from KumikoContext.
  */
 export function GridDesignerConnected() {
-	const { designState, designActions, layoutState, params } = useKumiko();
+	const { designState, designActions, layoutState, layoutActions, params } =
+		useKumiko();
 
 	return (
 		<GridDesigner
@@ -497,6 +502,7 @@ export function GridDesignerConnected() {
 			gridCellSize={params.gridCellSize}
 			displayUnit={params.units}
 			hoveredStripId={layoutState.hoveredStripId}
+			onHoverLine={layoutActions.setHoveredStripId}
 			lineLabelById={designState.lineLabelById}
 			viewState={designState.gridViewState}
 			onViewStateChange={designActions.setGridViewState}

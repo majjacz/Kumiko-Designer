@@ -31,6 +31,8 @@ export interface LineRendererProps {
 	displayUnit: "mm" | "in";
 	/** Map of line IDs to their display labels */
 	lineLabelById?: Map<string, string>;
+	/** Callback when hovering over a line or label */
+	onHoverLine?: (lineId: string | null) => void;
 }
 
 interface LabelPlacement {
@@ -85,6 +87,7 @@ export function LineRenderer({
 	showDimensions,
 	displayUnit,
 	lineLabelById,
+	onHoverLine,
 }: LineRendererProps) {
 	const { lineStrokes, lineLabels } = useMemo(() => {
 		const strokes: React.ReactElement[] = [];
@@ -112,8 +115,11 @@ export function LineRenderer({
 			const isHovered = line.id === hoveredStripId;
 
 			strokes.push(
+				// biome-ignore lint/a11y/useSemanticElements: SVG line hover for visual feedback
 				<line
 					key={line.id}
+					role="button"
+					tabIndex={-1}
 					x1={start.x}
 					y1={start.y}
 					x2={end.x}
@@ -123,6 +129,9 @@ export function LineRenderer({
 						isHovered ? Math.max(2, bitSize / 2) : Math.max(1, bitSize / 4)
 					}
 					strokeLinecap="round"
+					pointerEvents="stroke"
+					onMouseEnter={() => onHoverLine?.(line.id)}
+					onMouseLeave={() => onHoverLine?.(null)}
 				/>,
 			);
 
@@ -283,15 +292,21 @@ export function LineRenderer({
 			const rectY = labelCenterY - rectHeight / 2;
 
 			labels.push(
-				<g key={`${line.id}-label`}>
+				// biome-ignore lint/a11y/useSemanticElements: SVG group for label hover
+				<g
+					key={`${line.id}-label`}
+					role="button"
+					tabIndex={-1}
+					onMouseEnter={() => onHoverLine?.(line.id)}
+					onMouseLeave={() => onHoverLine?.(null)}
+				>
 					<rect
 						x={rectX}
 						y={rectY}
 						width={rectWidth}
 						height={rectHeight}
-						fill="rgba(0,0,0,0.8)"
+						fill={isHovered ? "rgba(251,191,36,0.15)" : "rgba(0,0,0,0.8)"}
 						rx={2}
-						pointerEvents="none"
 					/>
 					<text
 						x={labelCenterX}
@@ -320,6 +335,7 @@ export function LineRenderer({
 		lineLabelById,
 		zoom,
 		cellSize,
+		onHoverLine,
 	]);
 
 	return (

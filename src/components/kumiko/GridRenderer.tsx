@@ -26,6 +26,7 @@ interface GridRendererProps {
 	lineLabelById?: Map<string, string>;
 	onToggleIntersection: (id: string) => void;
 	setIsHoveringNotch: (isHovering: boolean) => void;
+	onHoverLine?: (lineId: string | null) => void;
 	gridToSvg: (point: Point) => { x: number; y: number };
 }
 
@@ -50,6 +51,7 @@ export function GridRenderer({
 	lineLabelById,
 	onToggleIntersection,
 	setIsHoveringNotch,
+	onHoverLine,
 	gridToSvg,
 }: GridRendererProps) {
 	// Precompute SVG-space coordinates for all user lines
@@ -159,6 +161,7 @@ export function GridRenderer({
 				showDimensions={showDimensions}
 				displayUnit={displayUnit}
 				lineLabelById={lineLabelById}
+				onHoverLine={onHoverLine}
 			/>
 
 			{/* Intersection markers */}
