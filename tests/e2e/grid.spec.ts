@@ -3,7 +3,7 @@ import { test, expect, type Page } from "@playwright/test";
 async function goToDesignGrid(page: Page) {
   await page.goto("/");
   await page.evaluate(() => localStorage.clear());
-  await page.getByRole("button", { name: "Design Grid" }).click();
+  await page.getByRole("tab", { name: "Design" }).click();
 }
 
 async function drawHorizontalLine(page: Page) {
@@ -81,18 +81,19 @@ test.describe("Grid designer", () => {
     const grid = page.getByTestId("grid-canvas");
 
     // Ensure notch markers are visible
-    await page.getByLabel("Show notch markers").check();
+    await page.getByLabel("Notch markers").check();
 
     // Create a cross so we have at least one intersection
     await drawHorizontalLine(page);
     await drawVerticalLine(page);
 
-    const notch = grid.getByTestId("intersection-toggle").first();
+    const notch = grid.getByRole("button", { name: /Toggle notch/ }).first();
 
-    const before = (await notch.textContent()) ?? "";
+    // Get the aria-label which includes state info via the title element
+    const beforeTitle = await notch.locator("title").textContent();
     await notch.click();
-    const after = (await notch.textContent()) ?? "";
+    const afterTitle = await notch.locator("title").textContent();
 
-    expect(after).not.toEqual(before);
+    expect(afterTitle).not.toEqual(beforeTitle);
   });
 });

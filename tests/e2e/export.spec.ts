@@ -3,13 +3,14 @@ import { test, expect, type Page } from "@playwright/test";
 async function setupLayoutWithPiece(page: Page) {
   await page.goto("/");
   // Wait for the default template to load to ensure stability
-  await expect(page.getByPlaceholder("Design name")).toHaveValue("squares");
+  await expect(page.getByPlaceholder("Untitled design")).toHaveValue("squares");
   
   await page.evaluate(() => localStorage.clear());
-  await page.getByRole("button", { name: "Layout Strips" }).click();
+  await page.getByRole("tab", { name: "Layout" }).click();
 
-  // Clear layout to ensure clean state
-  await page.getByRole("button", { name: "Clear Layout" }).click();
+  // Clear layout to ensure clean state - open the more menu first
+  await page.getByRole("button", { name: "More actions" }).click();
+  await page.getByRole("button", { name: "Clear layout" }).click();
 
   const firstStrip = page.getByTestId("strip-bank-item").first();
   await firstStrip.click();
@@ -32,7 +33,7 @@ test.describe("SVG export", () => {
 
     const [download] = await Promise.all([
       page.waitForEvent("download"),
-      page.getByRole("button", { name: "Export Group SVG" }).click(),
+      page.getByRole("button", { name: "Export SVG" }).click(),
     ]);
 
     expect(download.suggestedFilename()).toMatch(/\.svg$/);
@@ -45,7 +46,7 @@ test.describe("SVG export", () => {
 
     const [download] = await Promise.all([
       page.waitForEvent("download"),
-      page.getByRole("button", { name: "Export All Groups SVG" }).click(),
+      page.getByRole("button", { name: "All Groups" }).click(),
     ]);
 
     expect(download.suggestedFilename()).toMatch(/\.svg$/);

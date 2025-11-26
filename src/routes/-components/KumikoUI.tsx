@@ -455,6 +455,49 @@ export function KumikoHeader({
 								</div>
 							</div>
 
+							{/* Saving & Export Section */}
+							<div>
+								<div className="flex items-center gap-2 mb-3">
+									<Save className="w-4 h-4 text-amber-400" />
+									<h3 className="text-sm font-semibold text-gray-200">
+										Saving & Export
+									</h3>
+								</div>
+								<div className="space-y-2 text-sm">
+									<div className="flex items-start gap-3 text-gray-400">
+										<span className="text-gray-500 flex-shrink-0 mt-0.5">•</span>
+										<span>
+											<strong className="text-gray-300">Auto-save:</strong>{" "}
+											Your design is automatically saved to browser local
+											storage as you work
+										</span>
+									</div>
+									<div className="flex items-start gap-3 text-gray-400">
+										<span className="text-gray-500 flex-shrink-0 mt-0.5">•</span>
+										<span>
+											<strong className="text-gray-300">Save As:</strong>{" "}
+											Creates a new design copy with a different name, leaving
+											the original unchanged
+										</span>
+									</div>
+									<div className="flex items-start gap-3 text-gray-400">
+										<span className="text-gray-500 flex-shrink-0 mt-0.5">•</span>
+										<span>
+											<strong className="text-gray-300">JSON Export:</strong>{" "}
+											Download your design as a JSON file for backup or sharing
+											with others
+										</span>
+									</div>
+									<div className="flex items-start gap-3 text-gray-400">
+										<span className="text-gray-500 flex-shrink-0 mt-0.5">•</span>
+										<span>
+											<strong className="text-gray-300">SVG Export:</strong>{" "}
+											Generate CNC-ready SVG files from the Layout Editor
+										</span>
+									</div>
+								</div>
+							</div>
+
 							{/* Tips */}
 							<div className="p-3 bg-indigo-950/30 rounded-lg border border-indigo-800/30">
 								<p className="text-xs text-indigo-300">

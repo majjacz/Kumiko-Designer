@@ -5,8 +5,8 @@ async function goToLayout(page: Page) {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   // Wait for the design to load (squares template is default)
-  await expect(page.getByPlaceholder("Design name")).toHaveValue("squares", { timeout: 10000 });
-  await page.getByRole("button", { name: "Layout Strips" }).click();
+  await expect(page.getByPlaceholder("Untitled design")).toHaveValue("squares", { timeout: 10000 });
+  await page.getByRole("tab", { name: "Layout" }).click();
 }
 
 async function placeOneStrip(page: Page) {
@@ -31,8 +31,9 @@ test.describe("Layout editor", () => {
   test("places a strip on the layout canvas", async ({ page }) => {
     await goToLayout(page);
 
-    // Clear existing layout to start fresh
-    await page.getByRole("button", { name: "Clear Layout" }).click();
+    // Clear existing layout to start fresh - open the more menu first
+    await page.getByRole("button", { name: "More actions" }).click();
+    await page.getByRole("button", { name: "Clear layout" }).click();
 
     const pieces = page.getByTestId("layout-piece");
     await expect(pieces).toHaveCount(0);
