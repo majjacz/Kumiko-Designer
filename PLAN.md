@@ -83,9 +83,9 @@ This document outlines planned refactoring tasks to improve code extendability a
 - [ ] Update `GridRenderer.tsx` to compose extracted components
 
 #### 8c. Split index.tsx (531 lines)
-- [ ] Extract `useDesignPersistence.ts` hook (save/load/export logic)
-- [ ] Extract `useDesignImportExport.ts` hook (JSON import/export)
-- [ ] Simplify `App` component to pure orchestration
+- [x] Extract `useDesignPersistence.ts` hook (save/load/export logic)
+- [ ] Extract `useDesignImportExport.ts` hook (JSON import/export) - merged into useDesignPersistence
+- [ ] Simplify `App` component to pure orchestration - integrate useDesignPersistence
 
 ### 9. Introduce KumikoContext
 - [ ] Create `src/context/KumikoContext.tsx`
