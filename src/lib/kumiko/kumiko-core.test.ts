@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-	convertUnit,
-	findIntersection,
-	formatValue,
-	type Line,
-} from "./kumiko-core";
+import { convertUnit, formatValue } from "./kumiko-core";
 
 describe("convertUnit()", () => {
 	it("converts mm to in", () => {
@@ -39,42 +34,4 @@ describe("formatValue()", () => {
 	});
 });
 
-describe("findIntersection()", () => {
-	const makeLine = (
-		id: string,
-		x1: number,
-		y1: number,
-		x2: number,
-		y2: number,
-	): Line => ({
-		id,
-		x1,
-		y1,
-		x2,
-		y2,
-	});
-
-	it("returns an intersection point for crossing segments", () => {
-		const h = makeLine("h", 0, 0, 10, 0);
-		const v = makeLine("v", 5, -5, 5, 5);
-
-		const p = findIntersection(h, v);
-
-		expect(p).not.toBeNull();
-		expect(p).toEqual({ x: 5, y: 0 });
-	});
-
-	it("returns null for parallel segments", () => {
-		const a = makeLine("a", 0, 0, 10, 0);
-		const b = makeLine("b", 0, 1, 10, 1);
-
-		expect(findIntersection(a, b)).toBeNull();
-	});
-
-	it("returns null when lines would intersect outside segment ranges", () => {
-		const short = makeLine("short", 0, 0, 1, 0);
-		const far = makeLine("far", 5, -1, 5, 1);
-
-		expect(findIntersection(short, far)).toBeNull();
-	});
-});
+// findIntersection tests moved to geometry.test.ts

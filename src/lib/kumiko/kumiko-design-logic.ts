@@ -1,6 +1,10 @@
 import {
-	type DesignStrip,
+	computeLineOverlapForSingleLine,
 	findIntersection,
+	gcd,
+} from "./geometry";
+import {
+	type DesignStrip,
 	type Intersection,
 	type Line,
 	newId,
@@ -284,86 +288,6 @@ export function computeLineOverlaps(
 }
 
 /**
- * Internal helper implementing the collinearity/overlap test for a single line.
- */
-function computeLineOverlapForSingleLine(
-	line: Line,
-	start: Point,
-	end: Point,
-): { line: Line; tStart: number; tEnd: number } | null {
-	// Check if the new segment is collinear with this line
-	const dx1 = line.x2 - line.x1;
-	const dy1 = line.y2 - line.y1;
-	const dx2 = end.x - start.x;
-	const dy2 = end.y - start.y;
-
-	// Degenerate base line – skip
-	if (dx1 === 0 && dy1 === 0) {
-		return null;
-	}
-
-	// Cross product check for parallel lines
-	const cross = dx1 * dy2 - dy1 * dx2;
-	if (cross !== 0) {
-		return null; // Not parallel
-	}
-
-	// Check if start point is on the existing line
-	const dxs = start.x - line.x1;
-	const dys = start.y - line.y1;
-	const crossStart = dx1 * dys - dy1 * dxs;
-	if (crossStart !== 0) {
-		return null; // Start not on line
-	}
-
-	// Check if end point is on the existing line
-	const dxe = end.x - line.x1;
-	const dye = end.y - line.y1;
-	const crossEnd = dx1 * dye - dy1 * dxe;
-	if (crossEnd !== 0) {
-		return null; // End not on line
-	}
-
-	// Both points are collinear with the line
-	// Calculate parametric positions along the line
-	let tStart: number;
-	let tEnd: number;
-	if (Math.abs(dx1) > Math.abs(dy1)) {
-		tStart = dxs / dx1;
-		tEnd = dxe / dx1;
-	} else {
-		tStart = dys / dy1;
-		tEnd = dye / dy1;
-	}
-
-	// Ensure tStart < tEnd for the overlap segment
-	if (tStart > tEnd) {
-		[tStart, tEnd] = [tEnd, tStart];
-	}
-
-	// Check if there's actual overlap with the segment [0, 1]
-	if (tEnd < 0 || tStart > 1) {
-		return null;
-	}
-
-	// Clamp to [0, 1] range
-	tStart = Math.max(0, tStart);
-	tEnd = Math.min(1, tEnd);
-
-	// Only consider this an overlap if it's more than just touching at endpoints
-	// This allows merging/extending when lines touch at a single point
-	const EPSILON = 0.01; // Small threshold for endpoint detection
-	const overlapLength = tEnd - tStart;
-
-	// Skip if the overlap is essentially just a point (touching at endpoints)
-	if (overlapLength < EPSILON) {
-		return null;
-	}
-
-	return { line, tStart, tEnd };
-}
-
-/**
  * Normalize a set of grid lines so that:
  * - All collinear, touching/overlapping segments on the same infinite line
  *   are merged into single continuous Line objects.
@@ -547,20 +471,6 @@ export function normalizeLines(lines: Map<string, Line>): Map<string, Line> {
 	}
 
 	return result;
-}
-
-/**
- * Greatest common divisor helper for integer deltas.
- */
-function gcd(a: number, b: number): number {
-	let x = Math.abs(a);
-	let y = Math.abs(b);
-	while (y !== 0) {
-		const temp = y;
-		y = x % y;
-		x = temp;
-	}
-	return x || 1;
 }
 
 /**

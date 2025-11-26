@@ -1,5 +1,6 @@
 import type React from "react";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
+import { distancePointToSegment } from "../../lib/kumiko/geometry";
 import type { Intersection, Line, Point } from "../../lib/kumiko/kumiko-core";
 
 interface GridRendererProps {
@@ -96,39 +97,6 @@ export function GridRenderer({
 				end: gridToSvg({ x: line.x2, y: line.y2 }),
 			})),
 		[lines, gridToSvg],
-	);
-
-	// Helper: distance from a point to a line segment in SVG space.
-	const distancePointToSegment = useCallback(
-		(
-			px: number,
-			py: number,
-			x1: number,
-			y1: number,
-			x2: number,
-			y2: number,
-		) => {
-			const vx = x2 - x1;
-			const vy = y2 - y1;
-			const wx = px - x1;
-			const wy = py - y1;
-
-			const c1 = vx * wx + vy * wy;
-			if (c1 <= 0) {
-				return Math.hypot(px - x1, py - y1);
-			}
-
-			const c2 = vx * vx + vy * vy;
-			if (c2 <= c1) {
-				return Math.hypot(px - x2, py - y2);
-			}
-
-			const t = c1 / c2;
-			const projX = x1 + t * vx;
-			const projY = y1 + t * vy;
-			return Math.hypot(px - projX, py - projY);
-		},
-		[],
 	);
 
 	// Render user-drawn lines: strokes and labels
@@ -255,7 +223,6 @@ export function GridRenderer({
 		hoveredStripId,
 		showLineIds,
 		lineLabelById,
-		distancePointToSegment,
 		zoom,
 		cellSize,
 	]);

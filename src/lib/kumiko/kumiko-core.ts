@@ -102,22 +102,5 @@ export const formatValue = (
 export const newId = (): string =>
 	`id_${Math.random().toString(36).substr(2, 9)}`;
 
-export const findIntersection = (line1: Line, line2: Line): Point | null => {
-	const { x1, y1, x2, y2 } = line1;
-	const { x1: x3, y1: y3, x2: x4, y2: y4 } = line2;
-
-	const den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-	if (den === 0) return null;
-
-	const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
-	const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
-
-	if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
-		return {
-			x: Math.round(x1 + t * (x2 - x1)),
-			y: Math.round(y1 + t * (y2 - y1)),
-		};
-	}
-
-	return null;
-};
+// Re-export geometry utilities for backward compatibility
+export { findIntersection } from "./geometry";

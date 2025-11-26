@@ -23,6 +23,7 @@ Kumiko Designer is a client-only web application for designing traditional Kumik
 
 ### Core Domain Logic (`src/lib/kumiko/`)
 - `kumiko-core.ts`: Core data structures (`Point`, `Line`, `DesignStrip`, `Notch`, `Intersection`, `Piece`, `Cut`, `Group`) and unit conversion utilities.
+- `geometry.ts`: Geometry utilities (`findIntersection`, `computeLineOverlapForSingleLine`, `gcd`, `distancePointToSegment`).
 - `kumiko-design-logic.ts`: Design computation functions (`computeIntersections`, `computeDesignStrips`, `computeLineOverlaps`, `normalizeLines`).
 - `kumiko-grid-designer.tsx`: Grid editor component.
 - `kumiko-layout-editor.tsx`: Layout editor component.
