@@ -1,4 +1,9 @@
 import type { Intersection, Line } from "../../lib/kumiko";
+import {
+	getNotchBadgeDimensions,
+	getNotchClickPadding,
+	NotchToggleMarker,
+} from "./NotchToggleMarker";
 
 interface IntersectionMarkerProps {
 	intersection: Intersection;
@@ -57,35 +62,15 @@ export function IntersectionMarker({
 		return intersection.line1Over;
 	})();
 
-	const activeFill = horizontalOnTop ? "#10B981" : "#3B82F6";
 	const labelDescription = horizontalOnTop ? "Cut from bottom" : "Cut from top";
-
-	const baseBadgeWidthPx = 72;
-	const baseBadgeHeightPx = 32;
-	const baseClickPaddingPx = 16;
-	const baseNotchWidthPx = 40;
-	const baseNotchHeightPx = 24;
-
-	const badgeWidth = baseBadgeWidthPx / zoom;
-	const badgeHeight = baseBadgeHeightPx / zoom;
-	const clickPadding = baseClickPaddingPx / zoom;
-	const notchWidth = baseNotchWidthPx / zoom;
-	const notchHeight = baseNotchHeightPx / zoom;
 
 	const centerX = position.x;
 	const centerY = position.y;
+	const clickPadding = getNotchClickPadding(zoom);
+	const { width: badgeWidth, height: badgeHeight } =
+		getNotchBadgeDimensions(zoom);
 	const badgeX = centerX - badgeWidth / 2;
 	const badgeY = centerY - badgeHeight / 2;
-
-	const notchDirection = horizontalOnTop ? 1 : -1;
-	const boardY = centerY;
-	const boardX1 = centerX - notchWidth / 2;
-	const boardX2 = centerX + notchWidth / 2;
-	const notchBaseY = boardY;
-	const notchApexY = notchBaseY + notchHeight * notchDirection;
-	const notchLeftX = centerX - notchWidth * 0.35;
-	const notchRightX = centerX + notchWidth * 0.35;
-	const notchPoints = `${notchLeftX},${notchBaseY} ${notchRightX},${notchBaseY} ${centerX},${notchApexY}`;
 
 	return (
 		// biome-ignore lint: SVG group is used as an interactive hit target inside the grid canvas
@@ -111,6 +96,7 @@ export function IntersectionMarker({
 			onMouseEnter={onHoverStart}
 			onMouseLeave={onHoverEnd}
 		>
+			{/* Invisible click target area */}
 			<rect
 				x={badgeX - clickPadding}
 				y={badgeY - clickPadding}
@@ -119,34 +105,12 @@ export function IntersectionMarker({
 				fill="transparent"
 			/>
 
-			<rect
-				x={badgeX}
-				y={badgeY}
-				width={badgeWidth}
-				height={badgeHeight}
-				rx={badgeHeight / 2}
-				fill="#111827"
-				stroke={activeFill}
-				strokeWidth={Math.max(0.75, 1 / zoom)}
-				pointerEvents="none"
-			/>
-
-			<line
-				x1={boardX1}
-				y1={boardY}
-				x2={boardX2}
-				y2={boardY}
-				stroke="#E5E7EB"
-				strokeWidth={Math.max(1, 2 / zoom)}
-				strokeLinecap="round"
-				pointerEvents="none"
-			/>
-			<polygon
-				points={notchPoints}
-				fill={activeFill}
-				stroke="#F9FAFB"
-				strokeWidth={Math.max(0.75, 1 / zoom)}
-				pointerEvents="none"
+			{/* Notch visualization */}
+			<NotchToggleMarker
+				centerX={centerX}
+				centerY={centerY}
+				zoom={zoom}
+				notchPointsDown={horizontalOnTop}
 			/>
 
 			<title>

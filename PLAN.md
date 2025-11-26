@@ -111,11 +111,11 @@ This document outlines planned refactoring tasks to improve code extendability a
 - [x] Document hook return type convention in `AGENTS.MD`
 
 ### 12. Extract Notch Visualization
-- [ ] Create `src/components/kumiko/NotchToggleMarker.tsx`
-- [ ] Move notch badge/triangle rendering logic
-- [ ] Move notch color determination logic
-- [ ] Add props for customization (colors, sizes)
-- [ ] Update `GridRenderer.tsx` to use new component
+- [x] Create `src/components/kumiko/NotchToggleMarker.tsx`
+- [x] Move notch badge/triangle rendering logic
+- [x] Move notch color determination logic
+- [x] Add props for customization (colors, sizes)
+- [x] Update `GridRenderer.tsx` to use new component
 
 ---
 
