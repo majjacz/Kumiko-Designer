@@ -59,9 +59,16 @@ export function NotchToggleMarker({
 	const colors = { ...DEFAULT_COLORS, ...customColors };
 	const sizes = { ...DEFAULT_SIZES, ...customSizes };
 
-	// Scale sizes by zoom
-	const badgeSize = sizes.badgeWidth / zoom;
-	const strokeWidth = Math.max(0.5, 1 / zoom);
+	// Scale sizes by zoom with a minimum size to prevent markers from becoming too small at high zoom levels
+	// At zoom=40 (default/100%): badgeSize = 200/40 = 5
+	// At zoom=100 (250%): badgeSize = max(200/100, 2.5) = 2.5 (clamped)
+	// This ensures the badge stays visible and clickable at high zoom
+	const minBadgeSize = sizes.badgeWidth / 80; // minimum size at 200% zoom equivalent
+	const badgeSize = Math.max(minBadgeSize, sizes.badgeWidth / zoom);
+	
+	// Stroke width scales more slowly to remain visible at high zoom levels
+	// Uses sqrt scaling so stroke doesn't become paper-thin when zoomed in
+	const strokeWidth = Math.max(0.5, 2 / Math.sqrt(zoom));
 
 	// Badge positioning (circular badge)
 	const badgeRadius = badgeSize / 2;
@@ -235,7 +242,9 @@ export function getNotchClickPadding(
 	zoom: number,
 	customClickPadding?: number,
 ): number {
-	return (customClickPadding ?? DEFAULT_SIZES.clickPadding) / zoom;
+	const padding = customClickPadding ?? DEFAULT_SIZES.clickPadding;
+	const minPadding = padding / 80;
+	return Math.max(minPadding, padding / zoom);
 }
 
 /**
@@ -247,8 +256,10 @@ export function getNotchBadgeDimensions(
 	customSizes?: { badgeWidth?: number; badgeHeight?: number },
 ): { width: number; height: number } {
 	const size = customSizes?.badgeWidth ?? DEFAULT_SIZES.badgeWidth;
+	const minSize = size / 80;
+	const scaledSize = Math.max(minSize, size / zoom);
 	return {
-		width: size / zoom,
-		height: size / zoom,
+		width: scaledSize,
+		height: scaledSize,
 	};
 }
