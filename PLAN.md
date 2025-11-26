@@ -77,15 +77,15 @@ This document outlines planned refactoring tasks to improve code extendability a
 
 #### 8b. Split GridRenderer (532 lines)
 - [x] Extract `IntersectionMarker.tsx` component (~150 lines)
-- [ ] Extract `LineRenderer.tsx` component (~100 lines)
-- [ ] Extract `DragPreview.tsx` component (~50 lines)
-- [ ] Extract `GridBackground.tsx` component
-- [ ] Update `GridRenderer.tsx` to compose extracted components
+- [x] Extract `LineRenderer.tsx` component (~100 lines)
+- [x] Extract `DragPreview.tsx` component (~50 lines)
+- [x] Extract `GridBackground.tsx` component
+- [x] Update `GridRenderer.tsx` to compose extracted components
 
 #### 8c. Split index.tsx (531 lines)
 - [x] Extract `useDesignPersistence.ts` hook (save/load/export logic)
-- [ ] Extract `useDesignImportExport.ts` hook (JSON import/export) - merged into useDesignPersistence
-- [ ] Simplify `App` component to pure orchestration - integrate useDesignPersistence
+- [x] ~~Extract `useDesignImportExport.ts` hook (JSON import/export)~~ (merged into useDesignPersistence)
+- [ ] Simplify `App` component to pure orchestration - integrate useDesignPersistence (requires careful refactoring)
 
 ### 9. Introduce KumikoContext
 - [ ] Create `src/context/KumikoContext.tsx`
