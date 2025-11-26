@@ -483,15 +483,19 @@ export function KumikoHeader({
 								</div>
 								<div className="space-y-2 text-sm">
 									<div className="flex items-start gap-3 text-gray-400">
-										<span className="text-gray-500 flex-shrink-0 mt-0.5">•</span>
+										<span className="text-gray-500 flex-shrink-0 mt-0.5">
+											•
+										</span>
 										<span>
-											<strong className="text-gray-300">Auto-save:</strong>{" "}
-											Your design is automatically saved to browser local
-											storage as you work
+											<strong className="text-gray-300">Auto-save:</strong> Your
+											design is automatically saved to browser local storage as
+											you work
 										</span>
 									</div>
 									<div className="flex items-start gap-3 text-gray-400">
-										<span className="text-gray-500 flex-shrink-0 mt-0.5">•</span>
+										<span className="text-gray-500 flex-shrink-0 mt-0.5">
+											•
+										</span>
 										<span>
 											<strong className="text-gray-300">Save As:</strong>{" "}
 											Creates a new design copy with a different name, leaving
@@ -499,7 +503,9 @@ export function KumikoHeader({
 										</span>
 									</div>
 									<div className="flex items-start gap-3 text-gray-400">
-										<span className="text-gray-500 flex-shrink-0 mt-0.5">•</span>
+										<span className="text-gray-500 flex-shrink-0 mt-0.5">
+											•
+										</span>
 										<span>
 											<strong className="text-gray-300">JSON Export:</strong>{" "}
 											Download your design as a JSON file for backup or sharing
@@ -507,7 +513,9 @@ export function KumikoHeader({
 										</span>
 									</div>
 									<div className="flex items-start gap-3 text-gray-400">
-										<span className="text-gray-500 flex-shrink-0 mt-0.5">•</span>
+										<span className="text-gray-500 flex-shrink-0 mt-0.5">
+											•
+										</span>
 										<span>
 											<strong className="text-gray-300">SVG Export:</strong>{" "}
 											Generate CNC-ready SVG files from the Layout Editor
@@ -982,7 +990,9 @@ export function KumikoSidebarParams({
  */
 export function KumikoSidebarParamsConnected({
 	onClose,
-}: { onClose?: () => void }) {
+}: {
+	onClose?: () => void;
+}) {
 	const { params, paramActions } = useKumiko();
 
 	return (

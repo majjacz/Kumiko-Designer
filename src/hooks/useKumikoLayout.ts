@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import type { NotificationType } from "../lib/errors";
+import type { NotificationType, NotifyCallback } from "../lib/errors";
 import {
 	type Cut,
 	type Group,
@@ -10,7 +10,7 @@ import {
 
 export interface UseKumikoLayoutOptions {
 	/** Optional callback for showing notifications to the user */
-	onNotify?: (type: NotificationType, message: string) => void;
+	onNotify?: NotifyCallback;
 }
 
 export function useKumikoLayout(options: UseKumikoLayoutOptions = {}) {

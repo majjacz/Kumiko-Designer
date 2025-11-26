@@ -2,7 +2,7 @@
  * Hook for managing design persistence - save, load, import, export operations
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { NotificationType } from "../lib/errors";
+import type { NotificationType, NotifyCallback } from "../lib/errors";
 import type { Group, Line, SavedDesignPayload } from "../lib/kumiko";
 import {
 	clearDesign,
@@ -72,7 +72,7 @@ export interface UseDesignPersistenceOptions extends ApplyDesignParams {
 	/** Function to get current design data for saving/exporting */
 	getCurrentPayloadData: () => DesignPayloadData;
 	/** Optional callback for showing notifications to the user */
-	onNotify?: (type: NotificationType, message: string) => void;
+	onNotify?: NotifyCallback;
 }
 
 export interface DesignPersistenceActions {

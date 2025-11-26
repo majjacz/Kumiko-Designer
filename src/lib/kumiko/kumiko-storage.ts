@@ -1,7 +1,5 @@
 import type { GridViewState } from "./types";
 
-export type { GridViewState };
-
 export interface SavedDesignPayload {
 	version: 1;
 	// core params

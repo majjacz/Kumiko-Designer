@@ -15,10 +15,10 @@ export const TEMPLATES: TemplateInfo[] = [
 		path: "/templates/squares.json",
 	},
 	{
-		id: "temlate-1",
+		id: "template-1",
 		name: "Template 1",
 		description: "Template design 1",
-		path: "/templates/temlate-1.json",
+		path: "/templates/template-1.json",
 	},
 	{
 		id: "complex",

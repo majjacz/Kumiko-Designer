@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { GRID_CELL_HEIGHT } from "./config";
 import {
 	computeKerfedLayoutRows,
 	computeRowLengths,
-	GRID_CELL_HEIGHT,
 	getStripConfigKey,
 	validateStripPlacement,
 } from "./kumiko-layout-editor";

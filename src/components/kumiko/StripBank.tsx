@@ -194,8 +194,7 @@ export function StripBank({
 												const topNotches = strip.notches.filter(
 													(n) => n.fromTop,
 												).length;
-												const bottomNotches =
-													strip.notches.length - topNotches;
+												const bottomNotches = strip.notches.length - topNotches;
 												const shouldFlip =
 													bottomNotches > 0 && topNotches === 0;
 

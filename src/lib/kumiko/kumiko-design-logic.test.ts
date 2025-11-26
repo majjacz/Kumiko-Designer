@@ -170,4 +170,3 @@ describe("computeDesignStrips()", () => {
 		expect(strips).toHaveLength(0);
 	});
 });
-

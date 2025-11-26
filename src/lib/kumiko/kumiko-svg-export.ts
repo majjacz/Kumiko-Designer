@@ -61,14 +61,6 @@ export function analyzeGroupPasses(
 	return { hasTop, hasBottom };
 }
 
-export function hasDoubleSidedStrips(
-	group: Group | undefined,
-	designStrips: DesignStrip[],
-): boolean {
-	const { hasTop, hasBottom } = analyzeGroupPasses(group, designStrips);
-	return hasTop && hasBottom;
-}
-
 export function generateGroupSVG({
 	group,
 	designStrips,

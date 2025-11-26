@@ -115,9 +115,7 @@ export function IntersectionMarker({
 				notchPointsDown={horizontalOnTop}
 			/>
 
-			<title>
-				{labelDescription}. Click to swap which strip is on top.
-			</title>
+			<title>{labelDescription}. Click to swap which strip is on top.</title>
 		</g>
 	);
 }

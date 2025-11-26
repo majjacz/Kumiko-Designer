@@ -25,7 +25,6 @@ export {
 } from "./config";
 // Geometry utilities
 export {
-	computeLineOverlapForSingleLine,
 	computeLineOverlaps,
 	distancePointToSegment,
 	findIntersection,

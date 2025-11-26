@@ -125,34 +125,3 @@ export function ParamInput({
 		</div>
 	);
 }
-
-export interface SimpleParamInputProps {
-	label: string;
-	id: string;
-	value: number;
-	onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-}
-
-export function SimpleParamInput({
-	label,
-	id,
-	value,
-	onChange,
-}: SimpleParamInputProps) {
-	return (
-		<div className="flex flex-col gap-1.5">
-			<label htmlFor={id} className="text-xs font-medium text-gray-300">
-				{label}
-			</label>
-			<input
-				id={id}
-				type="number"
-				value={value}
-				onChange={onChange}
-				className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100
-					focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500
-					transition-colors"
-			/>
-		</div>
-	);
-}

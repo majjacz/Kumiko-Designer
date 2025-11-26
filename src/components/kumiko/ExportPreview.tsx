@@ -13,7 +13,9 @@ export const ExportPreview = memo(function ExportPreview({
 	svgContent,
 }: ExportPreviewProps) {
 	const isDoublePass =
-		typeof svgContent === "object" && svgContent !== null && "top" in svgContent;
+		typeof svgContent === "object" &&
+		svgContent !== null &&
+		"top" in svgContent;
 
 	return (
 		<div className="h-48 bg-gray-900 border-t border-gray-800 p-4 flex flex-col shrink-0">

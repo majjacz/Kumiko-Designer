@@ -1,5 +1,5 @@
 import { findIntersection, gcd } from "./geometry";
-import type { DesignStrip, Intersection, Line, Point } from "./types";
+import type { DesignStrip, Intersection, Line } from "./types";
 import { newId } from "./utils";
 
 /**

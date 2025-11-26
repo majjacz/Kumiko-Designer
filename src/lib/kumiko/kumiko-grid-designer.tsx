@@ -5,7 +5,7 @@ import { GridRenderer } from "../../components/kumiko/GridRenderer";
 import { useKumiko } from "../../context/KumikoContext";
 import { useGridCoordinates } from "../../hooks/useGridCoordinates";
 import { useZoomPan } from "../../hooks/useZoomPan";
-import { GRID_EXTENT_CELLS } from "./config";
+import { DEFAULT_ZOOM, GRID_EXTENT_CELLS } from "./config";
 import type { GridViewState, Intersection, Line, Point } from "./types";
 
 /**
@@ -101,7 +101,6 @@ export function GridDesigner({
 	const {
 		state: { zoom, panX, panY },
 		actions: { resetView, zoomBy },
-		DEFAULT_ZOOM,
 	} = useZoomPan({
 		svgRef,
 		contentGroupRef,

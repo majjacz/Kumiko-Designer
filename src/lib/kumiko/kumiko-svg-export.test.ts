@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-	generateGroupSVG,
-	hasDoubleSidedStrips,
-} from "./kumiko-svg-export";
+import { analyzeGroupPasses, generateGroupSVG } from "./kumiko-svg-export";
 import type { DesignStrip, Group, Piece } from "./types";
 
 const makeStrip = (overrides?: Partial<DesignStrip>): DesignStrip => ({
@@ -187,7 +184,8 @@ describe("generateGroupSVG()", () => {
 		const bitSize = 2;
 
 		// Check detection
-		expect(hasDoubleSidedStrips(group, strips)).toBe(true);
+		const { hasTop, hasBottom } = analyzeGroupPasses(group, strips);
+		expect(hasTop && hasBottom).toBe(true);
 
 		// Pass 1: Top
 		const svgTop = generateGroupSVG({
@@ -258,11 +256,11 @@ describe("generateGroupSVG()", () => {
 		// Note: It might still have cut lines (black) if they are emitted in top pass?
 		// Actually, looking at code: "Only add profile cuts if we are in "all" or "bottom" pass."
 		// So top pass should have NO cut lines either.
-		
+
 		// So svgNormal might be null or just the bounding box?
 		// If cutsByX is empty, it returns null.
 		// If there are no notches and no cuts, it returns null.
-		
+
 		expect(svgNormal).toBeNull();
 
 		// Flipped should have the notch

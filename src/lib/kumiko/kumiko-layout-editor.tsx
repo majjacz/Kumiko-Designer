@@ -8,16 +8,9 @@ import {
 	StripBank,
 } from "../../components/kumiko/StripBank";
 import { useKumiko } from "../../context/KumikoContext";
-import type { NotificationType } from "../../lib/errors";
-import { GRID_CELL_HEIGHT, GRID_MARGIN } from "./config";
-import {
-	analyzeGroupPasses,
-	generateGroupSVG,
-} from "./kumiko-svg-export";
+import type { NotifyCallback } from "../../lib/errors";
+import { analyzeGroupPasses, generateGroupSVG } from "./kumiko-svg-export";
 import type { DesignStrip, Group, Piece, Point } from "./types";
-
-// Re-export for backward compatibility with tests
-export { GRID_CELL_HEIGHT, GRID_MARGIN };
 
 // Generate a unique key for a strip based on its configuration
 // Accounts for horizontal and vertical flips - strips are the same if:
@@ -78,7 +71,7 @@ export interface LayoutEditorProps {
 	onHoverStrip?: (id: string | null) => void;
 	displayUnit: "mm" | "in";
 	/** Optional callback for showing notifications to the user */
-	onNotify?: (type: NotificationType, message: string) => void;
+	onNotify?: NotifyCallback;
 }
 
 export function computeKerfedLayoutRows(
@@ -284,7 +277,14 @@ export const LayoutEditor = memo(function LayoutEditor({
 			stockLength,
 			pass: "all",
 		});
-	}, [safeActiveGroup, designStrips, bitSize, stockLength, groupPasses, shouldFlip]);
+	}, [
+		safeActiveGroup,
+		designStrips,
+		bitSize,
+		stockLength,
+		groupPasses,
+		shouldFlip,
+	]);
 
 	const handleClearLayout = () => {
 		// Delete all pieces in the current group

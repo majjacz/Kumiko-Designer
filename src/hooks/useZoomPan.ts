@@ -344,7 +344,5 @@ export function useZoomPan({
 	return {
 		state: { zoom, panX, panY },
 		actions: { resetView, zoomBy },
-		/** @deprecated Use state.zoom instead. Included for backward compatibility. */
-		DEFAULT_ZOOM,
 	};
 }

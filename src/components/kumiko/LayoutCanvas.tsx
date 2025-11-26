@@ -1,7 +1,7 @@
 import { Trash2 } from "lucide-react";
 import type React from "react";
 import { memo, useState } from "react";
-import type { NotificationType } from "../../lib/errors";
+import type { NotifyCallback } from "../../lib/errors";
 import {
 	type DesignStrip,
 	formatValue,
@@ -39,7 +39,7 @@ export interface LayoutCanvasProps {
 	/** Whether to visually flip the strips (for bottom-only optimization) */
 	flipped?: boolean;
 	/** Optional callback for showing notifications to the user */
-	onNotify?: (type: NotificationType, message: string) => void;
+	onNotify?: NotifyCallback;
 }
 
 /**
