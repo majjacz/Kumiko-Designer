@@ -137,3 +137,4 @@ After each refactoring task:
 - Maintain backward compatibility with saved designs
 - Update `AGENTS.MD` documentation after structural changes
 - Add tests for any new utility functions
+- After each numbered task is finshed and fully tested, create a commit with the new changes.
