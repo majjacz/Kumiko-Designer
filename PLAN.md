@@ -69,11 +69,11 @@ This document outlines planned refactoring tasks to improve code extendability a
 
 #### 8a. Split LayoutEditor (998 lines)
 - [x] Extract `StripBank.tsx` component (~150 lines)
-- [ ] Extract `LayoutCanvas.tsx` component (~200 lines)
-- [ ] Extract `GroupToolbar.tsx` component (~100 lines)
-- [ ] Extract `StripPreviewSVG.tsx` component (~80 lines)
-- [ ] Extract `RowLengthIndicator.tsx` component
-- [ ] Update `kumiko-layout-editor.tsx` to compose extracted components
+- [x] Extract `LayoutCanvas.tsx` component (~200 lines)
+- [x] Extract `GroupToolbar.tsx` component (~100 lines)
+- [x] Extract `ExportPreview.tsx` component (~30 lines)
+- [x] ~~Extract `RowLengthIndicator.tsx` component~~ (kept inline in LayoutCanvas, too small to extract)
+- [x] Update `kumiko-layout-editor.tsx` to compose extracted components
 
 #### 8b. Split GridRenderer (532 lines)
 - [x] Extract `IntersectionMarker.tsx` component (~150 lines)
