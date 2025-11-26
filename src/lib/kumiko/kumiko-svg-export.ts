@@ -250,6 +250,9 @@ export function generateGroupSVG({
 	const NOTCH_STROKE = "#808080";
 	const BOUNDING_STROKE = "#E6E6E6";
 
+	// Use bit size for stroke width to reflect realistic cut dimensions
+	const strokeWidthCm = mmToCm(bitSize);
+
 	const offsetY = minY;
 
 	const linesSvg = mergedLines
@@ -262,7 +265,7 @@ export function generateGroupSVG({
 				3,
 			)}" x2="${xCm.toFixed(3)}" y2="${y2Cm.toFixed(
 				3,
-			)}" stroke="${stroke}" stroke-linecap="round" stroke-linejoin="round" />`;
+			)}" stroke="${stroke}" stroke-width="${strokeWidthCm.toFixed(3)}" stroke-linecap="round" stroke-linejoin="round" />`;
 		})
 		.join("\n");
 
