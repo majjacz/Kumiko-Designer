@@ -6,7 +6,7 @@ import { useKumiko } from "../../context/KumikoContext";
 import { useGridCoordinates } from "../../hooks/useGridCoordinates";
 import { useZoomPan } from "../../hooks/useZoomPan";
 import { GRID_EXTENT_CELLS } from "./config";
-import type { GridViewState, Intersection, Line, Point } from "./kumiko-core";
+import type { GridViewState, Intersection, Line, Point } from "./types";
 
 /**
  * Kumiko Grid Designer - Rewritten for proper coordinate handling and drag-based interaction

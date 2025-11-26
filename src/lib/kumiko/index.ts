@@ -18,41 +18,23 @@ export {
 	GRID_CELL_HEIGHT,
 	GRID_EXTENT_CELLS,
 	GRID_MARGIN,
+	INCH_TO_MM,
 	MAX_ZOOM,
 	MIN_ZOOM,
+	MM_TO_INCH,
 } from "./config";
 // Geometry utilities
 export {
 	computeLineOverlapForSingleLine,
+	computeLineOverlaps,
 	distancePointToSegment,
+	findIntersection,
 	gcd,
 } from "./geometry";
-// Core types and utilities
-export type {
-	Cut,
-	DesignStrip,
-	GridViewState,
-	Group,
-	Intersection,
-	Line,
-	Notch,
-	Piece,
-	Point,
-} from "./kumiko-core";
-export {
-	convertUnit,
-	findIntersection,
-	formatValue,
-	INCH_TO_MM,
-	MM_TO_INCH,
-	newId,
-} from "./kumiko-core";
-
 // Design logic
 export {
 	computeDesignStrips,
 	computeIntersections,
-	computeLineOverlaps,
 	normalizeLines,
 } from "./kumiko-design-logic";
 export type { GridDesignerProps } from "./kumiko-grid-designer";
@@ -92,3 +74,21 @@ export {
 	loadTemplate,
 	TEMPLATES,
 } from "./kumiko-templates";
+// Core types
+export type {
+	Cut,
+	DesignStrip,
+	GridViewState,
+	Group,
+	Intersection,
+	Line,
+	Notch,
+	Piece,
+	Point,
+} from "./types";
+// Utilities
+export {
+	convertUnit,
+	formatValue,
+	newId,
+} from "./utils";

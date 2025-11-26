@@ -5,7 +5,7 @@ import {
 	findIntersection,
 	gcd,
 } from "./geometry";
-import type { Line } from "./kumiko-core";
+import type { Line } from "./types";
 
 describe("findIntersection()", () => {
 	const makeLine = (

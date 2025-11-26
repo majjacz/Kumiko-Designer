@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import type { DesignStrip, Group, Piece } from "./kumiko-core";
 import {
 	generateGroupSVG,
 	hasDoubleSidedStrips,
 } from "./kumiko-svg-export";
+import type { DesignStrip, Group, Piece } from "./types";
 
 const makeStrip = (overrides?: Partial<DesignStrip>): DesignStrip => ({
 	id: overrides?.id ?? "strip",

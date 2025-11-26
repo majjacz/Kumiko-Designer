@@ -1,3 +1,7 @@
+/**
+ * Core types for the Kumiko Designer.
+ */
+
 export interface Point {
 	x: number;
 	y: number;
@@ -93,31 +97,3 @@ export interface Group {
 	pieces: Map<string, Piece>;
 	fullCuts: Map<string, Cut>;
 }
-
-export const INCH_TO_MM = 25.4;
-export const MM_TO_INCH = 1 / INCH_TO_MM;
-
-export const convertUnit = (
-	value: number,
-	fromUnit: "mm" | "in",
-	toUnit: "mm" | "in",
-): number => {
-	if (fromUnit === toUnit || !value) return value;
-	if (fromUnit === "mm" && toUnit === "in") return value * MM_TO_INCH;
-	if (fromUnit === "in" && toUnit === "mm") return value * INCH_TO_MM;
-	return value;
-};
-
-export const formatValue = (
-	mmValue: number,
-	displayUnit: "mm" | "in",
-): string => {
-	const value = convertUnit(mmValue, "mm", displayUnit);
-	return value.toFixed(displayUnit === "mm" ? 1 : 3);
-};
-
-export const newId = (): string =>
-	`id_${Math.random().toString(36).substr(2, 9)}`;
-
-// Re-export geometry utilities for backward compatibility
-export { findIntersection } from "./geometry";

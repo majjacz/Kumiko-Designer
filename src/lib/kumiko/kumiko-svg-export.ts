@@ -1,5 +1,5 @@
 import { GRID_CELL_HEIGHT } from "./config";
-import type { DesignStrip, Group, Piece } from "./kumiko-core";
+import type { DesignStrip, Group, Piece } from "./types";
 
 type Segment = {
 	y1: number;

@@ -19,7 +19,7 @@ import type {
 	Intersection,
 	Line,
 	Point,
-} from "../lib/kumiko/kumiko-core";
+} from "../lib/kumiko";
 import {
 	createDesignPayload,
 	type NamedDesignSummary,

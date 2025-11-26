@@ -1,4 +1,4 @@
-import type { GridViewState } from "./kumiko-core";
+import type { GridViewState } from "./types";
 
 export type { GridViewState };
 
@@ -253,7 +253,7 @@ export function deleteNamedDesign(name: string): void {
 // Payload Serialization
 // =============================================================================
 
-import type { Group, Line } from "./kumiko-core";
+import type { Group, Line } from "./types";
 
 export interface CreateDesignPayloadOptions {
 	units: "mm" | "in";

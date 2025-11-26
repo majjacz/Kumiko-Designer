@@ -1,5 +1,5 @@
 import { EPSILON } from "./config";
-import type { Line, Point } from "./kumiko-core";
+import type { Line, Point } from "./types";
 
 /**
  * Find the intersection point between two line segments.
@@ -163,4 +163,23 @@ export function distancePointToSegment(
 	const projX = x1 + t * vx;
 	const projY = y1 + t * vy;
 	return Math.hypot(px - projX, py - projY);
+}
+
+/**
+ * Compute overlaps of a candidate segment [start,end] with all existing
+ * collinear lines. Returns parametric ranges along each overlapped line.
+ */
+export function computeLineOverlaps(
+	lines: Map<string, Line>,
+	start: Point,
+	end: Point,
+): { line: Line; tStart: number; tEnd: number }[] {
+	const results: { line: Line; tStart: number; tEnd: number }[] = [];
+	for (const line of lines.values()) {
+		const overlap = computeLineOverlapForSingleLine(line, start, end);
+		if (overlap) {
+			results.push(overlap);
+		}
+	}
+	return results;
 }

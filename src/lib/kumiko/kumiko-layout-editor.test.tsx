@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { DesignStrip, Piece } from "./kumiko-core";
 import {
 	computeKerfedLayoutRows,
 	computeRowLengths,
@@ -7,6 +6,7 @@ import {
 	getStripConfigKey,
 	validateStripPlacement,
 } from "./kumiko-layout-editor";
+import type { DesignStrip, Piece } from "./types";
 
 const makeStrip = (overrides?: Partial<DesignStrip>): DesignStrip => ({
 	id: overrides?.id ?? "strip",

@@ -1,15 +1,6 @@
-import {
-	computeLineOverlapForSingleLine,
-	findIntersection,
-	gcd,
-} from "./geometry";
-import {
-	type DesignStrip,
-	type Intersection,
-	type Line,
-	newId,
-	type Point,
-} from "./kumiko-core";
+import { findIntersection, gcd } from "./geometry";
+import type { DesignStrip, Intersection, Line, Point } from "./types";
+import { newId } from "./utils";
 
 /**
  * Compute intersections between all pairs of lines, ensuring only one notch per coordinate.
@@ -231,60 +222,6 @@ export function computeDesignStrips(
 			// Filter out strips shorter than 1mm (effectively zero-length or degenerate)
 			.filter((strip) => strip.lengthMM > 1)
 	);
-}
-
-/**
- * Find a line that ends at the given point.
- * Mirrors `findLineEndingAt` in index.tsx.
- */
-export function findLineEndingAt(
-	lines: Map<string, Line>,
-	point: Point,
-): Line | null {
-	for (const line of lines.values()) {
-		if (line.x2 === point.x && line.y2 === point.y) {
-			return line;
-		}
-	}
-	return null;
-}
-
-/**
- * Check if a candidate segment [start,end] is collinear and overlapping with any
- * existing line. Excludes cases where lines only touch at endpoints (to allow
- * merging/extending). Mirrors `checkLineOverlap` in index.tsx.
- */
-export function checkLineOverlap(
-	lines: Map<string, Line>,
-	start: Point,
-	end: Point,
-): { line: Line; tStart: number; tEnd: number } | null {
-	for (const line of lines.values()) {
-		const overlap = computeLineOverlapForSingleLine(line, start, end);
-		if (overlap) {
-			return overlap;
-		}
-	}
-	return null;
-}
-
-/**
- * Compute overlaps of a candidate segment [start,end] with all existing
- * collinear lines. Returns parametric ranges along each overlapped line.
- */
-export function computeLineOverlaps(
-	lines: Map<string, Line>,
-	start: Point,
-	end: Point,
-): { line: Line; tStart: number; tEnd: number }[] {
-	const results: { line: Line; tStart: number; tEnd: number }[] = [];
-	for (const line of lines.values()) {
-		const overlap = computeLineOverlapForSingleLine(line, start, end);
-		if (overlap) {
-			results.push(overlap);
-		}
-	}
-	return results;
 }
 
 /**

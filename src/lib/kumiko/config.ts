@@ -48,6 +48,13 @@ export const EDGE_NOTCH_EPS = 0.001;
 /** Default bit size in mm (1/4 inch) */
 export const DEFAULT_BIT_SIZE = 6.35;
 
+// =============================================================================
+// Unit Conversion Constants
+// =============================================================================
+
+export const INCH_TO_MM = 25.4;
+export const MM_TO_INCH = 1 / INCH_TO_MM;
+
 /** Default cut depth in mm */
 export const DEFAULT_CUT_DEPTH = 19;
 

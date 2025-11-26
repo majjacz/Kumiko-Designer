@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { convertUnit, formatValue } from "./kumiko-core";
+import { convertUnit, formatValue } from "./utils";
 
 describe("convertUnit()", () => {
 	it("converts mm to in", () => {

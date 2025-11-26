@@ -10,11 +10,11 @@ import {
 import { useKumiko } from "../../context/KumikoContext";
 import type { NotificationType } from "../../lib/errors";
 import { GRID_CELL_HEIGHT, GRID_MARGIN } from "./config";
-import type { DesignStrip, Group, Piece, Point } from "./kumiko-core";
 import {
 	analyzeGroupPasses,
 	generateGroupSVG,
 } from "./kumiko-svg-export";
+import type { DesignStrip, Group, Piece, Point } from "./types";
 
 // Re-export for backward compatibility with tests
 export { GRID_CELL_HEIGHT, GRID_MARGIN };
