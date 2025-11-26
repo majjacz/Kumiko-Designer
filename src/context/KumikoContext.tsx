@@ -1,0 +1,385 @@
+import {
+	createContext,
+	type ReactNode,
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
+import { useDesignPersistence } from "../hooks/useDesignPersistence";
+import { useKumikoDesign } from "../hooks/useKumikoDesign";
+import { useKumikoLayout } from "../hooks/useKumikoLayout";
+import { useKumikoParams } from "../hooks/useKumikoParams";
+import {
+	createDesignPayload,
+	type DesignStrip,
+	type GridViewState,
+	type Group,
+	generateGroupSVG,
+	type Intersection,
+	type Line,
+	type NamedDesignSummary,
+	type Point,
+	saveDesign,
+} from "../lib/kumiko";
+import { downloadSVG } from "../lib/utils/download";
+
+export type AppStep = "design" | "layout";
+
+// ============================================================================
+// Context Value Interface
+// ============================================================================
+
+export interface KumikoContextValue {
+	// Current workflow step
+	step: AppStep;
+	setStep: (step: AppStep) => void;
+
+	// Parameters
+	params: {
+		units: "mm" | "in";
+		bitSize: number;
+		cutDepth: number;
+		halfCutDepth: number;
+		gridCellSize: number;
+		stockLength: number;
+	};
+	paramActions: {
+		setUnits: (units: "mm" | "in") => void;
+		setBitSize: (size: number) => void;
+		setCutDepth: (depth: number) => void;
+		setHalfCutDepth: (depth: number) => void;
+		setGridCellSize: (size: number) => void;
+		setStockLength: (length: number) => void;
+		toggleUnits: () => void;
+		handleParamChange: (
+			setter: (value: number) => void,
+		) => (mmValue: number) => void;
+		handleHalfCutParamChange: (
+			setter: (value: number) => void,
+		) => (mmValue: number) => void;
+	};
+
+	// Design state
+	designState: {
+		lines: Map<string, Line>;
+		drawingLine: Point | null;
+		isDeleting: boolean;
+		intersectionStates: Map<string, boolean>;
+		gridViewState: GridViewState | undefined;
+		intersections: Map<string, Intersection>;
+		designStrips: DesignStrip[];
+		lineLabelById: Map<string, string>;
+	};
+	designActions: {
+		setLines: (
+			updater:
+				| Map<string, Line>
+				| ((lines: Map<string, Line>) => Map<string, Line>),
+		) => void;
+		setIntersectionStates: (
+			updater:
+				| Map<string, boolean>
+				| ((states: Map<string, boolean>) => Map<string, boolean>),
+		) => void;
+		setGridViewState: (state: GridViewState | undefined) => void;
+		handleGridClick: (point: Point) => void;
+		handleDragUpdate: (start: Point, end: Point, isDeleting: boolean) => void;
+		handleCreateLine: (start: Point, end: Point) => void;
+		toggleIntersection: (id: string) => void;
+		clearDesignState: () => void;
+	};
+
+	// Layout state
+	layoutState: {
+		groups: Map<string, Group>;
+		activeGroupId: string;
+		selectedPieceId: string | null;
+		hoveredStripId: string | null;
+		activeGroup: Group | undefined;
+	};
+	layoutActions: {
+		setGroups: (
+			updater:
+				| Map<string, Group>
+				| ((groups: Map<string, Group>) => Map<string, Group>),
+		) => void;
+		setActiveGroupId: React.Dispatch<React.SetStateAction<string>>;
+		setSelectedPieceId: React.Dispatch<React.SetStateAction<string | null>>;
+		setHoveredStripId: (id: string | null) => void;
+		addNewGroup: () => void;
+		deleteGroup: (id: string) => void;
+		renameGroup: (id: string, newName: string) => void;
+		handleLayoutClick: (point: Point, rowIndex: number) => void;
+		deleteLayoutItem: (type: "piece", id: string) => void;
+		clearLayoutState: () => void;
+	};
+
+	// Persistence state
+	persistenceState: {
+		designName: string;
+		isInitialized: boolean;
+		showLoadDialog: boolean;
+		showTemplateDialog: boolean;
+		namedDesigns: NamedDesignSummary[];
+	};
+	persistenceActions: {
+		setDesignName: (name: string) => void;
+		setShowLoadDialog: (show: boolean) => void;
+		setShowTemplateDialog: (show: boolean) => void;
+		refreshNamedDesigns: () => void;
+		handleSaveAs: () => void;
+		handleExportJSON: () => void;
+		handleImportJSON: (event: React.ChangeEvent<HTMLInputElement>) => void;
+		handleLoadNamed: (name: string) => void;
+		handleDeleteNamed: (name: string) => void;
+		handleLoadTemplate: (templateId: string) => void;
+		handleClear: () => void;
+	};
+
+	// UI helpers
+	openLoadDialog: () => void;
+	openTemplateDialog: () => void;
+	handleDownloadSVG: () => void;
+	handleDownloadAllGroupsSVG: () => void;
+}
+
+// ============================================================================
+// Context Creation
+// ============================================================================
+
+const KumikoContext = createContext<KumikoContextValue | null>(null);
+
+// ============================================================================
+// Provider Component
+// ============================================================================
+
+export interface KumikoProviderProps {
+	children: ReactNode;
+}
+
+export function KumikoProvider({ children }: KumikoProviderProps) {
+	const [step, setStep] = useState<AppStep>("design");
+
+	// Core hooks
+	const { params, actions: paramActions } = useKumikoParams();
+	const { state: designState, actions: designActions } = useKumikoDesign(
+		params.gridCellSize,
+		params.bitSize,
+	);
+	const { state: layoutState, actions: layoutActions } = useKumikoLayout();
+
+	// Create stable callback for getting current payload data
+	const getCurrentPayloadData = useCallback(
+		() => ({
+			units: params.units,
+			bitSize: params.bitSize,
+			cutDepth: params.cutDepth,
+			halfCutDepth: params.halfCutDepth,
+			gridCellSize: params.gridCellSize,
+			stockLength: params.stockLength,
+			lines: designState.lines,
+			groups: layoutState.groups,
+			activeGroupId: layoutState.activeGroupId,
+			intersectionStates: designState.intersectionStates,
+			gridViewState: designState.gridViewState,
+		}),
+		[
+			params.units,
+			params.bitSize,
+			params.cutDepth,
+			params.halfCutDepth,
+			params.gridCellSize,
+			params.stockLength,
+			designState.lines,
+			layoutState.groups,
+			layoutState.activeGroupId,
+			designState.intersectionStates,
+			designState.gridViewState,
+		],
+	);
+
+	// Memoize action objects to prevent unnecessary recreations
+	const persistenceParamActions = useMemo(
+		() => ({
+			setUnits: paramActions.setUnits,
+			setBitSize: paramActions.setBitSize,
+			setCutDepth: paramActions.setCutDepth,
+			setHalfCutDepth: paramActions.setHalfCutDepth,
+			setGridCellSize: paramActions.setGridCellSize,
+			setStockLength: paramActions.setStockLength,
+		}),
+		[
+			paramActions.setUnits,
+			paramActions.setBitSize,
+			paramActions.setCutDepth,
+			paramActions.setHalfCutDepth,
+			paramActions.setGridCellSize,
+			paramActions.setStockLength,
+		],
+	);
+
+	const persistenceDesignActions = useMemo(
+		() => ({
+			setGridViewState: designActions.setGridViewState,
+			setLines: designActions.setLines as (
+				updater: (lines: Map<string, Line>) => Map<string, Line>,
+			) => void,
+			setIntersectionStates: designActions.setIntersectionStates,
+			clearDesignState: designActions.clearDesignState,
+		}),
+		[
+			designActions.setGridViewState,
+			designActions.setLines,
+			designActions.setIntersectionStates,
+			designActions.clearDesignState,
+		],
+	);
+
+	const persistenceLayoutActions = useMemo(
+		() => ({
+			setGroups: layoutActions.setGroups as (
+				updater: (groups: Map<string, Group>) => Map<string, Group>,
+			) => void,
+			setActiveGroupId: layoutActions.setActiveGroupId,
+			clearLayoutState: layoutActions.clearLayoutState,
+		}),
+		[
+			layoutActions.setGroups,
+			layoutActions.setActiveGroupId,
+			layoutActions.clearLayoutState,
+		],
+	);
+
+	// Design persistence hook
+	const { state: persistenceState, actions: persistenceActions } =
+		useDesignPersistence({
+			paramActions: persistenceParamActions,
+			designActions: persistenceDesignActions,
+			layoutActions: persistenceLayoutActions,
+			getCurrentPayloadData,
+		});
+
+	// Autosave effect
+	useEffect(() => {
+		if (!persistenceState.isInitialized) return;
+		const payload = createDesignPayload({
+			...getCurrentPayloadData(),
+			designName: persistenceState.designName || undefined,
+		});
+		saveDesign(payload);
+	}, [
+		getCurrentPayloadData,
+		persistenceState.isInitialized,
+		persistenceState.designName,
+	]);
+
+	// SVG download handlers
+	const handleDownloadSVG = useCallback(() => {
+		const svg = generateGroupSVG({
+			group: layoutState.activeGroup,
+			designStrips: designState.designStrips,
+			bitSize: params.bitSize,
+			stockLength: params.stockLength,
+		});
+		if (!svg) return;
+		downloadSVG(svg, layoutState.activeGroup?.name || "kumiko-group");
+	}, [
+		layoutState.activeGroup,
+		designState.designStrips,
+		params.bitSize,
+		params.stockLength,
+	]);
+
+	const handleDownloadAllGroupsSVG = useCallback(() => {
+		const files: { filename: string; svg: string }[] = [];
+
+		for (const group of layoutState.groups.values()) {
+			const svg = generateGroupSVG({
+				group,
+				designStrips: designState.designStrips,
+				bitSize: params.bitSize,
+				stockLength: params.stockLength,
+			});
+			if (!svg) continue;
+
+			const filename = `${group.name || "kumiko-group"}.svg`;
+			files.push({ filename, svg });
+		}
+
+		files.forEach((file, index) => {
+			window.setTimeout(() => {
+				downloadSVG(file.svg, file.filename);
+			}, index * 300);
+		});
+	}, [
+		layoutState.groups,
+		designState.designStrips,
+		params.bitSize,
+		params.stockLength,
+	]);
+
+	// Dialog helpers
+	const openLoadDialog = useCallback(() => {
+		persistenceActions.refreshNamedDesigns();
+		persistenceActions.setShowLoadDialog(true);
+	}, [persistenceActions]);
+
+	const openTemplateDialog = useCallback(() => {
+		persistenceActions.setShowTemplateDialog(true);
+	}, [persistenceActions]);
+
+	// Build context value
+	const contextValue = useMemo<KumikoContextValue>(
+		() => ({
+			step,
+			setStep,
+			params,
+			paramActions,
+			designState,
+			designActions,
+			layoutState,
+			layoutActions,
+			persistenceState,
+			persistenceActions,
+			openLoadDialog,
+			openTemplateDialog,
+			handleDownloadSVG,
+			handleDownloadAllGroupsSVG,
+		}),
+		[
+			step,
+			params,
+			paramActions,
+			designState,
+			designActions,
+			layoutState,
+			layoutActions,
+			persistenceState,
+			persistenceActions,
+			openLoadDialog,
+			openTemplateDialog,
+			handleDownloadSVG,
+			handleDownloadAllGroupsSVG,
+		],
+	);
+
+	return (
+		<KumikoContext.Provider value={contextValue}>
+			{children}
+		</KumikoContext.Provider>
+	);
+}
+
+// ============================================================================
+// Consumer Hook
+// ============================================================================
+
+export function useKumiko(): KumikoContextValue {
+	const context = useContext(KumikoContext);
+	if (!context) {
+		throw new Error("useKumiko must be used within a KumikoProvider");
+	}
+	return context;
+}

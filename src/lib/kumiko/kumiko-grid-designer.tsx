@@ -1,6 +1,7 @@
 import type React from "react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { GridRenderer } from "../../components/kumiko/GridRenderer";
+import { useKumiko } from "../../context/KumikoContext";
 import { useGridCoordinates } from "../../hooks/useGridCoordinates";
 import { useZoomPan } from "../../hooks/useZoomPan";
 import { GRID_EXTENT_CELLS } from "./config";
@@ -378,5 +379,32 @@ export function GridDesigner({
 				</g>
 			</svg>
 		</div>
+	);
+}
+
+/**
+ * Context-connected version of GridDesigner.
+ * Automatically consumes state from KumikoContext.
+ */
+export function GridDesignerConnected() {
+	const { designState, designActions, layoutState, params } = useKumiko();
+
+	return (
+		<GridDesigner
+			lines={designState.lines}
+			intersections={designState.intersections}
+			drawingLine={designState.drawingLine}
+			onGridClick={designActions.handleGridClick}
+			onCreateLine={designActions.handleCreateLine}
+			onToggleIntersection={designActions.toggleIntersection}
+			onDragUpdate={designActions.handleDragUpdate}
+			isDeleting={designState.isDeleting}
+			bitSize={params.bitSize}
+			gridCellSize={params.gridCellSize}
+			hoveredStripId={layoutState.hoveredStripId}
+			lineLabelById={designState.lineLabelById}
+			viewState={designState.gridViewState}
+			onViewStateChange={designActions.setGridViewState}
+		/>
 	);
 }

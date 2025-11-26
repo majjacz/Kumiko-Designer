@@ -7,6 +7,7 @@ import {
 	computeUniqueStrips,
 	StripBank,
 } from "../../components/kumiko/StripBank";
+import { useKumiko } from "../../context/KumikoContext";
 import { GRID_CELL_HEIGHT, GRID_MARGIN } from "./config";
 import type { DesignStrip, Group, Piece, Point } from "./kumiko-core";
 import { generateGroupSVG } from "./kumiko-svg-export";
@@ -302,3 +303,43 @@ export const LayoutEditor = memo(function LayoutEditor({
 		</div>
 	);
 });
+
+/**
+ * Context-connected version of LayoutEditor.
+ * Automatically consumes state from KumikoContext.
+ */
+export function LayoutEditorConnected() {
+	const {
+		designState,
+		layoutState,
+		layoutActions,
+		params,
+		handleDownloadSVG,
+		handleDownloadAllGroupsSVG,
+	} = useKumiko();
+
+	return (
+		<LayoutEditor
+			designStrips={designState.designStrips}
+			activeGroup={layoutState.activeGroup}
+			groups={layoutState.groups}
+			activeGroupId={layoutState.activeGroupId}
+			setActiveGroupId={layoutActions.setActiveGroupId}
+			addNewGroup={layoutActions.addNewGroup}
+			deleteGroup={layoutActions.deleteGroup}
+			renameGroup={layoutActions.renameGroup}
+			selectedPieceId={layoutState.selectedPieceId}
+			setSelectedPieceId={layoutActions.setSelectedPieceId}
+			onLayoutClick={layoutActions.handleLayoutClick}
+			stockLength={params.stockLength}
+			bitSize={params.bitSize}
+			halfCutDepth={params.halfCutDepth}
+			cutDepth={params.cutDepth}
+			onDownload={handleDownloadSVG}
+			onDownloadAllGroups={handleDownloadAllGroupsSVG}
+			onDeleteLayoutItem={layoutActions.deleteLayoutItem}
+			onHoverStrip={layoutActions.setHoveredStripId}
+			displayUnit={params.units}
+		/>
+	);
+}

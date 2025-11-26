@@ -88,14 +88,14 @@ This document outlines planned refactoring tasks to improve code extendability a
 - [x] Simplify `App` component to pure orchestration - integrate useDesignPersistence
 
 ### 9. Introduce KumikoContext
-- [ ] Create `src/context/KumikoContext.tsx`
-- [ ] Define `KumikoContextValue` interface
-- [ ] Create `KumikoProvider` component
-- [ ] Create `useKumiko()` hook for consuming context
-- [ ] Migrate `index.tsx` to use provider
-- [ ] Update `GridDesigner` to consume context (reduce props)
-- [ ] Update `LayoutEditor` to consume context (reduce props)
-- [ ] Update `KumikoSidebarParams` to consume context
+- [x] Create `src/context/KumikoContext.tsx`
+- [x] Define `KumikoContextValue` interface
+- [x] Create `KumikoProvider` component
+- [x] Create `useKumiko()` hook for consuming context
+- [x] Migrate `index.tsx` to use provider
+- [x] Update `GridDesigner` to consume context (reduce props)
+- [x] Update `LayoutEditor` to consume context (reduce props)
+- [x] Update `KumikoSidebarParams` to consume context
 
 ### 10. Add Error Handling Infrastructure
 - [ ] Create `src/lib/errors.ts` with typed error classes

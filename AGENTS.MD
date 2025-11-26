@@ -25,12 +25,14 @@ Kumiko Designer is a client-only web application for designing traditional Kumik
 - `kumiko-core.ts`: Core data structures (`Point`, `Line`, `DesignStrip`, `Notch`, `Intersection`, `Piece`, `Cut`, `Group`) and unit conversion utilities.
 - `geometry.ts`: Geometry utilities (`findIntersection`, `computeLineOverlapForSingleLine`, `gcd`, `distancePointToSegment`).
 - `kumiko-design-logic.ts`: Design computation functions (`computeIntersections`, `computeDesignStrips`, `computeLineOverlaps`, `normalizeLines`).
-- `kumiko-grid-designer.tsx`: Grid editor component.
-- `kumiko-layout-editor.tsx`: Layout editor component.
-- `kumiko-params.tsx`: Parameter configuration UI.
+- `kumiko-grid-designer.tsx`: Grid editor component (`GridDesigner`, `GridDesignerConnected`).
+- `kumiko-layout-editor.tsx`: Layout editor component (`LayoutEditor`, `LayoutEditorConnected`).
+- `kumiko-params.tsx`: Parameter configuration UI (`ParamInput`).
 - `kumiko-storage.ts`: Save/load design payloads (localStorage persistence).
 - `kumiko-svg-export.ts`: Generate CNC-ready SVG output.
 - `kumiko-templates.ts`: Template loading utilities.
+- `config.ts`: Configuration constants (grid dimensions, zoom limits, default values).
+- `index.ts`: Barrel export file for the kumiko library.
 
 ### Custom Hooks (`src/hooks/`)
 - `useKumikoDesign.ts`: Manages design state (lines, intersections, design strips).
@@ -38,6 +40,13 @@ Kumiko Designer is a client-only web application for designing traditional Kumik
 - `useKumikoParams.ts`: Manages parameter state (units, bit size, cut depth, grid cell size, stock length).
 - `useZoomPan.ts`: D3-based zoom/pan behavior for the grid.
 - `useGridCoordinates.ts`: Screen-to-grid coordinate transformation utilities.
+- `useDesignPersistence.ts`: Save/load/export/import logic for designs.
+
+### Context (`src/context/`)
+- `KumikoContext.tsx`: Central state management via React Context.
+  - `KumikoProvider`: Wraps the app and provides all state hooks.
+  - `useKumiko()`: Hook to consume context values.
+  - Exports `AppStep` type for workflow navigation.
 
 ### Components (`src/components/`)
 - `kumiko/GridRenderer.tsx`: SVG rendering of the design grid, lines, intersections, and notches.

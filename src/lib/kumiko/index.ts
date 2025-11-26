@@ -57,12 +57,13 @@ export {
 } from "./kumiko-design-logic";
 export type { GridDesignerProps } from "./kumiko-grid-designer";
 // Components
-export { GridDesigner } from "./kumiko-grid-designer";
+export { GridDesigner, GridDesignerConnected } from "./kumiko-grid-designer";
 export type { LayoutEditorProps } from "./kumiko-layout-editor";
 export {
 	computeKerfedLayoutRows,
 	getStripConfigKey,
 	LayoutEditor,
+	LayoutEditorConnected,
 } from "./kumiko-layout-editor";
 export type { ParamInputProps } from "./kumiko-params";
 export { ParamInput } from "./kumiko-params";

@@ -1,13 +1,12 @@
 import { Download, Grid, Layout, Settings, Upload } from "lucide-react";
 import type React from "react";
 import { useId } from "react";
+import { type AppStep, useKumiko } from "../../context/KumikoContext";
 import {
 	type NamedDesignSummary,
 	ParamInput,
 	TEMPLATES,
 } from "../../lib/kumiko";
-
-export type AppStep = "design" | "layout";
 
 export interface KumikoHeaderProps {
 	designName: string;
@@ -270,6 +269,10 @@ export interface KumikoSidebarParamsProps {
 	onStockLengthChange: (mmValue: number) => void;
 }
 
+/**
+ * Sidebar params component that accepts explicit props.
+ * Use KumikoSidebarParamsConnected for automatic context consumption.
+ */
 export function KumikoSidebarParams({
 	displayUnit,
 	onToggleUnits,
@@ -344,5 +347,38 @@ export function KumikoSidebarParams({
 				/>
 			</div>
 		</aside>
+	);
+}
+
+/**
+ * Context-connected version of KumikoSidebarParams.
+ * Automatically consumes params from KumikoContext.
+ */
+export function KumikoSidebarParamsConnected() {
+	const { params, paramActions } = useKumiko();
+
+	return (
+		<KumikoSidebarParams
+			displayUnit={params.units}
+			onToggleUnits={paramActions.toggleUnits}
+			bitSize={params.bitSize}
+			cutDepth={params.cutDepth}
+			halfCutDepth={params.halfCutDepth}
+			gridCellSize={params.gridCellSize}
+			stockLength={params.stockLength}
+			onBitSizeChange={paramActions.handleParamChange(paramActions.setBitSize)}
+			onCutDepthChange={paramActions.handleParamChange(
+				paramActions.setCutDepth,
+			)}
+			onHalfCutDepthChange={paramActions.handleHalfCutParamChange(
+				paramActions.setHalfCutDepth,
+			)}
+			onGridCellSizeChange={paramActions.handleParamChange(
+				paramActions.setGridCellSize,
+			)}
+			onStockLengthChange={paramActions.handleParamChange(
+				paramActions.setStockLength,
+			)}
+		/>
 	);
 }
