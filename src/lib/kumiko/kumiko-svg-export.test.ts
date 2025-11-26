@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { DesignStrip, Group, Piece } from "./kumiko-core";
-import { generateGroupSVG } from "./kumiko-svg-export";
+import {
+	generateGroupSVG,
+	hasDoubleSidedStrips,
+} from "./kumiko-svg-export";
 
 const makeStrip = (overrides?: Partial<DesignStrip>): DesignStrip => ({
 	id: overrides?.id ?? "strip",
@@ -159,5 +162,168 @@ describe("generateGroupSVG()", () => {
 		// Even with two rows, the number of cut columns should match the simple case
 		const cutCount = countOccurrences(svgString, 'stroke="#000000"');
 		expect(cutCount).toBe(3);
+	});
+
+	it("handles double-sided strips correctly", () => {
+		const strips: DesignStrip[] = [
+			makeStrip({
+				id: "s1",
+				lengthMM: 100,
+				notches: [
+					{ id: "n1", otherLineId: "x", dist: 10, fromTop: true },
+					{ id: "n2", otherLineId: "x", dist: 60, fromTop: false },
+				],
+			}),
+		];
+
+		const pieces = new Map<string, Piece>();
+		pieces.set(
+			"p1",
+			makePiece({ id: "p1", lineId: "s1", rowIndex: 0, x: 0, y: 0 }),
+		);
+
+		const group = makeGroup({ pieces });
+		const stockLength = 300;
+		const bitSize = 2;
+
+		// Check detection
+		expect(hasDoubleSidedStrips(group, strips)).toBe(true);
+
+		// Pass 1: Top
+		const svgTop = generateGroupSVG({
+			group,
+			designStrips: strips,
+			bitSize,
+			stockLength,
+			pass: "top",
+		});
+		expect(svgTop).not.toBeNull();
+		// Should have 0 cuts (profile) and 1 notch (top).
+
+		// Pass 2: Bottom
+		const svgBottom = generateGroupSVG({
+			group,
+			designStrips: strips,
+			bitSize,
+			stockLength,
+			pass: "bottom",
+		});
+		expect(svgBottom).not.toBeNull();
+		// Should have 2 cuts (profile) and 1 notch (bottom).
+	});
+
+	it("inverts notch direction when flip is true", () => {
+		// Create a strip with one bottom notch
+		const strips: DesignStrip[] = [
+			makeStrip({
+				id: "s1",
+				lengthMM: 100,
+				notches: [
+					{ id: "n1", otherLineId: "x", dist: 50, fromTop: false }, // Bottom notch
+				],
+			}),
+		];
+
+		const pieces = new Map<string, Piece>();
+		pieces.set(
+			"p1",
+			makePiece({ id: "p1", lineId: "s1", rowIndex: 0, x: 0, y: 0 }),
+		);
+
+		const group = makeGroup({ pieces });
+		const stockLength = 200;
+		const bitSize = 2;
+
+		// 1. Generate with pass="top", flip=false (should be empty of notches because it's a bottom notch)
+		const svgNormal = generateGroupSVG({
+			group,
+			designStrips: strips,
+			bitSize,
+			stockLength,
+			pass: "top",
+			flip: false,
+		}) as string;
+
+		// 2. Generate with pass="top", flip=true (should have notches because bottom became top)
+		const svgFlipped = generateGroupSVG({
+			group,
+			designStrips: strips,
+			bitSize,
+			stockLength,
+			pass: "top",
+			flip: true,
+		}) as string;
+
+		// Check that normal has no notch lines (grey)
+		// Note: It might still have cut lines (black) if they are emitted in top pass?
+		// Actually, looking at code: "Only add profile cuts if we are in "all" or "bottom" pass."
+		// So top pass should have NO cut lines either.
+		
+		// So svgNormal might be null or just the bounding box?
+		// If cutsByX is empty, it returns null.
+		// If there are no notches and no cuts, it returns null.
+		
+		expect(svgNormal).toBeNull();
+
+		// Flipped should have the notch
+		expect(svgFlipped).not.toBeNull();
+		expect(svgFlipped).toContain('stroke="#808080"'); // Notch color
+	});
+
+	it("inverts top notch to bottom notch when flip is true", () => {
+		// Create a strip with one top notch
+		const strips: DesignStrip[] = [
+			makeStrip({
+				id: "s2",
+				lengthMM: 100,
+				notches: [
+					{ id: "n2", otherLineId: "x", dist: 50, fromTop: true }, // Top notch
+				],
+			}),
+		];
+
+		const pieces = new Map<string, Piece>();
+		pieces.set(
+			"p2",
+			makePiece({ id: "p2", lineId: "s2", rowIndex: 0, x: 0, y: 0 }),
+		);
+
+		const group = makeGroup({ pieces });
+		const stockLength = 200;
+		const bitSize = 2;
+
+		// 1. Generate with pass="bottom", flip=false (should be empty of notches because it's a top notch)
+		// Note: "bottom" pass usually includes profile cuts.
+		// So we expect cuts, but NO notches.
+		const svgNormal = generateGroupSVG({
+			group,
+			designStrips: strips,
+			bitSize,
+			stockLength,
+			pass: "bottom",
+			flip: false,
+		}) as string;
+
+		expect(svgNormal).not.toBeNull();
+		// Should have cuts (black)
+		expect(svgNormal).toContain('stroke="#000000"');
+		// Should NOT have notches (grey)
+		expect(svgNormal).not.toContain('stroke="#808080"');
+
+		// 2. Generate with pass="bottom", flip=true (should have notches because top became bottom)
+		const svgFlipped = generateGroupSVG({
+			group,
+			designStrips: strips,
+			bitSize,
+			stockLength,
+			pass: "bottom",
+			flip: true,
+		}) as string;
+
+		expect(svgFlipped).not.toBeNull();
+		// Should have cuts
+		expect(svgFlipped).toContain('stroke="#000000"');
+		// Should HAVE notches
+		expect(svgFlipped).toContain('stroke="#808080"');
 	});
 });

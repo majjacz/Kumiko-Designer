@@ -11,7 +11,10 @@ import { useKumiko } from "../../context/KumikoContext";
 import type { NotificationType } from "../../lib/errors";
 import { GRID_CELL_HEIGHT, GRID_MARGIN } from "./config";
 import type { DesignStrip, Group, Piece, Point } from "./kumiko-core";
-import { generateGroupSVG } from "./kumiko-svg-export";
+import {
+	analyzeGroupPasses,
+	generateGroupSVG,
+} from "./kumiko-svg-export";
 
 // Re-export for backward compatibility with tests
 export { GRID_CELL_HEIGHT, GRID_MARGIN };
@@ -226,14 +229,62 @@ export const LayoutEditor = memo(function LayoutEditor({
 		return Math.max(minRows, maxRow + 2); // Ensure one empty row after the last occupied one, but at least minRows
 	}, [layoutData]);
 
+	const groupPasses = useMemo(() => {
+		if (!safeActiveGroup) return { hasTop: false, hasBottom: false };
+		return analyzeGroupPasses(safeActiveGroup, designStrips);
+	}, [safeActiveGroup, designStrips]);
+
+	const shouldFlip = groupPasses.hasBottom && !groupPasses.hasTop;
+
 	const svgPreview = useMemo(() => {
+		if (!safeActiveGroup) return null;
+
+		const { hasTop, hasBottom } = groupPasses;
+
+		// Case 1: Mixed (Double-sided)
+		if (hasTop && hasBottom) {
+			const top = generateGroupSVG({
+				group: safeActiveGroup,
+				designStrips,
+				bitSize,
+				stockLength,
+				pass: "top",
+			});
+			const bottom = generateGroupSVG({
+				group: safeActiveGroup,
+				designStrips,
+				bitSize,
+				stockLength,
+				pass: "bottom",
+			});
+
+			if (top && bottom) {
+				return { top, bottom };
+			}
+			return top || bottom || null;
+		}
+
+		// Case 2: Bottom Only -> Auto-flip to Top (Standard)
+		if (shouldFlip) {
+			return generateGroupSVG({
+				group: safeActiveGroup,
+				designStrips,
+				bitSize,
+				stockLength,
+				pass: "all",
+				flip: true,
+			});
+		}
+
+		// Case 3: Top Only (or empty) -> Standard "all" pass
 		return generateGroupSVG({
 			group: safeActiveGroup,
 			designStrips,
 			bitSize,
 			stockLength,
+			pass: "all",
 		});
-	}, [safeActiveGroup, designStrips, bitSize, stockLength]);
+	}, [safeActiveGroup, designStrips, bitSize, stockLength, groupPasses, shouldFlip]);
 
 	const handleClearLayout = () => {
 		// Delete all pieces in the current group
@@ -299,9 +350,60 @@ export const LayoutEditor = memo(function LayoutEditor({
 					onLayoutClick={onLayoutClick}
 					onDeletePiece={handleDeletePiece}
 					displayUnit={displayUnit}
+					flipped={shouldFlip}
 					onNotify={onNotify}
 				/>
 			</div>
+
+			{/* Double-sided warning */}
+			{(() => {
+				if (!safeActiveGroup) return null;
+				const { hasTop, hasBottom } = analyzeGroupPasses(
+					safeActiveGroup,
+					designStrips,
+				);
+
+				if (hasTop && hasBottom) {
+					return (
+						<div className="bg-amber-900/30 border border-amber-700/50 rounded-lg p-3 flex items-start gap-3 mx-4">
+							<div className="p-1 bg-amber-900/50 rounded text-amber-400">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="16"
+									height="16"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									aria-hidden="true"
+								>
+									<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+									<polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+									<line x1="12" y1="22.08" x2="12" y2="12" />
+								</svg>
+							</div>
+							<div className="text-sm text-amber-200">
+								<p className="font-medium">Double-sided cuts detected</p>
+								<p className="text-amber-200/70 mt-0.5">
+									This group contains strips with notches on both sides. Export
+									will generate two files: one for the top pass (top notches
+									only) and one for the bottom pass (bottom notches + profile
+									cuts).
+								</p>
+							</div>
+						</div>
+					);
+				}
+
+				if (hasBottom && !hasTop) {
+					// Auto-flipped, no warning needed as it becomes a standard single pass
+					return null;
+				}
+
+				return null;
+			})()}
 
 			{/* SVG Preview */}
 			<ExportPreview svgContent={svgPreview} />

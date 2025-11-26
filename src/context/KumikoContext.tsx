@@ -25,7 +25,10 @@ import {
 	type NamedDesignSummary,
 	saveDesign,
 } from "../lib/kumiko/kumiko-storage";
-import { generateGroupSVG } from "../lib/kumiko/kumiko-svg-export";
+import {
+	analyzeGroupPasses,
+	generateGroupSVG,
+} from "../lib/kumiko/kumiko-svg-export";
 import { downloadSVG } from "../lib/utils/download";
 import { useToastOptional } from "./ToastContext";
 
@@ -298,35 +301,146 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 
 	// SVG download handlers
 	const handleDownloadSVG = useCallback(() => {
-		const svg = generateGroupSVG({
-			group: layoutState.activeGroup,
-			designStrips: designState.designStrips,
-			bitSize: params.bitSize,
-			stockLength: params.stockLength,
-		});
-		if (!svg) return;
-		downloadSVG(svg, layoutState.activeGroup?.name || "kumiko-group");
+		const group = layoutState.activeGroup;
+		if (!group) return;
+
+		const baseName = group.name || "kumiko-group";
+		const { hasTop, hasBottom } = analyzeGroupPasses(
+			group,
+			designState.designStrips,
+		);
+
+		if (hasTop && hasBottom) {
+			// Pass 1: Top
+			const svgTop = generateGroupSVG({
+				group,
+				designStrips: designState.designStrips,
+				bitSize: params.bitSize,
+				stockLength: params.stockLength,
+				pass: "top",
+			});
+			if (svgTop) {
+				downloadSVG(svgTop, `${baseName}_top.svg`);
+			}
+
+			// Pass 2: Bottom (delayed slightly to ensure browser handles both)
+			setTimeout(() => {
+				const svgBottom = generateGroupSVG({
+					group,
+					designStrips: designState.designStrips,
+					bitSize: params.bitSize,
+					stockLength: params.stockLength,
+					pass: "bottom",
+				});
+				if (svgBottom) {
+					downloadSVG(svgBottom, `${baseName}_bottom.svg`);
+				}
+			}, 500);
+
+			onNotify(
+				"info",
+				"Double-sided strips detected. Downloading separate files for Top and Bottom passes.",
+			);
+		} else if (hasBottom && !hasTop) {
+			// Bottom Only -> Auto-flip to Top (Standard)
+			const svg = generateGroupSVG({
+				group,
+				designStrips: designState.designStrips,
+				bitSize: params.bitSize,
+				stockLength: params.stockLength,
+				pass: "all",
+				flip: true,
+			});
+			if (!svg) return;
+			downloadSVG(svg, `${baseName}.svg`);
+			onNotify(
+				"info",
+				"Bottom-only strips flipped to top for single-pass cutting.",
+			);
+		} else {
+			// Top Only (Standard)
+			const svg = generateGroupSVG({
+				group,
+				designStrips: designState.designStrips,
+				bitSize: params.bitSize,
+				stockLength: params.stockLength,
+				pass: "all",
+			});
+			if (!svg) return;
+			downloadSVG(svg, `${baseName}.svg`);
+		}
 	}, [
 		layoutState.activeGroup,
 		designState.designStrips,
 		params.bitSize,
 		params.stockLength,
+		onNotify,
 	]);
 
 	const handleDownloadAllGroupsSVG = useCallback(() => {
 		const files: { filename: string; svg: string }[] = [];
 
 		for (const group of layoutState.groups.values()) {
-			const svg = generateGroupSVG({
+			const baseName = group.name || "kumiko-group";
+			const { hasTop, hasBottom } = analyzeGroupPasses(
 				group,
-				designStrips: designState.designStrips,
-				bitSize: params.bitSize,
-				stockLength: params.stockLength,
-			});
-			if (!svg) continue;
+				designState.designStrips,
+			);
 
-			const filename = `${group.name || "kumiko-group"}.svg`;
-			files.push({ filename, svg });
+			if (hasTop && hasBottom) {
+				const svgTop = generateGroupSVG({
+					group,
+					designStrips: designState.designStrips,
+					bitSize: params.bitSize,
+					stockLength: params.stockLength,
+					pass: "top",
+				});
+				if (svgTop) {
+					files.push({ filename: `${baseName}_top.svg`, svg: svgTop });
+				}
+
+				const svgBottom = generateGroupSVG({
+					group,
+					designStrips: designState.designStrips,
+					bitSize: params.bitSize,
+					stockLength: params.stockLength,
+					pass: "bottom",
+				});
+				if (svgBottom) {
+					files.push({ filename: `${baseName}_bottom.svg`, svg: svgBottom });
+				}
+			} else if (hasBottom && !hasTop) {
+				// Bottom Only -> Auto-flip
+				const svg = generateGroupSVG({
+					group,
+					designStrips: designState.designStrips,
+					bitSize: params.bitSize,
+					stockLength: params.stockLength,
+					pass: "all",
+					flip: true,
+				});
+				if (svg) {
+					files.push({ filename: `${baseName}.svg`, svg });
+				}
+			} else {
+				const svg = generateGroupSVG({
+					group,
+					designStrips: designState.designStrips,
+					bitSize: params.bitSize,
+					stockLength: params.stockLength,
+					pass: "all",
+				});
+				if (svg) {
+					files.push({ filename: `${baseName}.svg`, svg });
+				}
+			}
+		}
+
+		if (files.length > 0) {
+			onNotify(
+				"success",
+				`Downloading ${files.length} files for ${layoutState.groups.size} groups...`,
+			);
 		}
 
 		files.forEach((file, index) => {
@@ -339,6 +453,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 		designState.designStrips,
 		params.bitSize,
 		params.stockLength,
+		onNotify,
 	]);
 
 	// Dialog helpers

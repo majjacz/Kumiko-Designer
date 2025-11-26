@@ -113,11 +113,6 @@ export function StripBank({
 							(uniqueStrip.placedCount / uniqueStrip.neededCount) * 100,
 						);
 
-						// Determine predominant notch orientation for preview flipping
-						const topNotches = strip.notches.filter((n) => n.fromTop).length;
-						const bottomNotches = strip.notches.length - topNotches;
-						const shouldFlip = bottomNotches > topNotches;
-
 						const displayId = strip.displayCode;
 
 						return (
@@ -195,6 +190,15 @@ export function StripBank({
 												ry={1}
 											/>
 											{strip.notches.map((notch) => {
+												// Determine if this strip is "bottom only" and should be visually flipped
+												const topNotches = strip.notches.filter(
+													(n) => n.fromTop,
+												).length;
+												const bottomNotches =
+													strip.notches.length - topNotches;
+												const shouldFlip =
+													bottomNotches > 0 && topNotches === 0;
+
 												const isTopNotch = shouldFlip
 													? !notch.fromTop
 													: notch.fromTop;

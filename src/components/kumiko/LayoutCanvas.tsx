@@ -36,6 +36,8 @@ export interface LayoutCanvasProps {
 	onDeletePiece: (pieceId: string) => void;
 	/** Display unit */
 	displayUnit: "mm" | "in";
+	/** Whether to visually flip the strips (for bottom-only optimization) */
+	flipped?: boolean;
 	/** Optional callback for showing notifications to the user */
 	onNotify?: (type: NotificationType, message: string) => void;
 }
@@ -58,6 +60,7 @@ export const LayoutCanvas = memo(function LayoutCanvas({
 	onLayoutClick,
 	onDeletePiece,
 	displayUnit,
+	flipped = false,
 	onNotify,
 }: LayoutCanvasProps) {
 	const [svgElement, setSvgElementInternal] = useState<SVGSVGElement | null>(
@@ -284,10 +287,6 @@ export const LayoutCanvas = memo(function LayoutCanvas({
 						const w = strip.lengthMM;
 						const h = GRID_CELL_HEIGHT;
 
-						// Determine if the strip should be flipped
-						const topNotches = strip.notches.filter((n) => n.fromTop).length;
-						const bottomNotches = strip.notches.length - topNotches;
-						const shouldFlip = bottomNotches > topNotches;
 						const isPieceActive = activeLayoutPieceId === piece.id;
 
 						return (
@@ -319,9 +318,8 @@ export const LayoutCanvas = memo(function LayoutCanvas({
 									const center = notch.dist;
 									const left = piece.x + center - bitSize / 2;
 									const topHeight = halfCutDepth;
-									const isTopNotch = shouldFlip
-										? !notch.fromTop
-										: notch.fromTop;
+									// Apply flip if the group is flipped (bottom-only optimization)
+									const isTopNotch = flipped ? !notch.fromTop : notch.fromTop;
 									const rectY = isTopNotch ? piece.y : piece.y + h - topHeight;
 									return (
 										<rect
@@ -411,7 +409,7 @@ export const LayoutCanvas = memo(function LayoutCanvas({
 							(n) => n.fromTop,
 						).length;
 						const bottomNotches = previewStrip.notches.length - topNotches;
-						const shouldFlip = bottomNotches > topNotches;
+						const shouldFlip = bottomNotches > 0 && topNotches === 0;
 
 						return (
 							<g opacity={0.5}>

@@ -7,11 +7,66 @@ type Segment = {
 	type: "notch" | "cut";
 };
 
+export type ExportPass = "all" | "top" | "bottom";
+
 export interface GenerateGroupSVGOptions {
 	group: Group | undefined;
 	designStrips: DesignStrip[];
 	bitSize: number;
 	stockLength: number;
+	pass?: ExportPass;
+	/**
+	 * If true, treats all notches as if the strip was flipped (rolled 180 degrees).
+	 * Top notches become Bottom, Bottom notches become Top.
+	 * Useful for converting "Bottom Only" groups into "Top Only" for single-pass cutting.
+	 */
+	flip?: boolean;
+}
+
+/**
+ * Checks if a group contains any strips that require double-sided cutting
+ * (i.e., have notches on both top and bottom, or just bottom notches that need flipping).
+ *
+ * Actually, strictly speaking, if a strip has ANY bottom notches, it needs a second pass
+ * (or a flip if it has ONLY bottom notches, but we treat that as a second pass for consistency).
+ *
+ * However, if a strip has ONLY bottom notches, the user could just flip the board before starting
+ * and cut them as top notches. But if we have a mix of strips in a group, some might be top-only,
+ * some bottom-only, some mixed.
+ *
+ * To keep it simple:
+ * - Pass 1 (Top): Cuts profile + Top notches.
+ * - Pass 2 (Bottom): Cuts Bottom notches (no profile).
+ *
+ * So we need a second pass if there are ANY bottom notches in the group.
+ */
+export function analyzeGroupPasses(
+	group: Group | undefined,
+	designStrips: DesignStrip[],
+): { hasTop: boolean; hasBottom: boolean } {
+	if (!group) return { hasTop: false, hasBottom: false };
+
+	let hasTop = false;
+	let hasBottom = false;
+
+	for (const piece of group.pieces.values()) {
+		const strip = designStrips.find((s) => s.id === piece.lineId);
+		if (strip) {
+			if (strip.notches.some((n) => n.fromTop)) hasTop = true;
+			if (strip.notches.some((n) => !n.fromTop)) hasBottom = true;
+		}
+		if (hasTop && hasBottom) break;
+	}
+
+	return { hasTop, hasBottom };
+}
+
+export function hasDoubleSidedStrips(
+	group: Group | undefined,
+	designStrips: DesignStrip[],
+): boolean {
+	const { hasTop, hasBottom } = analyzeGroupPasses(group, designStrips);
+	return hasTop && hasBottom;
 }
 
 export function generateGroupSVG({
@@ -19,6 +74,8 @@ export function generateGroupSVG({
 	designStrips,
 	bitSize,
 	stockLength,
+	pass = "all",
+	flip = false,
 }: GenerateGroupSVGOptions): string | null {
 	if (!group) return null;
 
@@ -76,12 +133,24 @@ export function generateGroupSVG({
 			const stripStartCutX = boundaryX;
 			const stripEndCutX = boundaryX + stripLength + bitSize;
 
-			addSegment(stripStartCutX, rowY1, rowY2, "cut");
-			addSegment(stripEndCutX, rowY1, rowY2, "cut");
+			// Only add profile cuts if we are in "all" or "bottom" pass.
+			// "top" pass only cuts notches so the piece remains part of the stock for easier flipping/alignment.
+			if (pass !== "top") {
+				addSegment(stripStartCutX, rowY1, rowY2, "cut");
+				addSegment(stripEndCutX, rowY1, rowY2, "cut");
+			}
 
 			const leftFaceX = stripStartCutX + bitSize / 2;
 
 			for (const notch of strip.notches) {
+				// Determine effective notch direction
+				// If flip is true, Top becomes Bottom, Bottom becomes Top
+				const isTop = flip ? !notch.fromTop : notch.fromTop;
+
+				// Filter notches based on pass
+				if (pass === "top" && !isTop) continue;
+				if (pass === "bottom" && isTop) continue;
+
 				const notchX = leftFaceX + notch.dist;
 				addSegment(notchX, rowY1, rowY2, "notch");
 			}
