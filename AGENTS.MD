@@ -35,6 +35,10 @@ Kumiko Designer is a client-only web application for designing traditional Kumik
 - `config.ts`: Configuration constants (grid dimensions, zoom limits, default values).
 - `index.ts`: Barrel export file for the kumiko library.
 
+### Utility Types (`src/lib/`)
+- `errors.ts`: Error types and `NotifyCallback` type alias.
+- `d3-types.ts`: Type-safe wrappers for D3 zoom/pan behavior (`applyZoomBehavior`, `applyZoomTransform`, `applyZoomScaleBy`, `applyZoomTranslateBy`, `GestureEvent`).
+
 ### Custom Hooks (`src/hooks/`)
 - `useKumikoDesign.ts`: Manages design state (lines, intersections, design strips).
 - `useKumikoLayout.ts`: Manages layout state (groups, pieces, cuts).
@@ -46,7 +50,12 @@ Kumiko Designer is a client-only web application for designing traditional Kumik
 ### Context (`src/context/`)
 - `KumikoContext.tsx`: Central state management via React Context.
   - `KumikoProvider`: Wraps the app and provides all state hooks.
-  - `useKumiko()`: Hook to consume context values.
+  - `useKumiko()`: Hook to consume full context values.
+  - `useKumikoParamsContext()`: Hook to consume parameter-related values.
+  - `useKumikoDesignContext()`: Hook to consume design-related values.
+  - `useKumikoLayoutContext()`: Hook to consume layout-related values.
+  - `useKumikoPersistenceContext()`: Hook to consume persistence-related values.
+  - Domain-specific interfaces: `ParamsContextValue`, `DesignContextValue`, `LayoutContextValue`, `PersistenceContextValue`.
   - Exports `AppStep` type for workflow navigation.
 
 

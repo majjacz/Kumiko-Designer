@@ -8,6 +8,14 @@ import {
 } from "d3-zoom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+	applyZoomBehavior,
+	applyZoomScaleBy,
+	applyZoomTransform,
+	applyZoomTranslateBy,
+	type GestureEvent,
+	type SVGSelection,
+} from "../lib/d3-types";
+import {
 	DEFAULT_ZOOM,
 	type GridViewState,
 	type Line,
@@ -66,7 +74,7 @@ export function useZoomPan({
 			return;
 		}
 
-		const selection = select(svg);
+		const selection = select(svg) as SVGSelection;
 		const lineArray = Array.from(lines.values());
 
 		const applyDefaultView = () => {
@@ -79,8 +87,7 @@ export function useZoomPan({
 				.scale(k)
 				.translate(-centerX, -centerY);
 
-			// biome-ignore lint/suspicious/noExplicitAny: d3 types mismatch
-			selection.call(behavior.transform as any, t);
+			applyZoomTransform(selection, behavior, t);
 		};
 
 		if (lineArray.length === 0) {
@@ -137,8 +144,7 @@ export function useZoomPan({
 			.scale(k)
 			.translate(-centerX, -centerY);
 
-		// biome-ignore lint/suspicious/noExplicitAny: d3 types mismatch
-		selection.call(behavior.transform as any, t);
+		applyZoomTransform(selection, behavior, t);
 	}, [lines, cellSize, designWidth, designHeight, svgRef]);
 
 	const zoomBy = useCallback(
@@ -147,9 +153,8 @@ export function useZoomPan({
 			const behavior = zoomBehaviorRef.current;
 			if (!svg || !behavior) return;
 
-			const selection = select(svg);
-			// biome-ignore lint/suspicious/noExplicitAny: d3 types mismatch
-			selection.call(behavior.scaleBy as any, factor);
+			const selection = select(svg) as SVGSelection;
+			applyZoomScaleBy(selection, behavior, factor);
 		},
 		[svgRef],
 	);
@@ -200,9 +205,8 @@ export function useZoomPan({
 
 		zoomBehaviorRef.current = behavior;
 
-		const selection = select(svgEl);
-		// biome-ignore lint/suspicious/noExplicitAny: d3 types mismatch
-		selection.call(behavior as any);
+		const selection = select(svgEl) as SVGSelection;
+		applyZoomBehavior(selection, behavior);
 
 		if (viewState?.zoom !== undefined) {
 			const initialZoom = Number.isFinite(viewState.zoom)
@@ -219,8 +223,7 @@ export function useZoomPan({
 			const yDiff = Math.abs(currentTransform.y - targetTransform.y);
 
 			if (kDiff > 0.001 || xDiff > 0.1 || yDiff > 0.1) {
-				// biome-ignore lint/suspicious/noExplicitAny: d3 types mismatch
-				selection.call(behavior.transform as any, targetTransform);
+				applyZoomTransform(selection, behavior, targetTransform);
 			}
 		}
 
@@ -240,33 +243,27 @@ export function useZoomPan({
 			const currentBehavior = zoomBehaviorRef.current;
 			if (!currentSvg || !currentBehavior) return;
 
-			const selection = select(currentSvg);
+			const selection = select(currentSvg) as SVGSelection;
 
 			if (event.ctrlKey || event.metaKey) {
 				event.preventDefault();
 				const factor = Math.exp(-event.deltaY * 0.001);
-				// biome-ignore lint/suspicious/noExplicitAny: d3 types mismatch
-				selection.call(currentBehavior.scaleBy as any, factor);
+				applyZoomScaleBy(selection, currentBehavior, factor);
 				return;
 			}
 
 			event.preventDefault();
-			selection.call(
-				// biome-ignore lint/suspicious/noExplicitAny: d3 types mismatch
-				currentBehavior.translateBy as any,
+			applyZoomTranslateBy(
+				selection,
+				currentBehavior,
 				-event.deltaX,
 				-event.deltaY,
 			);
 		};
 
 		const handleGestureStart = (event: Event) => {
-			const gesture = event as unknown as {
-				scale: number;
-				preventDefault?: () => void;
-			};
-			if (typeof gesture.preventDefault === "function") {
-				gesture.preventDefault();
-			}
+			const gesture = event as GestureEvent;
+			gesture.preventDefault();
 		};
 
 		let lastScale = 1;
@@ -275,29 +272,21 @@ export function useZoomPan({
 			const currentBehavior = zoomBehaviorRef.current;
 			if (!currentSvg || !currentBehavior) return;
 
-			const gesture = event as unknown as {
-				scale: number;
-				preventDefault?: () => void;
-			};
+			const gesture = event as GestureEvent;
 
 			const scale = gesture.scale ?? 1;
 			const factor = scale / (lastScale || 1);
 			lastScale = scale;
 
-			const selection = select(currentSvg);
-			if (typeof gesture.preventDefault === "function") {
-				gesture.preventDefault();
-			}
-			// biome-ignore lint/suspicious/noExplicitAny: d3 types mismatch
-			selection.call(currentBehavior.scaleBy as any, factor);
+			const selection = select(currentSvg) as SVGSelection;
+			gesture.preventDefault();
+			applyZoomScaleBy(selection, currentBehavior, factor);
 		};
 
 		const handleGestureEnd = (event: Event) => {
-			const gesture = event as unknown as { preventDefault?: () => void };
+			const gesture = event as GestureEvent;
 			lastScale = 1;
-			if (typeof gesture.preventDefault === "function") {
-				gesture.preventDefault();
-			}
+			gesture.preventDefault();
 		};
 
 		svgEl.addEventListener("wheel", handleWheelPanZoom, { passive: false });

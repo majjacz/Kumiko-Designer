@@ -78,18 +78,18 @@ This document tracks the implementation of codebase improvements for better main
 
 ### 8. Improve Context Organization
 
-- [ ] **8.1** Split `KumikoContextValue` interface into domain-specific interfaces:
+- [x] **8.1** Split `KumikoContextValue` interface into domain-specific interfaces:
   - `DesignContextValue`
   - `LayoutContextValue`
   - `ParamsContextValue`
   - `PersistenceContextValue`
 
-- [ ] **8.2** Consider creating separate context hooks for each domain
+- [x] **8.2** Consider creating separate context hooks for each domain
 
 ### 9. Improve D3 Type Safety
 
-- [ ] **9.1** Create proper type declarations for D3 zoom behavior interactions
-- [ ] **9.2** Replace `any` casts with specific type assertions in `useZoomPan.ts`
+- [x] **9.1** Create proper type declarations for D3 zoom behavior interactions
+- [x] **9.2** Replace `any` casts with specific type assertions in `useZoomPan.ts`
 
 ---
 

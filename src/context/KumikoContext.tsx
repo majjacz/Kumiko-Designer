@@ -35,15 +35,13 @@ import { useToastOptional } from "./ToastContext";
 export type AppStep = "design" | "layout";
 
 // ============================================================================
-// Context Value Interface
+// Domain-Specific Context Value Interfaces
 // ============================================================================
 
-export interface KumikoContextValue {
-	// Current workflow step
-	step: AppStep;
-	setStep: (step: AppStep) => void;
-
-	// Parameters
+/**
+ * Parameters context value - manages application parameters like units, bit size, etc.
+ */
+export interface ParamsContextValue {
 	params: {
 		units: "mm" | "in";
 		bitSize: number;
@@ -67,8 +65,12 @@ export interface KumikoContextValue {
 			setter: (value: number) => void,
 		) => (mmValue: number) => void;
 	};
+}
 
-	// Design state
+/**
+ * Design context value - manages the grid design state (lines, intersections, strips).
+ */
+export interface DesignContextValue {
 	designState: {
 		lines: Map<string, Line>;
 		drawingLine: Point | null;
@@ -97,8 +99,12 @@ export interface KumikoContextValue {
 		toggleIntersection: (id: string) => void;
 		clearDesignState: () => void;
 	};
+}
 
-	// Layout state
+/**
+ * Layout context value - manages the layout state (groups, pieces, cuts).
+ */
+export interface LayoutContextValue {
 	layoutState: {
 		groups: Map<string, Group>;
 		activeGroupId: string;
@@ -122,8 +128,12 @@ export interface KumikoContextValue {
 		deleteLayoutItem: (type: "piece", id: string) => void;
 		clearLayoutState: () => void;
 	};
+}
 
-	// Persistence state
+/**
+ * Persistence context value - manages save/load/export functionality.
+ */
+export interface PersistenceContextValue {
 	persistenceState: {
 		designName: string;
 		isInitialized: boolean;
@@ -144,6 +154,24 @@ export interface KumikoContextValue {
 		handleLoadTemplate: (templateId: string) => void;
 		handleClear: () => void;
 	};
+}
+
+// ============================================================================
+// Combined Context Value Interface
+// ============================================================================
+
+/**
+ * Complete Kumiko context value - combines all domain-specific interfaces
+ * with workflow and UI helpers.
+ */
+export interface KumikoContextValue
+	extends ParamsContextValue,
+		DesignContextValue,
+		LayoutContextValue,
+		PersistenceContextValue {
+	// Current workflow step
+	step: AppStep;
+	setStep: (step: AppStep) => void;
 
 	// UI helpers
 	openLoadDialog: () => void;
@@ -511,13 +539,49 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 }
 
 // ============================================================================
-// Consumer Hook
+// Consumer Hooks
 // ============================================================================
 
+/**
+ * Main hook to consume the full Kumiko context.
+ * For more focused consumption, use the domain-specific hooks below.
+ */
 export function useKumiko(): KumikoContextValue {
 	const context = useContext(KumikoContext);
 	if (!context) {
 		throw new Error("useKumiko must be used within a KumikoProvider");
 	}
 	return context;
+}
+
+/**
+ * Hook to consume only parameter-related context values.
+ */
+export function useKumikoParamsContext(): ParamsContextValue {
+	const { params, paramActions } = useKumiko();
+	return { params, paramActions };
+}
+
+/**
+ * Hook to consume only design-related context values.
+ */
+export function useKumikoDesignContext(): DesignContextValue {
+	const { designState, designActions } = useKumiko();
+	return { designState, designActions };
+}
+
+/**
+ * Hook to consume only layout-related context values.
+ */
+export function useKumikoLayoutContext(): LayoutContextValue {
+	const { layoutState, layoutActions } = useKumiko();
+	return { layoutState, layoutActions };
+}
+
+/**
+ * Hook to consume only persistence-related context values.
+ */
+export function useKumikoPersistenceContext(): PersistenceContextValue {
+	const { persistenceState, persistenceActions } = useKumiko();
+	return { persistenceState, persistenceActions };
 }
