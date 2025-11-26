@@ -90,7 +90,7 @@ export function useKumikoLayout(options: UseKumikoLayoutOptions = {}) {
 			const next = new Map(prev);
 			const group = next.get(id);
 			if (group) {
-				group.name = trimmed;
+				next.set(id, { ...group, name: trimmed });
 			}
 			return next;
 		});
@@ -106,13 +106,15 @@ export function useKumikoLayout(options: UseKumikoLayoutOptions = {}) {
 					const next = new Map(prev);
 					const group = next.get(activeGroupId);
 					if (group) {
-						group.pieces.set(id, {
+						const newPieces = new Map(group.pieces);
+						newPieces.set(id, {
 							id,
 							lineId: selectedPieceId,
 							x,
 							y,
 							rowIndex,
 						});
+						next.set(activeGroupId, { ...group, pieces: newPieces });
 					}
 					return next;
 				});
@@ -127,7 +129,9 @@ export function useKumikoLayout(options: UseKumikoLayoutOptions = {}) {
 				const next = new Map(prev);
 				const group = next.get(activeGroupId);
 				if (group) {
-					group.pieces.delete(id);
+					const newPieces = new Map(group.pieces);
+					newPieces.delete(id);
+					next.set(activeGroupId, { ...group, pieces: newPieces });
 				}
 				return next;
 			});
