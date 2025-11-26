@@ -124,7 +124,6 @@ export function useLineRenderer({
 			rectWidth: number;
 			rectHeight: number;
 			isHovered: boolean;
-			isSibling: boolean;
 		}
 
 		const baseFontPx = 80;
@@ -207,7 +206,6 @@ export function useLineRenderer({
 				rectWidth,
 				rectHeight,
 				isHovered,
-				isSibling,
 			});
 		}
 
@@ -231,7 +229,6 @@ export function useLineRenderer({
 				rectWidth,
 				rectHeight,
 				isHovered,
-				isSibling,
 			} = data;
 
 			const dx = end.x - start.x;
@@ -337,15 +334,13 @@ export function useLineRenderer({
 			const rectX = labelCenterX - rectWidth / 2;
 			const rectY = labelCenterY - rectHeight / 2;
 
-			// Determine label colors: hovered (bright), sibling (muted), default
+			// Determine label colors: only highlight the directly hovered line's label
+			// (siblings get line highlighting but not label highlighting)
 			let rectFill = "rgba(0,0,0,0.8)";
 			let textFill = "#E5E7EB";
 			if (isHovered) {
 				rectFill = "rgba(120,80,20,0.95)";
 				textFill = "#FBBF24";
-			} else if (isSibling) {
-				rectFill = "rgba(80,50,10,0.9)";
-				textFill = "#D97706";
 			}
 
 			labels.push(
