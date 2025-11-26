@@ -1,5 +1,5 @@
 import React from "react";
-import { convertUnit, formatValue } from "./utils";
+import { convertUnit, formatValue } from "../../lib/kumiko/utils";
 
 export interface ParamInputProps {
 	label: string;

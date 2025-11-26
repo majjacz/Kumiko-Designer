@@ -70,11 +70,11 @@ This document tracks the implementation of codebase improvements for better main
 
 ### 7. Move UI Components from lib to components
 
-- [ ] **7.1** Move `src/lib/kumiko/kumiko-grid-designer.tsx` to `src/components/kumiko/GridDesigner.tsx`
-- [ ] **7.2** Move `src/lib/kumiko/kumiko-layout-editor.tsx` to `src/components/kumiko/LayoutEditor.tsx`
-- [ ] **7.3** Move `src/lib/kumiko/kumiko-params.tsx` to `src/components/kumiko/ParamInput.tsx`
-- [ ] **7.4** Update all imports throughout the codebase
-- [ ] **7.5** Update barrel exports in `src/lib/kumiko/index.ts`
+- [x] **7.1** Move `src/lib/kumiko/kumiko-grid-designer.tsx` to `src/components/kumiko/GridDesigner.tsx`
+- [x] **7.2** Move `src/lib/kumiko/kumiko-layout-editor.tsx` to `src/components/kumiko/LayoutEditor.tsx`
+- [x] **7.3** Move `src/lib/kumiko/kumiko-params.tsx` to `src/components/kumiko/ParamInput.tsx`
+- [x] **7.4** Update all imports throughout the codebase
+- [x] **7.5** Update barrel exports in `src/lib/kumiko/index.ts`
 
 ### 8. Improve Context Organization
 

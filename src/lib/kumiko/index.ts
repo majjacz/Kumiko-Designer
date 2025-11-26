@@ -4,6 +4,19 @@
  * This file re-exports all public types and functions from the kumiko library.
  */
 
+// Components (re-exported from components folder for backward compatibility)
+export type { GridDesignerProps } from "../../components/kumiko/GridDesigner";
+export {
+	GridDesigner,
+	GridDesignerConnected,
+} from "../../components/kumiko/GridDesigner";
+export type { LayoutEditorProps } from "../../components/kumiko/LayoutEditor";
+export {
+	LayoutEditor,
+	LayoutEditorConnected,
+} from "../../components/kumiko/LayoutEditor";
+export type { ParamInputProps } from "../../components/kumiko/ParamInput";
+export { ParamInput } from "../../components/kumiko/ParamInput";
 // Configuration
 export {
 	DEFAULT_BIT_SIZE,
@@ -36,18 +49,6 @@ export {
 	computeIntersections,
 	normalizeLines,
 } from "./kumiko-design-logic";
-export type { GridDesignerProps } from "./kumiko-grid-designer";
-// Components
-export { GridDesigner, GridDesignerConnected } from "./kumiko-grid-designer";
-export type { LayoutEditorProps } from "./kumiko-layout-editor";
-export {
-	computeKerfedLayoutRows,
-	getStripConfigKey,
-	LayoutEditor,
-	LayoutEditorConnected,
-} from "./kumiko-layout-editor";
-export type { ParamInputProps } from "./kumiko-params";
-export { ParamInput } from "./kumiko-params";
 // Storage
 export type {
 	CreateDesignPayloadOptions,
@@ -73,6 +74,13 @@ export {
 	loadTemplate,
 	TEMPLATES,
 } from "./kumiko-templates";
+// Layout helpers
+export {
+	computeKerfedLayoutRows,
+	computeRowLengths,
+	getStripConfigKey,
+	validateStripPlacement,
+} from "./layout-helpers";
 // Core types
 export type {
 	Cut,

@@ -5,7 +5,7 @@ import {
 	computeRowLengths,
 	getStripConfigKey,
 	validateStripPlacement,
-} from "./kumiko-layout-editor";
+} from "./layout-helpers";
 import type { DesignStrip, Piece } from "./types";
 
 const makeStrip = (overrides?: Partial<DesignStrip>): DesignStrip => ({

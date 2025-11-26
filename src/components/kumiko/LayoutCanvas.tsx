@@ -9,7 +9,7 @@ import {
 	type Point,
 } from "../../lib/kumiko";
 import { GRID_CELL_HEIGHT, GRID_MARGIN } from "../../lib/kumiko/config";
-import { validateStripPlacement } from "../../lib/kumiko/kumiko-layout-editor";
+import { validateStripPlacement } from "../../lib/kumiko/layout-helpers";
 
 export interface LayoutCanvasProps {
 	/** SVG element ref setter */
