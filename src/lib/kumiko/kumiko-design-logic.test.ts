@@ -65,6 +65,33 @@ describe("computeIntersections()", () => {
 
 		expect(intersections.size).toBe(1);
 	});
+
+	it("does not create intersection for butting lines (both endpoints meet)", () => {
+		const lines = new Map<string, Line>();
+		// Horizontal line ends at (5, 0)
+		lines.set("h", makeLine("h", 0, 0, 5, 0));
+		// Vertical line starts at (5, 0)
+		lines.set("v", makeLine("v", 5, 0, 5, 5));
+
+		const intersections = computeIntersections(lines, new Map());
+
+		// No intersection should be created because both lines meet at their endpoints
+		expect(intersections.size).toBe(0);
+	});
+
+	it("does not create intersection for T-joint (one line butts against another)", () => {
+		const lines = new Map<string, Line>();
+		// Horizontal line goes through (5, 0)
+		lines.set("h", makeLine("h", 0, 0, 10, 0));
+		// Vertical line starts at (5, 0) - a T-joint where vertical butts against horizontal
+		lines.set("v", makeLine("v", 5, 0, 5, 5));
+
+		const intersections = computeIntersections(lines, new Map());
+
+		// No intersection should be created because vertical line butts against horizontal
+		// (no notch is needed - the vertical strip just ends at the horizontal strip)
+		expect(intersections.size).toBe(0);
+	});
 });
 
 describe("computeDesignStrips()", () => {

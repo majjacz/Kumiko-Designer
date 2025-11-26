@@ -22,6 +22,18 @@ export function computeIntersections(
 
 			if (!point) continue;
 
+			// Check if intersection is at an endpoint of each line
+			const isAtEndpointLine1 =
+				(point.x === line1.x1 && point.y === line1.y1) ||
+				(point.x === line1.x2 && point.y === line1.y2);
+			const isAtEndpointLine2 =
+				(point.x === line2.x1 && point.y === line2.y1) ||
+				(point.x === line2.x2 && point.y === line2.y2);
+
+			// Skip if either line has this point as an endpoint (butting, not crossing)
+			// Notches are only needed where lines actually cross through each other
+			if (isAtEndpointLine1 || isAtEndpointLine2) continue;
+
 			// Create a coordinate key to detect duplicate intersection points
 			const coordKey = `${point.x},${point.y}`;
 
