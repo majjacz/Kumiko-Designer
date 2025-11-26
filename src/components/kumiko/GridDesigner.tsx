@@ -1,6 +1,6 @@
 import { HelpCircle, Maximize2, Minus, Plus } from "lucide-react";
 import type React from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useKumiko } from "../../context/KumikoContext";
 import { useGridCoordinates } from "../../hooks/useGridCoordinates";
 import { useZoomPan } from "../../hooks/useZoomPan";

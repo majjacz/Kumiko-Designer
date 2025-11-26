@@ -221,15 +221,8 @@ export function useLineRenderer({
 		const offsetMultipliers = [1, 1.5, 2, 2.5, 3];
 
 		for (const data of labelDataList) {
-			const {
-				line,
-				start,
-				end,
-				labelText,
-				rectWidth,
-				rectHeight,
-				isHovered,
-			} = data;
+			const { line, start, end, labelText, rectWidth, rectHeight, isHovered } =
+				data;
 
 			const dx = end.x - start.x;
 			const dy = end.y - start.y;
