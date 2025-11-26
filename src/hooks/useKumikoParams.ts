@@ -1,4 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
+import {
+	DEFAULT_BIT_SIZE,
+	DEFAULT_CUT_DEPTH,
+	DEFAULT_GRID_CELL_SIZE,
+	DEFAULT_HALF_CUT_DEPTH,
+	DEFAULT_STOCK_LENGTH,
+	DEFAULT_UNITS,
+} from "../lib/kumiko/config";
 
 export interface KumikoParams {
 	units: "mm" | "in";
@@ -26,15 +34,15 @@ export interface KumikoParamsActions {
 }
 
 export function useKumikoParams() {
-	const [units, setUnits] = useState<"mm" | "in">("mm");
+	const [units, setUnits] = useState<"mm" | "in">(DEFAULT_UNITS);
 	// Parameters (stored internally in mm)
-	const [bitSize, setBitSize] = useState(6.35);
-	const [cutDepth, setCutDepth] = useState(19);
-	const [halfCutDepth, setHalfCutDepth] = useState(9.5);
+	const [bitSize, setBitSize] = useState(DEFAULT_BIT_SIZE);
+	const [cutDepth, setCutDepth] = useState(DEFAULT_CUT_DEPTH);
+	const [halfCutDepth, setHalfCutDepth] = useState(DEFAULT_HALF_CUT_DEPTH);
 	// Physical size of one grid cell in mm (determines design scale)
-	const [gridCellSize, setGridCellSize] = useState(10);
+	const [gridCellSize, setGridCellSize] = useState(DEFAULT_GRID_CELL_SIZE);
 	// stockLength is the physical board/stock length used in layout & SVG
-	const [stockLength, setStockLength] = useState(600);
+	const [stockLength, setStockLength] = useState(DEFAULT_STOCK_LENGTH);
 
 	const toggleUnits = useCallback(() => {
 		setUnits((prev) => (prev === "mm" ? "in" : "mm"));

@@ -1,3 +1,4 @@
+import { EPSILON } from "./config";
 import type { Line, Point } from "./kumiko-core";
 
 /**
@@ -98,7 +99,6 @@ export function computeLineOverlapForSingleLine(
 
 	// Only consider this an overlap if it's more than just touching at endpoints
 	// This allows merging/extending when lines touch at a single point
-	const EPSILON = 0.01; // Small threshold for endpoint detection
 	const overlapLength = tEnd - tStart;
 
 	// Skip if the overlap is essentially just a point (touching at endpoints)

@@ -2,6 +2,7 @@ import { Download, Grid, Layout, Settings, Upload } from "lucide-react";
 import type React from "react";
 import { useId } from "react";
 import { ParamInput } from "../../lib/kumiko/kumiko-params";
+import type { NamedDesignSummary } from "../../lib/kumiko/kumiko-storage";
 import { TEMPLATES } from "../../lib/kumiko/kumiko-templates";
 
 export type AppStep = "design" | "layout";
@@ -125,11 +126,6 @@ export function KumikoHeader({
 			</div>
 		</header>
 	);
-}
-
-export interface NamedDesignSummary {
-	name: string;
-	savedAt: string;
 }
 
 export interface KumikoLoadDialogProps {

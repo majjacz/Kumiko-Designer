@@ -7,9 +7,7 @@ describe("useKumikoDesign", () => {
 	const bitSize = 3.175;
 
 	it("should initialize with empty state", () => {
-		const { result } = renderHook(() =>
-			useKumikoDesign(gridCellSize, bitSize),
-		);
+		const { result } = renderHook(() => useKumikoDesign(gridCellSize, bitSize));
 
 		expect(result.current.state.lines.size).toBe(0);
 		expect(result.current.state.intersections.size).toBe(0);
@@ -18,9 +16,7 @@ describe("useKumikoDesign", () => {
 	});
 
 	it("should add a line when creating a line", () => {
-		const { result } = renderHook(() =>
-			useKumikoDesign(gridCellSize, bitSize),
-		);
+		const { result } = renderHook(() => useKumikoDesign(gridCellSize, bitSize));
 
 		act(() => {
 			result.current.actions.handleCreateLine({ x: 0, y: 0 }, { x: 10, y: 0 });
@@ -35,9 +31,7 @@ describe("useKumikoDesign", () => {
 	});
 
 	it("should handle drawing state", () => {
-		const { result } = renderHook(() =>
-			useKumikoDesign(gridCellSize, bitSize),
-		);
+		const { result } = renderHook(() => useKumikoDesign(gridCellSize, bitSize));
 
 		act(() => {
 			result.current.actions.handleGridClick({ x: 0, y: 0 });
@@ -54,9 +48,7 @@ describe("useKumikoDesign", () => {
 	});
 
 	it("should clear the design", () => {
-		const { result } = renderHook(() =>
-			useKumikoDesign(gridCellSize, bitSize),
-		);
+		const { result } = renderHook(() => useKumikoDesign(gridCellSize, bitSize));
 
 		act(() => {
 			result.current.actions.handleCreateLine({ x: 0, y: 0 }, { x: 10, y: 0 });
@@ -71,9 +63,7 @@ describe("useKumikoDesign", () => {
 	});
 
 	it("should toggle intersection state", () => {
-		const { result } = renderHook(() =>
-			useKumikoDesign(gridCellSize, bitSize),
-		);
+		const { result } = renderHook(() => useKumikoDesign(gridCellSize, bitSize));
 
 		// Create two crossing lines to generate an intersection
 		act(() => {

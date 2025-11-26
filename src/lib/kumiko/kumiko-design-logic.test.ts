@@ -129,7 +129,7 @@ describe("computeDesignStrips()", () => {
 		const intersections = new Map<string, Intersection>();
 		const gridCellSize = 1;
 		const bitSize = 3.175;
-	
+
 		const strips1 = computeDesignStrips(
 			lines1,
 			intersections,
@@ -161,7 +161,7 @@ describe("computeDesignStrips()", () => {
 		const intersections = new Map<string, Intersection>();
 		const gridCellSize = 1;
 		const bitSize = 3.175;
-	
+
 		const strips = computeDesignStrips(
 			lines,
 			intersections,

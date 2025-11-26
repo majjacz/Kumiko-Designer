@@ -3,7 +3,8 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { GridRenderer } from "../../components/kumiko/GridRenderer";
 import { useGridCoordinates } from "../../hooks/useGridCoordinates";
 import { useZoomPan } from "../../hooks/useZoomPan";
-import type { Intersection, Line, Point } from "./kumiko-core";
+import { GRID_EXTENT_CELLS } from "./config";
+import type { GridViewState, Intersection, Line, Point } from "./kumiko-core";
 
 /**
  * Kumiko Grid Designer - Rewritten for proper coordinate handling and drag-based interaction
@@ -15,14 +16,7 @@ import type { Intersection, Line, Point } from "./kumiko-core";
  * - Grid snapping for precise alignment
  */
 
-export interface GridViewState {
-	zoom: number;
-	panX: number;
-	panY: number;
-	showNotchPositions: boolean;
-	showHelpText: boolean;
-	showLineIds: boolean;
-}
+export type { GridViewState };
 
 export interface GridDesignerProps {
 	lines: Map<string, Line>;
@@ -52,8 +46,6 @@ interface DragState {
 	startPoint: Point;
 	currentPoint: Point;
 }
-
-const GRID_EXTENT_CELLS = 1000; // Effective "infinite" grid extent in each direction
 
 export function GridDesigner({
 	lines,

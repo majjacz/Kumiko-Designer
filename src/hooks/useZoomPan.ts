@@ -7,8 +7,8 @@ import {
 	zoomTransform,
 } from "d3-zoom";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Line } from "../lib/kumiko/kumiko-core";
-import type { GridViewState } from "../lib/kumiko/kumiko-storage";
+import { DEFAULT_ZOOM, MAX_ZOOM, MIN_ZOOM } from "../lib/kumiko/config";
+import type { GridViewState, Line } from "../lib/kumiko/kumiko-core";
 
 interface UseZoomPanProps {
 	svgRef: React.RefObject<SVGSVGElement | null>;
@@ -25,10 +25,6 @@ interface UseZoomPanProps {
 		showLineIds: boolean;
 	};
 }
-
-const DEFAULT_ZOOM = 40;
-const MIN_ZOOM = DEFAULT_ZOOM / 8;
-const MAX_ZOOM = DEFAULT_ZOOM * 8;
 
 export function useZoomPan({
 	svgRef,

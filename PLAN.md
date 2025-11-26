@@ -5,30 +5,30 @@ This document outlines planned refactoring tasks to improve code extendability a
 ## High Priority (Quick Wins)
 
 ### 1. Consolidate Type Definitions
-- [ ] Move `GridViewState` from `kumiko-grid-designer.tsx` to `kumiko-core.ts` (keep `kumiko-storage.ts` import)
-- [ ] Remove duplicate `NamedDesignSummary` from `KumikoUI.tsx`, import from `kumiko-storage.ts`
-- [ ] Audit all files for other duplicate type definitions
+- [x] Move `GridViewState` from `kumiko-grid-designer.tsx` to `kumiko-core.ts` (keep `kumiko-storage.ts` import)
+- [x] Remove duplicate `NamedDesignSummary` from `KumikoUI.tsx`, import from `kumiko-storage.ts`
+- [x] Audit all files for other duplicate type definitions
 
 ### 2. Extract Payload Serialization
-- [ ] Create `createDesignPayload()` function in `kumiko-storage.ts`
-- [ ] Refactor autosave effect in `index.tsx` to use new function
-- [ ] Refactor `handleSaveAs()` to use new function
-- [ ] Refactor `handleExportJSON()` to use new function
+- [x] Create `createDesignPayload()` function in `kumiko-storage.ts`
+- [x] Refactor autosave effect in `index.tsx` to use new function
+- [x] Refactor `handleSaveAs()` to use new function
+- [x] Refactor `handleExportJSON()` to use new function
 
 ### 3. Add Barrel Exports
-- [ ] Create `src/lib/kumiko/index.ts` barrel file
-- [ ] Export all public types and functions
+- [x] Create `src/lib/kumiko/index.ts` barrel file
+- [x] Export all public types and functions
 - [ ] Update imports in hooks to use barrel
 - [ ] Update imports in components to use barrel
 - [ ] Update imports in routes to use barrel
 
 ### 4. Extract Magic Numbers into Configuration
-- [ ] Create `src/lib/kumiko/config.ts`
-- [ ] Move grid constants (`GRID_EXTENT_CELLS`, `GRID_CELL_HEIGHT`, `GRID_MARGIN`)
-- [ ] Move zoom constants (`DEFAULT_ZOOM`, `MIN_ZOOM`, `MAX_ZOOM`)
-- [ ] Move precision constants (`EDGE_NOTCH_EPS`, `EPSILON`)
-- [ ] Move default parameter values (`bitSize`, `cutDepth`, `gridCellSize`, `stockLength`)
-- [ ] Update all files to import from config
+- [x] Create `src/lib/kumiko/config.ts`
+- [x] Move grid constants (`GRID_EXTENT_CELLS`, `GRID_CELL_HEIGHT`, `GRID_MARGIN`)
+- [x] Move zoom constants (`DEFAULT_ZOOM`, `MIN_ZOOM`, `MAX_ZOOM`)
+- [x] Move precision constants (`EDGE_NOTCH_EPS`, `EPSILON`)
+- [x] Move default parameter values (`bitSize`, `cutDepth`, `gridCellSize`, `stockLength`)
+- [x] Update all files to import from config
 
 ---
 
@@ -44,22 +44,22 @@ This document outlines planned refactoring tasks to improve code extendability a
 - [x] Update imports across codebase
 
 ### 6. Extract Download/Export Utilities
-- [ ] Create `src/lib/utils/download.ts`
-- [ ] Implement `downloadBlob(blob: Blob, filename: string)`
-- [ ] Implement `downloadSVG(svg: string, filename: string)`
-- [ ] Implement `downloadJSON(data: unknown, filename: string)`
-- [ ] Refactor `downloadSVG` in `index.tsx`
-- [ ] Refactor `downloadAllGroupsSVG` in `index.tsx`
-- [ ] Refactor `handleExportJSON` in `index.tsx`
+- [x] Create `src/lib/utils/download.ts`
+- [x] Implement `downloadBlob(blob: Blob, filename: string)`
+- [x] Implement `downloadSVG(svg: string, filename: string)`
+- [x] Implement `downloadJSON(data: unknown, filename: string)`
+- [x] Refactor `downloadSVG` in `index.tsx`
+- [x] Refactor `downloadAllGroupsSVG` in `index.tsx`
+- [x] Refactor `handleExportJSON` in `index.tsx`
 
 ### 7. Fix Piece.rotation Semantics
-- [ ] Add `rowIndex` field to `Piece` interface in `kumiko-core.ts`
-- [ ] Update `useKumikoLayout.ts` to use `rowIndex` instead of `rotation`
-- [ ] Update `kumiko-layout-editor.tsx` to use `rowIndex`
-- [ ] Update `kumiko-svg-export.ts` to use `rowIndex`
-- [ ] Update `kumiko-storage.ts` payload serialization
-- [ ] Add migration for existing saved designs (map `rotation` → `rowIndex`)
-- [ ] Keep `rotation` field for backward compatibility or remove if unused
+- [x] Add `rowIndex` field to `Piece` interface in `kumiko-core.ts`
+- [x] Update `useKumikoLayout.ts` to use `rowIndex` instead of `rotation`
+- [x] Update `kumiko-layout-editor.tsx` to use `rowIndex`
+- [x] Update `kumiko-svg-export.ts` to use `rowIndex`
+- [x] Update `kumiko-storage.ts` payload serialization
+- [x] ~~Add migration for existing saved designs~~ (skipped - breaking changes acceptable)
+- [x] Remove `rotation` field (replaced with `rowIndex`)
 
 ---
 

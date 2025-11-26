@@ -94,7 +94,7 @@ export function useKumikoLayout() {
 							lineId: selectedPieceId,
 							x,
 							y,
-							rotation: rowIndex, // Store row index in rotation field
+							rowIndex,
 						});
 					}
 					return next;

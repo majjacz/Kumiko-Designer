@@ -9,6 +9,7 @@ import { GridDesigner } from "../lib/kumiko/kumiko-grid-designer";
 import { LayoutEditor } from "../lib/kumiko/kumiko-layout-editor";
 import {
 	clearDesign,
+	createDesignPayload,
 	deleteNamedDesign,
 	listNamedDesigns,
 	loadDesign,
@@ -22,6 +23,7 @@ import {
 	getDefaultTemplateId,
 	loadTemplate,
 } from "../lib/kumiko/kumiko-templates";
+import { downloadJSON, downloadSVG } from "../lib/utils/download";
 import {
 	type AppStep,
 	KumikoHeader,
@@ -166,26 +168,20 @@ function App() {
 	// Persist to local storage whenever the core design/layout state changes
 	useEffect(() => {
 		if (!isInitialized) return;
-		const payload: SavedDesignPayload = {
-			version: 1 as const,
+		const payload = createDesignPayload({
 			units: params.units,
 			bitSize: params.bitSize,
 			cutDepth: params.cutDepth,
 			halfCutDepth: params.halfCutDepth,
 			gridCellSize: params.gridCellSize,
 			stockLength: params.stockLength,
-			lines: Array.from(designState.lines.values()),
-			groups: Array.from(layoutState.groups.values()).map((g) => ({
-				id: g.id,
-				name: g.name,
-				pieces: Array.from(g.pieces.values()),
-				fullCuts: Array.from(g.fullCuts.values()),
-			})),
+			lines: designState.lines,
+			groups: layoutState.groups,
 			activeGroupId: layoutState.activeGroupId,
 			designName: designName || undefined,
-			intersectionStates: Array.from(designState.intersectionStates.entries()),
+			intersectionStates: designState.intersectionStates,
 			gridViewState: designState.gridViewState,
-		};
+		});
 
 		saveDesign(payload);
 	}, [
@@ -207,26 +203,20 @@ function App() {
 			return;
 		}
 
-		const payload: SavedDesignPayload = {
-			version: 1 as const,
+		const payload = createDesignPayload({
 			units: params.units,
 			bitSize: params.bitSize,
 			cutDepth: params.cutDepth,
 			halfCutDepth: params.halfCutDepth,
 			gridCellSize: params.gridCellSize,
 			stockLength: params.stockLength,
-			lines: Array.from(designState.lines.values()),
-			groups: Array.from(layoutState.groups.values()).map((g) => ({
-				id: g.id,
-				name: g.name,
-				pieces: Array.from(g.pieces.values()),
-				fullCuts: Array.from(g.fullCuts.values()),
-			})),
+			lines: designState.lines,
+			groups: layoutState.groups,
 			activeGroupId: layoutState.activeGroupId,
 			designName: name,
-			intersectionStates: Array.from(designState.intersectionStates.entries()),
+			intersectionStates: designState.intersectionStates,
 			gridViewState: designState.gridViewState,
-		};
+		});
 
 		saveNamedDesign(name, payload);
 		setNamedDesigns(listNamedDesigns());
@@ -273,7 +263,7 @@ function App() {
 		setShowTemplateDialog(false);
 	};
 
-	const downloadSVG = useCallback(() => {
+	const handleDownloadSVG = useCallback(() => {
 		console.log("downloadSVG called");
 		const svg = generateGroupSVG({
 			group: layoutState.activeGroup,
@@ -283,15 +273,7 @@ function App() {
 		});
 		console.log("SVG generated:", svg ? "yes" : "no");
 		if (!svg) return;
-		const blob = new Blob([svg], { type: "image/svg+xml" });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = `${layoutState.activeGroup?.name || "kumiko-group"}.svg`;
-		document.body.appendChild(a);
-		a.click();
-		document.body.removeChild(a);
-		URL.revokeObjectURL(url);
+		downloadSVG(svg, layoutState.activeGroup?.name || "kumiko-group");
 	}, [
 		layoutState.activeGroup,
 		designState.designStrips,
@@ -299,7 +281,7 @@ function App() {
 		params.stockLength,
 	]);
 
-	const downloadAllGroupsSVG = useCallback(() => {
+	const handleDownloadAllGroupsSVG = useCallback(() => {
 		const files: { filename: string; svg: string }[] = [];
 
 		for (const group of layoutState.groups.values()) {
@@ -317,15 +299,7 @@ function App() {
 
 		files.forEach((file, index) => {
 			window.setTimeout(() => {
-				const blob = new Blob([file.svg], { type: "image/svg+xml" });
-				const url = URL.createObjectURL(blob);
-				const a = document.createElement("a");
-				a.href = url;
-				a.download = file.filename;
-				document.body.appendChild(a);
-				a.click();
-				document.body.removeChild(a);
-				URL.revokeObjectURL(url);
+				downloadSVG(file.svg, file.filename);
 			}, index * 300);
 		});
 	}, [
@@ -337,34 +311,21 @@ function App() {
 
 	// Export current design to JSON file
 	const handleExportJSON = () => {
-		const payload: SavedDesignPayload = {
-			version: 1 as const,
+		const payload = createDesignPayload({
 			units: params.units,
 			bitSize: params.bitSize,
 			cutDepth: params.cutDepth,
 			halfCutDepth: params.halfCutDepth,
 			gridCellSize: params.gridCellSize,
 			stockLength: params.stockLength,
-			lines: Array.from(designState.lines.values()),
-			groups: Array.from(layoutState.groups.values()).map((g) => ({
-				id: g.id,
-				name: g.name,
-				pieces: Array.from(g.pieces.values()),
-				fullCuts: Array.from(g.fullCuts.values()),
-			})),
+			lines: designState.lines,
+			groups: layoutState.groups,
 			activeGroupId: layoutState.activeGroupId,
 			designName: designName || undefined,
-			intersectionStates: Array.from(designState.intersectionStates.entries()),
-		};
+			intersectionStates: designState.intersectionStates,
+		});
 
-		const jsonString = JSON.stringify(payload, null, 2);
-		const blob = new Blob([jsonString], { type: "application/json" });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.click();
-		document.body.removeChild(a);
-		URL.revokeObjectURL(url);
+		downloadJSON(payload, designName || "kumiko-design");
 	};
 
 	// Import design from JSON file
@@ -469,8 +430,8 @@ function App() {
 						bitSize={params.bitSize}
 						halfCutDepth={params.halfCutDepth}
 						cutDepth={params.cutDepth}
-						onDownload={downloadSVG}
-						onDownloadAllGroups={downloadAllGroupsSVG}
+						onDownload={handleDownloadSVG}
+						onDownloadAllGroups={handleDownloadAllGroupsSVG}
 						onDeleteLayoutItem={layoutActions.deleteLayoutItem}
 						onHoverStrip={layoutActions.setHoveredStripId}
 						displayUnit={displayUnit}

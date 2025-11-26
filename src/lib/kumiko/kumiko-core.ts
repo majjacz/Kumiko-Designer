@@ -11,6 +11,19 @@ export interface Line {
 	y2: number;
 }
 
+/**
+ * View state for the grid designer.
+ * Used for persisting and restoring the user's viewport settings.
+ */
+export interface GridViewState {
+	zoom: number;
+	panX: number;
+	panY: number;
+	showNotchPositions: boolean;
+	showHelpText: boolean;
+	showLineIds: boolean;
+}
+
 export interface Intersection {
 	id: string;
 	x: number;
@@ -59,7 +72,11 @@ export interface Piece {
 	lineId: string;
 	x: number;
 	y: number;
-	rotation: number;
+	/**
+	 * The row index this piece is placed on in the layout.
+	 * Row 0 is the top row.
+	 */
+	rowIndex: number;
 }
 
 export interface Cut {

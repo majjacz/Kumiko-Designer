@@ -1,6 +1,7 @@
 import { Download, Eraser, Pencil, Plus, Trash2 } from "lucide-react";
 import type React from "react";
 import { memo, useEffect, useMemo, useState } from "react";
+import { GRID_CELL_HEIGHT, GRID_MARGIN } from "./config";
 import {
 	type DesignStrip,
 	formatValue,
@@ -10,9 +11,8 @@ import {
 } from "./kumiko-core";
 import { generateGroupSVG } from "./kumiko-svg-export";
 
-// Grid configuration for layout
-export const GRID_CELL_HEIGHT = 20; // Height of each row in mm
-export const GRID_MARGIN = 10; // Margin around the grid in mm
+// Re-export for backward compatibility with tests
+export { GRID_CELL_HEIGHT, GRID_MARGIN };
 
 // Generate a unique key for a strip based on its configuration
 // Accounts for horizontal and vertical flips - strips are the same if:
@@ -81,7 +81,7 @@ export function computeKerfedLayoutRows(
 ): Map<number, Piece[]> {
 	const rows = new Map<number, Piece[]>();
 	for (const piece of pieces) {
-		const rowIndex = piece.rotation; // Using rotation field to store row index
+		const rowIndex = piece.rowIndex;
 		if (!rows.has(rowIndex)) {
 			rows.set(rowIndex, []);
 		}
@@ -889,7 +889,7 @@ export const LayoutEditor = memo(function LayoutEditor({
 										<title>
 											Strip {strip.displayCode} -{" "}
 											{formatValue(strip.lengthMM, displayUnit)}
-											{displayUnit} Row {piece.rotation}
+											{displayUnit} Row {piece.rowIndex}
 										</title>
 									</g>
 								);

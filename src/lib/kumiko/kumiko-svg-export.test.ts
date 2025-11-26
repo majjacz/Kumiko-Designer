@@ -21,7 +21,7 @@ const makePiece = (overrides?: Partial<Piece>): Piece => ({
 	lineId: overrides?.lineId ?? "strip",
 	x: overrides?.x ?? 0,
 	y: overrides?.y ?? 0,
-	rotation: overrides?.rotation ?? 0,
+	rowIndex: overrides?.rowIndex ?? 0,
 });
 
 const makeGroup = (overrides?: Partial<Group>): Group => ({
@@ -80,11 +80,11 @@ describe("generateGroupSVG()", () => {
 		const pieces = new Map<string, Piece>();
 		pieces.set(
 			"p1",
-			makePiece({ id: "p1", lineId: "s1", rotation: 0, x: 0, y: 0 }),
+			makePiece({ id: "p1", lineId: "s1", rowIndex: 0, x: 0, y: 0 }),
 		);
 		pieces.set(
 			"p2",
-			makePiece({ id: "p2", lineId: "s2", rotation: 0, x: 150, y: 0 }),
+			makePiece({ id: "p2", lineId: "s2", rowIndex: 0, x: 150, y: 0 }),
 		);
 
 		const group = makeGroup({ pieces });
@@ -124,21 +124,21 @@ describe("generateGroupSVG()", () => {
 		const piecesRow0 = new Map<string, Piece>();
 		piecesRow0.set(
 			"p1",
-			makePiece({ id: "p1", lineId: "s1", rotation: 0, x: 0, y: 0 }),
+			makePiece({ id: "p1", lineId: "s1", rowIndex: 0, x: 0, y: 0 }),
 		);
 		piecesRow0.set(
 			"p2",
-			makePiece({ id: "p2", lineId: "s2", rotation: 0, x: 150, y: 0 }),
+			makePiece({ id: "p2", lineId: "s2", rowIndex: 0, x: 150, y: 0 }),
 		);
 
 		const piecesRow1 = new Map<string, Piece>();
 		piecesRow1.set(
 			"p3",
-			makePiece({ id: "p3", lineId: "s1", rotation: 1, x: 0, y: 0 }),
+			makePiece({ id: "p3", lineId: "s1", rowIndex: 1, x: 0, y: 0 }),
 		);
 		piecesRow1.set(
 			"p4",
-			makePiece({ id: "p4", lineId: "s2", rotation: 1, x: 150, y: 0 }),
+			makePiece({ id: "p4", lineId: "s2", rowIndex: 1, x: 150, y: 0 }),
 		);
 
 		const allPieces = new Map<string, Piece>([...piecesRow0, ...piecesRow1]);

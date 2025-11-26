@@ -27,7 +27,7 @@ const makePiece = (overrides?: Partial<Piece>): Piece => ({
 	lineId: overrides?.lineId ?? "strip",
 	x: overrides?.x ?? 0,
 	y: overrides?.y ?? 0,
-	rotation: overrides?.rotation ?? 0,
+	rowIndex: overrides?.rowIndex ?? 0,
 });
 
 describe("getStripConfigKey()", () => {
@@ -104,8 +104,8 @@ describe("computeKerfedLayoutRows()", () => {
 
 		const pieces: Piece[] = [
 			// out of order x to verify sorting
-			makePiece({ id: "p2", lineId: "s2", rotation: 0, x: 200, y: 0 }),
-			makePiece({ id: "p1", lineId: "s1", rotation: 0, x: 0, y: 0 }),
+			makePiece({ id: "p2", lineId: "s2", rowIndex: 0, x: 200, y: 0 }),
+			makePiece({ id: "p1", lineId: "s1", rowIndex: 0, x: 0, y: 0 }),
 		];
 
 		const bitSize = 2;
@@ -121,12 +121,12 @@ describe("computeKerfedLayoutRows()", () => {
 		expect(row0?.[1].x).toBe(100 + bitSize);
 	});
 
-	it("separates pieces into distinct rows by rotation", () => {
+	it("separates pieces into distinct rows by rowIndex", () => {
 		const strips: DesignStrip[] = [makeStrip({ id: "s1", lengthMM: 100 })];
 
 		const pieces: Piece[] = [
-			makePiece({ id: "p0", lineId: "s1", rotation: 0 }),
-			makePiece({ id: "p1", lineId: "s1", rotation: 1 }),
+			makePiece({ id: "p0", lineId: "s1", rowIndex: 0 }),
+			makePiece({ id: "p1", lineId: "s1", rowIndex: 1 }),
 		];
 
 		const rows = computeKerfedLayoutRows(pieces, strips, 2);
@@ -144,8 +144,8 @@ describe("computeRowLengths()", () => {
 		];
 
 		const pieces: Piece[] = [
-			makePiece({ id: "p1", lineId: "s1", rotation: 0 }),
-			makePiece({ id: "p2", lineId: "s2", rotation: 0 }),
+			makePiece({ id: "p1", lineId: "s1", rowIndex: 0 }),
+			makePiece({ id: "p2", lineId: "s2", rowIndex: 0 }),
 		];
 
 		const bitSize = 2;

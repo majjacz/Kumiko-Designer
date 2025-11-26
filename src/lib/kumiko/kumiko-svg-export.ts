@@ -1,6 +1,5 @@
+import { GRID_CELL_HEIGHT } from "./config";
 import type { DesignStrip, Group, Piece } from "./kumiko-core";
-
-const GRID_CELL_HEIGHT = 20;
 
 type Segment = {
 	y1: number;
@@ -51,7 +50,7 @@ export function generateGroupSVG({
 
 	const rowMap = new Map<number, Piece[]>();
 	for (const piece of pieces) {
-		const rowIndex = piece.rotation;
+		const rowIndex = piece.rowIndex;
 		if (!rowMap.has(rowIndex)) {
 			rowMap.set(rowIndex, []);
 		}
@@ -152,7 +151,7 @@ export function generateGroupSVG({
 		return null;
 	}
 
-	const rowIndices = pieces.map((p) => p.rotation);
+	const rowIndices = pieces.map((p) => p.rowIndex);
 	const minRowIndex = Math.min(...rowIndices);
 	const maxRowIndex = Math.max(...rowIndices);
 	const globalMinY = minRowIndex * GRID_CELL_HEIGHT;

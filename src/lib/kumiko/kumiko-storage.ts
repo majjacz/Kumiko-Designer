@@ -1,11 +1,6 @@
-export interface GridViewState {
-	zoom: number;
-	panX: number;
-	panY: number;
-	showNotchPositions: boolean;
-	showHelpText: boolean;
-	showLineIds: boolean;
-}
+import type { GridViewState } from "./kumiko-core";
+
+export type { GridViewState };
 
 export interface SavedDesignPayload {
 	version: 1;
@@ -51,7 +46,7 @@ export interface SavedDesignPayload {
 			lineId: string;
 			x: number;
 			y: number;
-			rotation: number;
+			rowIndex: number;
 		}[];
 		fullCuts: {
 			id: string;
@@ -249,4 +244,69 @@ export function deleteNamedDesign(name: string): void {
 		// eslint-disable-next-line no-console
 		console.error("[kumiko-storage] Failed to delete named design", error);
 	}
+}
+
+// =============================================================================
+// Payload Serialization
+// =============================================================================
+
+import type { Group, Line } from "./kumiko-core";
+
+export interface CreateDesignPayloadOptions {
+	units: "mm" | "in";
+	bitSize: number;
+	cutDepth: number;
+	halfCutDepth: number;
+	gridCellSize: number;
+	stockLength: number;
+	lines: Map<string, Line>;
+	groups: Map<string, Group>;
+	activeGroupId: string;
+	designName?: string;
+	intersectionStates: Map<string, boolean>;
+	gridViewState?: GridViewState;
+}
+
+/**
+ * Create a SavedDesignPayload from the current application state.
+ * This centralizes the serialization logic used for autosave, save-as, and export.
+ */
+export function createDesignPayload(
+	options: CreateDesignPayloadOptions,
+): SavedDesignPayload {
+	const {
+		units,
+		bitSize,
+		cutDepth,
+		halfCutDepth,
+		gridCellSize,
+		stockLength,
+		lines,
+		groups,
+		activeGroupId,
+		designName,
+		intersectionStates,
+		gridViewState,
+	} = options;
+
+	return {
+		version: 1 as const,
+		units,
+		bitSize,
+		cutDepth,
+		halfCutDepth,
+		gridCellSize,
+		stockLength,
+		lines: Array.from(lines.values()),
+		groups: Array.from(groups.values()).map((g) => ({
+			id: g.id,
+			name: g.name,
+			pieces: Array.from(g.pieces.values()),
+			fullCuts: Array.from(g.fullCuts.values()),
+		})),
+		activeGroupId,
+		designName: designName || undefined,
+		intersectionStates: Array.from(intersectionStates.entries()),
+		gridViewState,
+	};
 }
