@@ -1,16 +1,17 @@
 /**
  * Hook for managing design persistence - save, load, import, export operations
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Group, Line, SavedDesignPayload } from "../lib/kumiko";
 import {
+	clearDesign,
+	createDesignPayload,
 	deleteNamedDesign,
 	getDefaultTemplateId,
 	listNamedDesigns,
 	loadDesign,
 	loadNamedDesign,
 	loadTemplate,
-	saveDesign,
 	saveNamedDesign,
 } from "../lib/kumiko";
 import { downloadJSON } from "../lib/utils/download";
@@ -40,16 +41,36 @@ export interface ApplyDesignParams {
 			updater: (lines: Map<string, Line>) => Map<string, Line>,
 		) => void;
 		setIntersectionStates: (states: Map<string, boolean>) => void;
+		clearDesignState: () => void;
 	};
 	layoutActions: {
 		setGroups: (
 			updater: (groups: Map<string, Group>) => Map<string, Group>,
 		) => void;
 		setActiveGroupId: (id: string) => void;
+		clearLayoutState: () => void;
 	};
 }
 
-export interface UseDesignPersistenceOptions extends ApplyDesignParams {}
+/** Data needed to create a design payload for saving/exporting */
+export interface DesignPayloadData {
+	units: "mm" | "in";
+	bitSize: number;
+	cutDepth: number;
+	halfCutDepth: number;
+	gridCellSize: number;
+	stockLength: number;
+	lines: Map<string, Line>;
+	groups: Map<string, Group>;
+	activeGroupId: string;
+	intersectionStates: Map<string, boolean>;
+	gridViewState?: SavedDesignPayload["gridViewState"];
+}
+
+export interface UseDesignPersistenceOptions extends ApplyDesignParams {
+	/** Function to get current design data for saving/exporting */
+	getCurrentPayloadData: () => DesignPayloadData;
+}
 
 export interface DesignPersistenceActions {
 	setDesignName: (name: string) => void;
@@ -60,7 +81,7 @@ export interface DesignPersistenceActions {
 	handleLoadNamed: (name: string) => void;
 	handleDeleteNamed: (name: string) => void;
 	handleLoadTemplate: (templateId: string) => Promise<void>;
-	handleExportJSON: (currentDesignPayload: SavedDesignPayload) => void;
+	handleExportJSON: () => void;
 	handleImportJSON: (event: React.ChangeEvent<HTMLInputElement>) => void;
 	refreshNamedDesigns: () => void;
 }
@@ -69,6 +90,7 @@ export function useDesignPersistence({
 	paramActions,
 	designActions,
 	layoutActions,
+	getCurrentPayloadData,
 }: UseDesignPersistenceOptions): {
 	state: DesignPersistenceState;
 	actions: DesignPersistenceActions;
@@ -80,6 +102,14 @@ export function useDesignPersistence({
 	const [isInitialized, setIsInitialized] = useState(false);
 	const [showLoadDialog, setShowLoadDialog] = useState(false);
 	const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+
+	// Keep a ref for the design name so we can access it in callbacks
+	const designNameRef = useRef(designName);
+	designNameRef.current = designName;
+
+	// Keep a ref for getCurrentPayloadData to avoid dependency issues
+	const getCurrentPayloadDataRef = useRef(getCurrentPayloadData);
+	getCurrentPayloadDataRef.current = getCurrentPayloadData;
 
 	// Helper to apply a loaded design payload into state
 	const applyLoadedDesign = useCallback(
@@ -169,34 +199,36 @@ export function useDesignPersistence({
 	}, [refreshNamedDesigns]);
 
 	const handleClear = useCallback(() => {
-		if (
-			!window.confirm(
-				"Clear all lines and reset layout? This cannot be undone.",
-			)
-		)
-			return;
+		// Clear persisted autosave
+		clearDesign();
 
-		designActions.setLines(() => new Map());
-		designActions.setIntersectionStates(new Map());
+		// Reset design state
+		designActions.clearDesignState();
 
-		layoutActions.setGroups(() => {
-			const newGroup: Group = {
-				id: "group1",
-				name: "Default Group",
-				pieces: new Map(),
-				fullCuts: new Map(),
-			};
-			return new Map([[newGroup.id, newGroup]]);
-		});
-		layoutActions.setActiveGroupId("group1");
+		// Reset layout state
+		layoutActions.clearLayoutState();
+
+		// Reset design name
 		setDesignName("");
 	}, [designActions, layoutActions]);
 
 	const handleSaveAs = useCallback(() => {
-		const newName = window.prompt("Enter design name:", designName);
-		if (!newName?.trim()) return;
-		setDesignName(newName.trim());
-	}, [designName]);
+		const name = designNameRef.current.trim();
+		if (!name) {
+			console.warn("Enter a design name before saving.");
+			return;
+		}
+
+		const data = getCurrentPayloadDataRef.current();
+		const payload = createDesignPayload({
+			...data,
+			designName: name,
+		});
+
+		saveNamedDesign(name, payload);
+		setNamedDesigns(listNamedDesigns());
+		console.log(`Saved design "${name}" to this browser.`);
+	}, []);
 
 	const handleLoadNamed = useCallback(
 		(name: string) => {
@@ -204,6 +236,8 @@ export function useDesignPersistence({
 			if (loaded) {
 				applyLoadedDesign(loaded);
 				setShowLoadDialog(false);
+			} else {
+				console.warn(`No data found for design "${name}".`);
 			}
 		},
 		[applyLoadedDesign],
@@ -211,7 +245,6 @@ export function useDesignPersistence({
 
 	const handleDeleteNamed = useCallback(
 		(name: string) => {
-			if (!window.confirm(`Delete "${name}"?`)) return;
 			deleteNamedDesign(name);
 			refreshNamedDesigns();
 		},
@@ -224,40 +257,68 @@ export function useDesignPersistence({
 			if (template) {
 				applyLoadedDesign(template);
 				setShowTemplateDialog(false);
+			} else {
+				console.warn("Failed to load template.");
 			}
 		},
 		[applyLoadedDesign],
 	);
 
-	const handleExportJSON = useCallback(
-		(currentDesignPayload: SavedDesignPayload) => {
-			const filename = `${currentDesignPayload.designName || "kumiko-design"}-${Date.now()}.json`;
-			downloadJSON(currentDesignPayload, filename);
-		},
-		[],
-	);
+	const handleExportJSON = useCallback(() => {
+		const data = getCurrentPayloadDataRef.current();
+		const currentName = designNameRef.current;
+		const payload = createDesignPayload({
+			...data,
+			designName: currentName || undefined,
+		});
+		downloadJSON(payload, currentName || "kumiko-design");
+	}, []);
 
 	const handleImportJSON = useCallback(
 		(event: React.ChangeEvent<HTMLInputElement>) => {
 			const file = event.target.files?.[0];
 			if (!file) return;
+
 			const reader = new FileReader();
 			reader.onload = (e) => {
 				try {
-					const data = JSON.parse(e.target?.result as string);
-					// Basic validation - ensure it's our payload format
-					if (data.version !== 1 || !Array.isArray(data.lines)) {
-						window.alert("Invalid design file format.");
+					const content = e.target?.result as string;
+					const parsed = JSON.parse(content) as SavedDesignPayload;
+
+					if (parsed.version !== 1) {
+						console.warn("Invalid file format or version.");
 						return;
 					}
-					applyLoadedDesign(data as SavedDesignPayload);
-					window.alert(`Imported design: ${data.designName || "(unnamed)"}`);
-				} catch {
-					window.alert("Failed to parse JSON file.");
+
+					if (!parsed.lines || !parsed.groups) {
+						console.warn("Invalid design file: missing required data.");
+						return;
+					}
+
+					if (
+						typeof parsed.gridCellSize !== "number" ||
+						typeof parsed.stockLength !== "number"
+					) {
+						console.warn(
+							"Invalid design file: missing required scale information.",
+						);
+						return;
+					}
+
+					applyLoadedDesign(parsed);
+					console.log(
+						`Design "${parsed.designName || "Untitled"}" imported successfully!`,
+					);
+				} catch (error) {
+					console.error("Failed to import design:", error);
+					console.warn(
+						"Failed to import design. Please check the file format.",
+					);
 				}
 			};
 			reader.readAsText(file);
-			// Reset the input so the same file can be re-imported
+
+			// Reset the input so the same file can be imported again
 			event.target.value = "";
 		},
 		[applyLoadedDesign],
@@ -285,19 +346,4 @@ export function useDesignPersistence({
 			refreshNamedDesigns,
 		},
 	};
-}
-
-/** Helper to trigger autosave */
-export function triggerAutosave(payload: SavedDesignPayload): void {
-	saveDesign(payload);
-}
-
-/** Helper to trigger named save */
-export function triggerNamedSave(
-	designName: string,
-	payload: SavedDesignPayload,
-): void {
-	if (designName.trim()) {
-		saveNamedDesign(designName.trim(), payload);
-	}
 }

@@ -1,28 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import type React from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useDesignPersistence } from "../hooks/useDesignPersistence";
 import { useKumikoDesign } from "../hooks/useKumikoDesign";
 import { useKumikoLayout } from "../hooks/useKumikoLayout";
 import { useKumikoParams } from "../hooks/useKumikoParams";
 import {
-	clearDesign,
 	createDesignPayload,
-	deleteNamedDesign,
 	GridDesigner,
 	type Group,
 	generateGroupSVG,
-	getDefaultTemplateId,
 	LayoutEditor,
 	type Line,
-	listNamedDesigns,
-	loadDesign,
-	loadNamedDesign,
-	loadTemplate,
-	type SavedDesignPayload,
 	saveDesign,
-	saveNamedDesign,
 } from "../lib/kumiko";
-import { downloadJSON, downloadSVG } from "../lib/utils/download";
+import { downloadSVG } from "../lib/utils/download";
 import {
 	type AppStep,
 	KumikoHeader,
@@ -44,65 +35,46 @@ function App() {
 	);
 	const { state: layoutState, actions: layoutActions } = useKumikoLayout();
 
-	// Named design state
-	const [designName, setDesignName] = useState<string>("");
-	const [showLoadDialog, setShowLoadDialog] = useState(false);
-	const [namedDesigns, setNamedDesigns] = useState<
-		{ name: string; savedAt: string }[]
-	>([]);
-	const [showTemplateDialog, setShowTemplateDialog] = useState(false);
-	const [isInitialized, setIsInitialized] = useState(false);
+	// Create stable callback for getting current payload data
+	const getCurrentPayloadData = useCallback(
+		() => ({
+			units: params.units,
+			bitSize: params.bitSize,
+			cutDepth: params.cutDepth,
+			halfCutDepth: params.halfCutDepth,
+			gridCellSize: params.gridCellSize,
+			stockLength: params.stockLength,
+			lines: designState.lines,
+			groups: layoutState.groups,
+			activeGroupId: layoutState.activeGroupId,
+			intersectionStates: designState.intersectionStates,
+			gridViewState: designState.gridViewState,
+		}),
+		[
+			params.units,
+			params.bitSize,
+			params.cutDepth,
+			params.halfCutDepth,
+			params.gridCellSize,
+			params.stockLength,
+			designState.lines,
+			layoutState.groups,
+			layoutState.activeGroupId,
+			designState.intersectionStates,
+			designState.gridViewState,
+		],
+	);
 
-	// Helper to apply a loaded design payload into state
-	const applyLoadedDesign = useCallback(
-		(loaded: SavedDesignPayload | null) => {
-			if (!loaded) return;
-			console.log("Applying loaded design:", loaded.designName);
-
-			paramActions.setUnits(loaded.units);
-			paramActions.setBitSize(loaded.bitSize);
-			paramActions.setCutDepth(loaded.cutDepth);
-			paramActions.setHalfCutDepth(loaded.halfCutDepth);
-
-			// In the current format, gridCellSize and stockLength are required.
-			paramActions.setGridCellSize(loaded.gridCellSize);
-			paramActions.setStockLength(
-				typeof loaded.stockLength === "number" ? loaded.stockLength : 600,
-			);
-			designActions.setGridViewState(loaded.gridViewState);
-
-			designActions.setLines(() => {
-				const next = new Map<string, Line>();
-				for (const line of loaded.lines) {
-					next.set(line.id, { ...line });
-				}
-				return next;
-			});
-
-			layoutActions.setGroups(() => {
-				const next = new Map<string, Group>();
-				for (const g of loaded.groups) {
-					next.set(g.id, {
-						id: g.id,
-						name: g.name,
-						pieces: new Map(g.pieces.map((p) => [p.id, { ...p }])),
-						fullCuts: new Map(g.fullCuts.map((c) => [c.id, { ...c }])),
-					});
-				}
-				return next;
-			});
-
-			layoutActions.setActiveGroupId(loaded.activeGroupId);
-			setDesignName(loaded.designName ?? "");
-
-			// Load intersection states if available
-			if (loaded.intersectionStates) {
-				designActions.setIntersectionStates(new Map(loaded.intersectionStates));
-			} else {
-				designActions.setIntersectionStates(new Map());
-			}
-			setIsInitialized(true);
-		},
+	// Memoize action objects to prevent unnecessary recreations
+	const persistenceParamActions = useMemo(
+		() => ({
+			setUnits: paramActions.setUnits,
+			setBitSize: paramActions.setBitSize,
+			setCutDepth: paramActions.setCutDepth,
+			setHalfCutDepth: paramActions.setHalfCutDepth,
+			setGridCellSize: paramActions.setGridCellSize,
+			setStockLength: paramActions.setStockLength,
+		}),
 		[
 			paramActions.setUnits,
 			paramActions.setBitSize,
@@ -110,157 +82,63 @@ function App() {
 			paramActions.setHalfCutDepth,
 			paramActions.setGridCellSize,
 			paramActions.setStockLength,
-			designActions.setGridViewState,
-			designActions.setLines,
-			designActions.setIntersectionStates,
-			layoutActions.setGroups,
-			layoutActions.setActiveGroupId,
 		],
 	);
 
-	// On mount, load the last working design or default template
-	useEffect(() => {
-		let ignore = false;
-		const loaded = loadDesign();
-		if (loaded) {
-			if (!ignore) applyLoadedDesign(loaded);
-		} else {
-			// Load default template if no saved design exists
-			const defaultTemplateId = getDefaultTemplateId();
-			if (defaultTemplateId) {
-				loadTemplate(defaultTemplateId)
-					.then((template) => {
-						if (ignore) return;
-						if (template) {
-							applyLoadedDesign(template);
-						}
-					})
-					.catch((err) =>
-						console.error("Failed to load default template", err),
-					);
-			}
-		}
-		return () => {
-			ignore = true;
-		};
-	}, [applyLoadedDesign]);
+	const persistenceDesignActions = useMemo(
+		() => ({
+			setGridViewState: designActions.setGridViewState,
+			setLines: designActions.setLines as (
+				updater: (lines: Map<string, Line>) => Map<string, Line>,
+			) => void,
+			setIntersectionStates: designActions.setIntersectionStates,
+			clearDesignState: designActions.clearDesignState,
+		}),
+		[
+			designActions.setGridViewState,
+			designActions.setLines,
+			designActions.setIntersectionStates,
+			designActions.clearDesignState,
+		],
+	);
 
-	// Load named designs list (for Load dialog)
-	useEffect(() => {
-		setNamedDesigns(listNamedDesigns());
-	}, []);
+	const persistenceLayoutActions = useMemo(
+		() => ({
+			setGroups: layoutActions.setGroups as (
+				updater: (groups: Map<string, Group>) => Map<string, Group>,
+			) => void,
+			setActiveGroupId: layoutActions.setActiveGroupId,
+			clearLayoutState: layoutActions.clearLayoutState,
+		}),
+		[
+			layoutActions.setGroups,
+			layoutActions.setActiveGroupId,
+			layoutActions.clearLayoutState,
+		],
+	);
 
-	const handleClear = () => {
-		// Clear persisted autosave
-		clearDesign();
-
-		// Reset design state
-		designActions.clearDesignState();
-
-		// Reset layout to single empty default group
-		layoutActions.clearLayoutState();
-
-		// Reset named design metadata
-		setDesignName("");
-	};
-
-	// Persist to local storage whenever the core design/layout state changes
-	useEffect(() => {
-		if (!isInitialized) return;
-		const payload = createDesignPayload({
-			units: params.units,
-			bitSize: params.bitSize,
-			cutDepth: params.cutDepth,
-			halfCutDepth: params.halfCutDepth,
-			gridCellSize: params.gridCellSize,
-			stockLength: params.stockLength,
-			lines: designState.lines,
-			groups: layoutState.groups,
-			activeGroupId: layoutState.activeGroupId,
-			designName: designName || undefined,
-			intersectionStates: designState.intersectionStates,
-			gridViewState: designState.gridViewState,
+	// Design persistence hook - handles save/load/import/export and autosave
+	const { state: persistenceState, actions: persistenceActions } =
+		useDesignPersistence({
+			paramActions: persistenceParamActions,
+			designActions: persistenceDesignActions,
+			layoutActions: persistenceLayoutActions,
+			getCurrentPayloadData,
 		});
 
+	// Autosave: persist to local storage whenever design/layout state changes
+	useEffect(() => {
+		if (!persistenceState.isInitialized) return;
+		const payload = createDesignPayload({
+			...getCurrentPayloadData(),
+			designName: persistenceState.designName || undefined,
+		});
 		saveDesign(payload);
 	}, [
-		params,
-		designState.lines,
-		layoutState.groups,
-		layoutState.activeGroupId,
-		designName,
-		designState.intersectionStates,
-		designState.gridViewState,
-		isInitialized,
+		getCurrentPayloadData,
+		persistenceState.isInitialized,
+		persistenceState.designName,
 	]);
-
-	// Explicit save-as of current state under a name
-	const handleSaveAs = () => {
-		const name = designName.trim();
-		if (!name) {
-			console.warn("Enter a design name before saving.");
-			return;
-		}
-
-		const payload = createDesignPayload({
-			units: params.units,
-			bitSize: params.bitSize,
-			cutDepth: params.cutDepth,
-			halfCutDepth: params.halfCutDepth,
-			gridCellSize: params.gridCellSize,
-			stockLength: params.stockLength,
-			lines: designState.lines,
-			groups: layoutState.groups,
-			activeGroupId: layoutState.activeGroupId,
-			designName: name,
-			intersectionStates: designState.intersectionStates,
-			gridViewState: designState.gridViewState,
-		});
-
-		saveNamedDesign(name, payload);
-		setNamedDesigns(listNamedDesigns());
-		console.log(`Saved design "${name}" to this browser.`);
-	};
-
-	// Open the load dialog and refresh the list
-	const openLoadDialog = () => {
-		setNamedDesigns(listNamedDesigns());
-		setShowLoadDialog(true);
-	};
-
-	// Load a named design chosen from the dialog
-	const handleLoadNamed = (name: string) => {
-		const loaded = loadNamedDesign(name);
-		if (!loaded) {
-			console.warn(`No data found for design "${name}".`);
-			return;
-		}
-		applyLoadedDesign(loaded);
-		setShowLoadDialog(false);
-	};
-
-	// Delete a named design from the dialog
-	const handleDeleteNamed = (name: string) => {
-		deleteNamedDesign(name);
-		setNamedDesigns(listNamedDesigns());
-	};
-
-	// Open the template dialog
-	const openTemplateDialog = () => {
-		setShowTemplateDialog(true);
-	};
-
-	// Load a template
-	const handleLoadTemplate = async (templateId: string) => {
-		const template = await loadTemplate(templateId);
-		if (!template) {
-			console.warn(`Failed to load template.`);
-			return;
-		}
-
-		applyLoadedDesign(template);
-		setShowTemplateDialog(false);
-	};
 
 	const handleDownloadSVG = useCallback(() => {
 		console.log("downloadSVG called");
@@ -308,70 +186,16 @@ function App() {
 		params.stockLength,
 	]);
 
-	// Export current design to JSON file
-	const handleExportJSON = () => {
-		const payload = createDesignPayload({
-			units: params.units,
-			bitSize: params.bitSize,
-			cutDepth: params.cutDepth,
-			halfCutDepth: params.halfCutDepth,
-			gridCellSize: params.gridCellSize,
-			stockLength: params.stockLength,
-			lines: designState.lines,
-			groups: layoutState.groups,
-			activeGroupId: layoutState.activeGroupId,
-			designName: designName || undefined,
-			intersectionStates: designState.intersectionStates,
-		});
+	// Open the load dialog and refresh the list
+	const openLoadDialog = useCallback(() => {
+		persistenceActions.refreshNamedDesigns();
+		persistenceActions.setShowLoadDialog(true);
+	}, [persistenceActions]);
 
-		downloadJSON(payload, designName || "kumiko-design");
-	};
-
-	// Import design from JSON file
-	const handleImportJSON = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const file = event.target.files?.[0];
-		if (!file) return;
-
-		const reader = new FileReader();
-		reader.onload = (e) => {
-			try {
-				const content = e.target?.result as string;
-				const parsed = JSON.parse(content) as SavedDesignPayload;
-
-				if (parsed.version !== 1) {
-					console.warn("Invalid file format or version.");
-					return;
-				}
-
-				if (!parsed.lines || !parsed.groups) {
-					console.warn("Invalid design file: missing required data.");
-					return;
-				}
-
-				if (
-					typeof parsed.gridCellSize !== "number" ||
-					typeof parsed.stockLength !== "number"
-				) {
-					console.warn(
-						"Invalid design file: missing required scale information.",
-					);
-					return;
-				}
-
-				applyLoadedDesign(parsed);
-				console.log(
-					`Design "${parsed.designName || "Untitled"}" imported successfully!`,
-				);
-			} catch (error) {
-				console.error("Failed to import design:", error);
-				console.warn("Failed to import design. Please check the file format.");
-			}
-		};
-		reader.readAsText(file);
-
-		// Reset the input so the same file can be imported again
-		event.target.value = "";
-	};
+	// Open the template dialog
+	const openTemplateDialog = useCallback(() => {
+		persistenceActions.setShowTemplateDialog(true);
+	}, [persistenceActions]);
 
 	const displayUnit = params.units;
 
@@ -380,16 +204,16 @@ function App() {
 			{/* Main content */}
 			<main className="flex-1 flex flex-col overflow-hidden">
 				<KumikoHeader
-					designName={designName}
+					designName={persistenceState.designName}
 					step={step}
 					onStepChange={setStep}
-					onDesignNameChange={setDesignName}
-					onSaveAs={handleSaveAs}
+					onDesignNameChange={persistenceActions.setDesignName}
+					onSaveAs={persistenceActions.handleSaveAs}
 					onOpenLoadDialog={openLoadDialog}
 					onOpenTemplateDialog={openTemplateDialog}
-					onExportJSON={handleExportJSON}
-					onImportJSON={handleImportJSON}
-					onClear={handleClear}
+					onExportJSON={persistenceActions.handleExportJSON}
+					onImportJSON={persistenceActions.handleImportJSON}
+					onClear={persistenceActions.handleClear}
 				/>
 
 				{/* Main workspace */}
@@ -438,20 +262,20 @@ function App() {
 				)}
 
 				{/* Load dialog */}
-				{showLoadDialog && (
+				{persistenceState.showLoadDialog && (
 					<KumikoLoadDialog
-						namedDesigns={namedDesigns}
-						onClose={() => setShowLoadDialog(false)}
-						onLoadNamed={handleLoadNamed}
-						onDeleteNamed={handleDeleteNamed}
+						namedDesigns={persistenceState.namedDesigns}
+						onClose={() => persistenceActions.setShowLoadDialog(false)}
+						onLoadNamed={persistenceActions.handleLoadNamed}
+						onDeleteNamed={persistenceActions.handleDeleteNamed}
 					/>
 				)}
 
 				{/* Template dialog */}
-				{showTemplateDialog && (
+				{persistenceState.showTemplateDialog && (
 					<KumikoTemplateDialog
-						onClose={() => setShowTemplateDialog(false)}
-						onLoadTemplate={handleLoadTemplate}
+						onClose={() => persistenceActions.setShowTemplateDialog(false)}
+						onLoadTemplate={persistenceActions.handleLoadTemplate}
 					/>
 				)}
 			</main>

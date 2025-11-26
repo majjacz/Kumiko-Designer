@@ -85,7 +85,7 @@ This document outlines planned refactoring tasks to improve code extendability a
 #### 8c. Split index.tsx (531 lines)
 - [x] Extract `useDesignPersistence.ts` hook (save/load/export logic)
 - [x] ~~Extract `useDesignImportExport.ts` hook (JSON import/export)~~ (merged into useDesignPersistence)
-- [ ] Simplify `App` component to pure orchestration - integrate useDesignPersistence (requires careful refactoring)
+- [x] Simplify `App` component to pure orchestration - integrate useDesignPersistence
 
 ### 9. Introduce KumikoContext
 - [ ] Create `src/context/KumikoContext.tsx`
