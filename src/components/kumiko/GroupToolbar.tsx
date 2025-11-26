@@ -11,8 +11,10 @@ import {
 	X,
 } from "lucide-react";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatValue, type Group } from "../../lib/kumiko";
+
+export type ExportPassType = "both" | "top" | "bottom";
 
 export interface GroupToolbarProps {
 	/** All groups available */
@@ -35,10 +37,12 @@ export interface GroupToolbarProps {
 	piecesCount: number;
 	/** Handler to clear all pieces in the layout */
 	onClearLayout: () => void;
-	/** Handler to export current group SVG */
-	onDownload: () => void;
+	/** Handler to export current group SVG with optional pass type */
+	onDownload: (passType?: ExportPassType) => void;
 	/** Handler to export all groups SVG */
 	onDownloadAllGroups: () => void;
+	/** Whether the current group needs multiple passes (has both top and bottom notches) */
+	needsMultiplePasses?: boolean;
 }
 
 /**
@@ -58,10 +62,32 @@ export function GroupToolbar({
 	onClearLayout,
 	onDownload,
 	onDownloadAllGroups,
+	needsMultiplePasses = false,
 }: GroupToolbarProps) {
 	const [isRenaming, setIsRenaming] = useState(false);
 	const [renameValue, setRenameValue] = useState("");
 	const [showMoreMenu, setShowMoreMenu] = useState(false);
+	const [showExportMenu, setShowExportMenu] = useState(false);
+	const exportMenuRef = useRef<HTMLDivElement>(null);
+
+	// Close export menu when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (
+				exportMenuRef.current &&
+				!exportMenuRef.current.contains(event.target as Node)
+			) {
+				setShowExportMenu(false);
+			}
+		};
+
+		if (showExportMenu) {
+			document.addEventListener("mousedown", handleClickOutside);
+		}
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, [showExportMenu]);
 
 	const activeGroup = groups.get(activeGroupId);
 
@@ -221,14 +247,68 @@ export function GroupToolbar({
 
 			{/* Export actions */}
 			<div className="flex items-center gap-2">
-				<button
-					type="button"
-					onClick={onDownload}
-					className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors shadow-md"
-				>
-					<Download className="w-4 h-4" />
-					Export SVG
-				</button>
+				{needsMultiplePasses ? (
+					<div className="relative" ref={exportMenuRef}>
+						<button
+							type="button"
+							onClick={() => setShowExportMenu(!showExportMenu)}
+							className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors shadow-md"
+						>
+							<Download className="w-4 h-4" />
+							Export SVG
+							<ChevronDown
+								className={`w-4 h-4 transition-transform ${showExportMenu ? "rotate-180" : ""}`}
+							/>
+						</button>
+
+						{showExportMenu && (
+							<div className="absolute top-full right-0 mt-1 w-56 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-20 py-1 overflow-hidden">
+								<button
+									type="button"
+									onClick={() => {
+										onDownload("both");
+										setShowExportMenu(false);
+									}}
+									className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-200 hover:bg-gray-700 transition-colors"
+								>
+									<Download className="w-4 h-4 text-indigo-400" />
+									Export Both Passes
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										onDownload("top");
+										setShowExportMenu(false);
+									}}
+									className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-200 hover:bg-gray-700 transition-colors"
+								>
+									<Download className="w-4 h-4 text-blue-400" />
+									Export Pass 1 (Top)
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										onDownload("bottom");
+										setShowExportMenu(false);
+									}}
+									className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-200 hover:bg-gray-700 transition-colors"
+								>
+									<Download className="w-4 h-4 text-amber-400" />
+									Export Pass 2 (Bottom)
+								</button>
+							</div>
+						)}
+					</div>
+				) : (
+					<button
+						type="button"
+						onClick={() => onDownload()}
+						className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors shadow-md"
+					>
+						<Download className="w-4 h-4" />
+						Export SVG
+					</button>
+				)}
 				<button
 					type="button"
 					onClick={onDownloadAllGroups}

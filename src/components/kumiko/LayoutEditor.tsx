@@ -12,7 +12,7 @@ import {
 } from "../../lib/kumiko/layout-helpers";
 import type { DesignStrip, Group, Piece, Point } from "../../lib/kumiko/types";
 import { ExportPreview } from "./ExportPreview";
-import { GroupToolbar } from "./GroupToolbar";
+import { type ExportPassType, GroupToolbar } from "./GroupToolbar";
 import { LayoutCanvas } from "./LayoutCanvas";
 import { computeUniqueStrips, StripBank } from "./StripBank";
 
@@ -34,7 +34,7 @@ export interface LayoutEditorProps {
 	halfCutDepth: number;
 	// Full cut depth is not currently used in the layout view but kept for API compatibility
 	cutDepth: number;
-	onDownload: () => void;
+	onDownload: (passType?: ExportPassType) => void;
 	onDownloadAllGroups: () => void;
 	onDeleteLayoutItem: (type: "piece", id: string) => void;
 	onHoverStrip?: (id: string | null) => void;
@@ -219,6 +219,7 @@ export const LayoutEditor = memo(function LayoutEditor({
 				onClearLayout={handleClearLayout}
 				onDownload={onDownload}
 				onDownloadAllGroups={onDownloadAllGroups}
+				needsMultiplePasses={groupPasses.hasTop && groupPasses.hasBottom}
 			/>
 
 			{/* Strip bank + canvas */}

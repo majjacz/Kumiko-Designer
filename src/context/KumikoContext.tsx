@@ -7,6 +7,7 @@ import {
 	useMemo,
 	useState,
 } from "react";
+import type { ExportPassType } from "../components/kumiko/GroupToolbar";
 import { useDesignPersistence } from "../hooks/useDesignPersistence";
 import { useKumikoDesign } from "../hooks/useKumikoDesign";
 import { useKumikoLayout } from "../hooks/useKumikoLayout";
@@ -176,7 +177,7 @@ export interface KumikoContextValue
 	// UI helpers
 	openLoadDialog: () => void;
 	openTemplateDialog: () => void;
-	handleDownloadSVG: () => void;
+	handleDownloadSVG: (passType?: ExportPassType) => void;
 	handleDownloadAllGroupsSVG: () => void;
 
 	// Notifications
@@ -328,31 +329,34 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 	]);
 
 	// SVG download handlers
-	const handleDownloadSVG = useCallback(() => {
-		const group = layoutState.activeGroup;
-		if (!group) return;
+	const handleDownloadSVG = useCallback(
+		(passType?: ExportPassType) => {
+			const group = layoutState.activeGroup;
+			if (!group) return;
 
-		const baseName = group.name || "kumiko-group";
-		const { hasTop, hasBottom } = analyzeGroupPasses(
-			group,
-			designState.designStrips,
-		);
-
-		if (hasTop && hasBottom) {
-			// Pass 1: Top
-			const svgTop = generateGroupSVG({
+			const baseName = group.name || "kumiko-group";
+			const { hasTop, hasBottom } = analyzeGroupPasses(
 				group,
-				designStrips: designState.designStrips,
-				bitSize: params.bitSize,
-				stockLength: params.stockLength,
-				pass: "top",
-			});
-			if (svgTop) {
-				downloadSVG(svgTop, `${baseName}_top.svg`);
+				designState.designStrips,
+			);
+
+			// If passType is explicitly provided, use it
+			if (passType === "top") {
+				const svgTop = generateGroupSVG({
+					group,
+					designStrips: designState.designStrips,
+					bitSize: params.bitSize,
+					stockLength: params.stockLength,
+					pass: "top",
+				});
+				if (svgTop) {
+					downloadSVG(svgTop, `${baseName}_top.svg`);
+					onNotify("success", "Exported Pass 1 (Top) SVG.");
+				}
+				return;
 			}
 
-			// Pass 2: Bottom (delayed slightly to ensure browser handles both)
-			setTimeout(() => {
+			if (passType === "bottom") {
 				const svgBottom = generateGroupSVG({
 					group,
 					designStrips: designState.designStrips,
@@ -362,48 +366,79 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 				});
 				if (svgBottom) {
 					downloadSVG(svgBottom, `${baseName}_bottom.svg`);
+					onNotify("success", "Exported Pass 2 (Bottom) SVG.");
 				}
-			}, 500);
+				return;
+			}
 
-			onNotify(
-				"info",
-				"Double-sided strips detected. Downloading separate files for Top and Bottom passes.",
-			);
-		} else if (hasBottom && !hasTop) {
-			// Bottom Only -> Auto-flip to Top (Standard)
-			const svg = generateGroupSVG({
-				group,
-				designStrips: designState.designStrips,
-				bitSize: params.bitSize,
-				stockLength: params.stockLength,
-				pass: "all",
-				flip: true,
-			});
-			if (!svg) return;
-			downloadSVG(svg, `${baseName}.svg`);
-			onNotify(
-				"info",
-				"Bottom-only strips flipped to top for single-pass cutting.",
-			);
-		} else {
-			// Top Only (Standard)
-			const svg = generateGroupSVG({
-				group,
-				designStrips: designState.designStrips,
-				bitSize: params.bitSize,
-				stockLength: params.stockLength,
-				pass: "all",
-			});
-			if (!svg) return;
-			downloadSVG(svg, `${baseName}.svg`);
-		}
-	}, [
-		layoutState.activeGroup,
-		designState.designStrips,
-		params.bitSize,
-		params.stockLength,
-		onNotify,
-	]);
+			if (passType === "both" || (hasTop && hasBottom)) {
+				// Pass 1: Top
+				const svgTop = generateGroupSVG({
+					group,
+					designStrips: designState.designStrips,
+					bitSize: params.bitSize,
+					stockLength: params.stockLength,
+					pass: "top",
+				});
+				if (svgTop) {
+					downloadSVG(svgTop, `${baseName}_top.svg`);
+				}
+
+				// Pass 2: Bottom (delayed slightly to ensure browser handles both)
+				setTimeout(() => {
+					const svgBottom = generateGroupSVG({
+						group,
+						designStrips: designState.designStrips,
+						bitSize: params.bitSize,
+						stockLength: params.stockLength,
+						pass: "bottom",
+					});
+					if (svgBottom) {
+						downloadSVG(svgBottom, `${baseName}_bottom.svg`);
+					}
+				}, 500);
+
+				onNotify(
+					"info",
+					"Downloading separate files for Top and Bottom passes.",
+				);
+			} else if (hasBottom && !hasTop) {
+				// Bottom Only -> Auto-flip to Top (Standard)
+				const svg = generateGroupSVG({
+					group,
+					designStrips: designState.designStrips,
+					bitSize: params.bitSize,
+					stockLength: params.stockLength,
+					pass: "all",
+					flip: true,
+				});
+				if (!svg) return;
+				downloadSVG(svg, `${baseName}.svg`);
+				onNotify(
+					"info",
+					"Bottom-only strips flipped to top for single-pass cutting.",
+				);
+			} else {
+				// Top Only (Standard)
+				const svg = generateGroupSVG({
+					group,
+					designStrips: designState.designStrips,
+					bitSize: params.bitSize,
+					stockLength: params.stockLength,
+					pass: "all",
+				});
+				if (!svg) return;
+				downloadSVG(svg, `${baseName}.svg`);
+			}
+		},
+		[
+			layoutState.activeGroup,
+			designState.designStrips,
+			params.bitSize,
+			params.stockLength,
+			onNotify,
+		],
+	);
 
 	const handleDownloadAllGroupsSVG = useCallback(() => {
 		const files: { filename: string; svg: string }[] = [];
