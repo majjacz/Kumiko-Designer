@@ -80,7 +80,6 @@ export interface DesignPersistenceActions {
 	setShowLoadDialog: (show: boolean) => void;
 	setShowTemplateDialog: (show: boolean) => void;
 	handleClear: () => void;
-	handleSave: () => void;
 	handleSaveAs: () => void;
 	handleLoadNamed: (name: string) => void;
 	handleDeleteNamed: (name: string) => void;
@@ -236,25 +235,6 @@ export function useDesignPersistence({
 		setDesignName("");
 	}, [designActions, layoutActions]);
 
-	// Quick save - saves to current name silently
-	const handleSave = useCallback(() => {
-		const name = designNameRef.current.trim();
-		if (!name) {
-			notify("warning", "Enter a design name before saving.");
-			return;
-		}
-
-		const data = getCurrentPayloadDataRef.current();
-		const payload = createDesignPayload({
-			...data,
-			designName: name,
-		});
-
-		saveNamedDesign(name, payload);
-		setNamedDesigns(listNamedDesigns());
-		notify("success", `Saved "${name}".`);
-	}, [notify]);
-
 	// Save As - prompts for a new name
 	const handleSaveAs = useCallback(() => {
 		const currentName = designNameRef.current.trim();
@@ -398,7 +378,6 @@ export function useDesignPersistence({
 			setShowLoadDialog,
 			setShowTemplateDialog,
 			handleClear,
-			handleSave,
 			handleSaveAs,
 			handleLoadNamed,
 			handleDeleteNamed,

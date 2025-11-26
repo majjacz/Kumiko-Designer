@@ -28,7 +28,6 @@ export interface KumikoHeaderProps {
 	step: AppStep;
 	onStepChange: (step: AppStep) => void;
 	onDesignNameChange: (name: string) => void;
-	onSave: () => void;
 	onSaveAs: () => void;
 	onOpenLoadDialog: () => void;
 	onOpenTemplateDialog: () => void;
@@ -93,7 +92,6 @@ function NavigationTabs({
  * Dropdown menu for file operations
  */
 function FileMenu({
-	onSave,
 	onSaveAs,
 	onOpenLoadDialog,
 	onOpenTemplateDialog,
@@ -101,7 +99,6 @@ function FileMenu({
 	onImportJSON,
 	onClear,
 }: {
-	onSave: () => void;
 	onSaveAs: () => void;
 	onOpenLoadDialog: () => void;
 	onOpenTemplateDialog: () => void;
@@ -161,23 +158,12 @@ function FileMenu({
 						<button
 							type="button"
 							onClick={() => {
-								onSave();
-								setIsOpen(false);
-							}}
-							className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-200 hover:bg-gray-700 transition-colors"
-						>
-							<Save className="w-4 h-4 text-indigo-400" />
-							Save
-						</button>
-						<button
-							type="button"
-							onClick={() => {
 								onSaveAs();
 								setIsOpen(false);
 							}}
 							className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-200 hover:bg-gray-700 transition-colors"
 						>
-							<Save className="w-4 h-4 text-gray-500" />
+							<Save className="w-4 h-4 text-indigo-400" />
 							Save As...
 						</button>
 						<button
@@ -265,7 +251,6 @@ export function KumikoHeader({
 	step,
 	onStepChange,
 	onDesignNameChange,
-	onSave,
 	onSaveAs,
 	onOpenLoadDialog,
 	onOpenTemplateDialog,
@@ -313,24 +298,8 @@ export function KumikoHeader({
 						/>
 					</div>
 
-					{/* Quick Save Button */}
-					<button
-						type="button"
-						onClick={onSave}
-						className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg
-							bg-indigo-600 text-white
-							hover:bg-indigo-500
-							focus:outline-none focus:ring-2 focus:ring-indigo-500/50
-							transition-colors shadow-md"
-						title="Save design (Ctrl+S)"
-					>
-						<Save className="w-4 h-4" />
-						<span className="hidden md:inline">Save</span>
-					</button>
-
 					{/* File Menu */}
 					<FileMenu
-						onSave={onSave}
 						onSaveAs={onSaveAs}
 						onOpenLoadDialog={onOpenLoadDialog}
 						onOpenTemplateDialog={onOpenTemplateDialog}

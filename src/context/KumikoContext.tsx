@@ -133,7 +133,6 @@ export interface KumikoContextValue {
 		setShowLoadDialog: (show: boolean) => void;
 		setShowTemplateDialog: (show: boolean) => void;
 		refreshNamedDesigns: () => void;
-		handleSave: () => void;
 		handleSaveAs: () => void;
 		handleExportJSON: () => void;
 		handleImportJSON: (event: React.ChangeEvent<HTMLInputElement>) => void;
