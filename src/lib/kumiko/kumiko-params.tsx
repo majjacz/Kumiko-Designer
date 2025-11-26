@@ -100,14 +100,11 @@ export function ParamInput({
 	const step = 10 ** -decimals;
 
 	return (
-		<div className="flex flex-col space-y-1">
-			<label
-				htmlFor={id}
-				className="text-xs font-semibold text-gray-400 uppercase tracking-wide"
-			>
+		<div className="flex flex-col gap-1.5">
+			<label htmlFor={id} className="text-xs font-medium text-gray-300">
 				{label}
 			</label>
-			<div className="flex items-center space-x-2">
+			<div className="flex items-center gap-2">
 				<input
 					id={id}
 					type="number"
@@ -116,9 +113,14 @@ export function ParamInput({
 					onFocus={handleFocus}
 					onBlur={handleBlur}
 					step={step}
-					className="w-24 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-sm text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+					className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100
+						focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500
+						placeholder:text-gray-500
+						transition-colors"
 				/>
-				<span className="text-xs text-gray-500">{displayUnit}</span>
+				<span className="text-xs text-gray-500 min-w-[24px]">
+					{displayUnit}
+				</span>
 			</div>
 		</div>
 	);
@@ -138,11 +140,8 @@ export function SimpleParamInput({
 	onChange,
 }: SimpleParamInputProps) {
 	return (
-		<div className="flex flex-col space-y-1">
-			<label
-				htmlFor={id}
-				className="text-xs font-semibold text-gray-400 uppercase tracking-wide"
-			>
+		<div className="flex flex-col gap-1.5">
+			<label htmlFor={id} className="text-xs font-medium text-gray-300">
 				{label}
 			</label>
 			<input
@@ -150,7 +149,9 @@ export function SimpleParamInput({
 				type="number"
 				value={value}
 				onChange={onChange}
-				className="w-24 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-sm text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+				className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100
+					focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500
+					transition-colors"
 			/>
 		</div>
 	);

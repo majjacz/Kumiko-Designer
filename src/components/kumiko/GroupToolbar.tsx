@@ -1,4 +1,15 @@
-import { Download, Eraser, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+	Check,
+	ChevronDown,
+	Download,
+	Eraser,
+	MoreHorizontal,
+	Pencil,
+	Plus,
+	Ruler,
+	Trash2,
+	X,
+} from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import { formatValue, type Group } from "../../lib/kumiko";
@@ -50,19 +61,23 @@ export function GroupToolbar({
 }: GroupToolbarProps) {
 	const [isRenaming, setIsRenaming] = useState(false);
 	const [renameValue, setRenameValue] = useState("");
+	const [showMoreMenu, setShowMoreMenu] = useState(false);
 
 	const activeGroup = groups.get(activeGroupId);
 
 	return (
-		<div className="flex items-center justify-between gap-4">
+		<div className="flex items-center justify-between gap-4 bg-gray-900/50 border border-gray-800 rounded-xl px-4 py-3">
 			{/* Group selector */}
-			<div className="flex items-center space-x-2">
-				<span className="text-xs text-gray-400 uppercase">Group</span>
+			<div className="flex items-center gap-3">
+				<span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+					Group
+				</span>
+
 				{isRenaming ? (
-					<>
+					<div className="flex items-center gap-2">
 						<input
 							type="text"
-							className="bg-gray-900 border border-gray-700 text-gray-100 text-sm rounded px-2 py-1 w-32"
+							className="bg-gray-800 border border-gray-600 text-gray-100 text-sm rounded-lg px-3 py-1.5 w-40 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500"
 							value={renameValue}
 							onChange={(e) => setRenameValue(e.target.value)}
 							// biome-ignore lint: autoFocus is fine here
@@ -86,102 +101,142 @@ export function GroupToolbar({
 								}
 								setIsRenaming(false);
 							}}
-							className="inline-flex items-center px-2 py-1 bg-green-600 hover:bg-green-500 text-xs rounded text-white"
+							className="p-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
+							title="Save"
 						>
-							Save
+							<Check className="w-4 h-4" />
 						</button>
 						<button
 							type="button"
 							onClick={() => setIsRenaming(false)}
-							className="inline-flex items-center px-2 py-1 bg-gray-600 hover:bg-gray-500 text-xs rounded text-white"
+							className="p-1.5 rounded-md bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
+							title="Cancel"
 						>
-							Cancel
+							<X className="w-4 h-4" />
 						</button>
-					</>
+					</div>
 				) : (
-					<>
-						<select
-							className="bg-gray-900 border border-gray-700 text-gray-100 text-sm rounded px-2 py-1"
-							value={activeGroupId}
-							onChange={(e) => setActiveGroupId(e.target.value)}
-						>
-							{Array.from(groups.values()).map((g) => (
-								<option key={g.id} value={g.id}>
-									{g.name}
-								</option>
-							))}
-						</select>
+					<div className="flex items-center gap-2">
+						<div className="relative">
+							<select
+								className="appearance-none bg-gray-800 border border-gray-700 text-gray-100 text-sm font-medium rounded-lg pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 cursor-pointer hover:bg-gray-750"
+								value={activeGroupId}
+								onChange={(e) => setActiveGroupId(e.target.value)}
+							>
+								{Array.from(groups.values()).map((g) => (
+									<option key={g.id} value={g.id}>
+										{g.name}
+									</option>
+								))}
+							</select>
+							<ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+						</div>
+
 						<button
 							type="button"
 							onClick={addNewGroup}
-							className="inline-flex items-center px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-xs rounded text-white"
+							className="p-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-colors shadow-md"
+							title="Add new group"
 						>
-							<Plus className="w-3 h-3 mr-1" />
-							Add
+							<Plus className="w-4 h-4" />
 						</button>
-						<button
-							type="button"
-							onClick={() => deleteGroup(activeGroupId)}
-							className="inline-flex items-center px-2 py-1 bg-red-600 hover:bg-red-500 text-xs rounded text-white"
-						>
-							<Trash2 className="w-3 h-3 mr-1" />
-							Delete
-						</button>
-						<button
-							type="button"
-							onClick={() => {
-								const currentName = activeGroup?.name ?? "";
-								setRenameValue(currentName);
-								setIsRenaming(true);
-							}}
-							className="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-500 text-xs rounded text-white"
-						>
-							<Pencil className="w-3 h-3 mr-1" />
-							Rename
-						</button>
-						<button
-							type="button"
-							onClick={onClearLayout}
-							className="inline-flex items-center px-2 py-1 bg-amber-600 hover:bg-amber-500 text-xs rounded text-white"
-							disabled={piecesCount === 0}
-						>
-							<Eraser className="w-3 h-3 mr-1" />
-							Clear Layout
-						</button>
-					</>
+
+						{/* More actions dropdown */}
+						<div className="relative">
+							<button
+								type="button"
+								onClick={() => setShowMoreMenu(!showMoreMenu)}
+								className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 transition-colors border border-gray-700"
+								title="More actions"
+							>
+								<MoreHorizontal className="w-4 h-4" />
+							</button>
+
+							{showMoreMenu && (
+								<>
+									<button
+										type="button"
+										className="fixed inset-0 z-10 cursor-default bg-transparent"
+										onClick={() => setShowMoreMenu(false)}
+										aria-label="Close menu"
+									/>
+									<div className="absolute top-full left-0 mt-1 w-44 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-20 py-1 overflow-hidden">
+										<button
+											type="button"
+											onClick={() => {
+												const currentName = activeGroup?.name ?? "";
+												setRenameValue(currentName);
+												setIsRenaming(true);
+												setShowMoreMenu(false);
+											}}
+											className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-200 hover:bg-gray-700 transition-colors"
+										>
+											<Pencil className="w-4 h-4 text-blue-400" />
+											Rename group
+										</button>
+										<button
+											type="button"
+											onClick={() => {
+												onClearLayout();
+												setShowMoreMenu(false);
+											}}
+											disabled={piecesCount === 0}
+											className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-200 hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+										>
+											<Eraser className="w-4 h-4 text-amber-400" />
+											Clear layout
+										</button>
+										<div className="border-t border-gray-700 my-1" />
+										<button
+											type="button"
+											onClick={() => {
+												if (
+													window.confirm(`Delete group "${activeGroup?.name}"?`)
+												) {
+													deleteGroup(activeGroupId);
+												}
+												setShowMoreMenu(false);
+											}}
+											className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-900/30 transition-colors"
+										>
+											<Trash2 className="w-4 h-4" />
+											Delete group
+										</button>
+									</div>
+								</>
+							)}
+						</div>
+					</div>
 				)}
 			</div>
 
 			{/* Layout info */}
-			<div className="flex items-center">
-				<div className="flex items-center space-x-2 px-3 py-1.5 bg-emerald-900/30 border border-emerald-800 rounded">
-					<span className="text-xs font-semibold text-emerald-400">
-						Total Length: {formatValue(totalStripLength, displayUnit)}{" "}
-						{displayUnit}
-					</span>
-				</div>
+			<div className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg">
+				<Ruler className="w-4 h-4 text-emerald-400" />
+				<span className="text-sm font-medium text-gray-200">
+					{formatValue(totalStripLength, displayUnit)} {displayUnit}
+				</span>
+				<span className="text-xs text-gray-500">total</span>
 			</div>
 
-			{/* Export */}
-			<div className="flex items-center space-x-2">
+			{/* Export actions */}
+			<div className="flex items-center gap-2">
 				<button
 					type="button"
-					onClick={() => {
-						console.log("Export Group SVG clicked");
-						onDownload();
-					}}
-					className="inline-flex items-center px-3 py-1.5 text-xs rounded bg-indigo-600 hover:bg-indigo-500 text-white"
+					onClick={onDownload}
+					className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors shadow-md"
 				>
-					<Download className="w-3 h-3 mr-1" />
-					Export Group SVG
+					<Download className="w-4 h-4" />
+					Export SVG
 				</button>
 				<button
 					type="button"
 					onClick={onDownloadAllGroups}
-					className="inline-flex items-center px-3 py-1.5 text-xs rounded bg-indigo-700 hover:bg-indigo-600 text-white"
+					className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 transition-colors"
+					title="Export all groups as separate SVG files"
 				>
-					<Download className="w-3 h-3 mr-1" />
-					Export All Groups SVG
+					<Download className="w-4 h-4" />
+					All Groups
 				</button>
 			</div>
 		</div>

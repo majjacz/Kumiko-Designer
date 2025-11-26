@@ -1,3 +1,4 @@
+import { CheckCircle2, Circle } from "lucide-react";
 import type React from "react";
 import {
 	type DesignStrip,
@@ -35,126 +36,230 @@ export function StripBank({
 	bitSize,
 	displayUnit,
 }: StripBankProps) {
+	// Calculate overall progress
+	const totalNeeded = uniqueStrips.reduce((sum, s) => sum + s.neededCount, 0);
+	const totalPlaced = uniqueStrips.reduce((sum, s) => sum + s.placedCount, 0);
+	const progressPercent =
+		totalNeeded > 0 ? Math.round((totalPlaced / totalNeeded) * 100) : 0;
+
 	return (
-		<div className="w-56 bg-gray-900 border border-gray-800 rounded p-2 space-y-2 overflow-y-auto">
-			<div className="text-xs font-semibold text-gray-400 uppercase">
-				Available Strips
-			</div>
-			<div className="text-[10px] text-gray-500 mb-2">
-				Select a strip, then click on a row to place it continuously.
-			</div>
-			{uniqueStrips.length === 0 && (
-				<div className="text-xs text-gray-500">
-					Define lines in the design step to create strips.
+		<div className="w-64 bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden flex flex-col">
+			{/* Header */}
+			<div className="px-4 py-3 border-b border-gray-800">
+				<div className="flex items-center justify-between mb-2">
+					<h3 className="text-sm font-semibold text-gray-200">
+						Available Strips
+					</h3>
+					<span className="text-xs text-gray-500">
+						{uniqueStrips.length} types
+					</span>
 				</div>
-			)}
-			{uniqueStrips.map((uniqueStrip) => {
-				const strip = uniqueStrip.config;
-				// Check if any of the strip IDs in this unique config is selected
-				const isSelected = uniqueStrip.stripIds.includes(selectedPieceId || "");
-				const allPlaced = uniqueStrip.placedCount >= uniqueStrip.neededCount;
 
-				// Determine predominant notch orientation for preview flipping
-				const topNotches = strip.notches.filter((n) => n.fromTop).length;
-				const bottomNotches = strip.notches.length - topNotches;
-				const shouldFlip = bottomNotches > topNotches;
-
-				// Show only the last 4 characters of the strip ID in the UI
-				const displayId = strip.displayCode;
-
-				return (
-					<button
-						key={strip.id}
-						type="button"
-						data-testid="strip-bank-item"
-						onClick={() => {
-							// Select the first available strip ID that hasn't been placed yet
-							if (isSelected) {
-								setSelectedPieceId(null);
-							} else {
-								// Find the first strip ID that still needs to be placed
-								const availableStripId =
-									uniqueStrip.stripIds.find((id) => {
-										const usedCount = pieces.filter(
-											(p) => p.lineId === id,
-										).length;
-										return usedCount === 0;
-									}) || uniqueStrip.stripIds[0];
-								setSelectedPieceId(availableStripId);
-							}
-						}}
-						className={`w-full text-left px-2 py-1 rounded text-xs ${
-							isSelected
-								? "bg-blue-600 text-white"
-								: allPlaced
-									? "bg-gray-800 text-gray-500"
-									: "bg-gray-800 text-gray-200 hover:bg-gray-700"
-						}`}
-					>
-						<div className="flex flex-col space-y-1">
-							<div className="flex items-center justify-between">
-								<span
-									className="text-[10px] font-semibold truncate"
-									title={strip.id}
-								>
-									ID: {displayId}
-								</span>
-								<span className="text-[10px] text-gray-400">
-									{formatValue(strip.lengthMM, displayUnit)} {displayUnit} ·{" "}
-									{strip.notches.length} notches
-								</span>
-							</div>
-							<div className="w-full h-6 bg-gray-950/40 rounded border border-gray-800 flex items-center justify-center">
-								<svg
-									viewBox={`0 0 ${strip.lengthMM} 10`}
-									className="w-full h-full"
-								>
-									<title>Strip {displayId} preview</title>
-									<rect
-										x={0}
-										y={2}
-										width={strip.lengthMM}
-										height={6}
-										fill="#1E293B"
-										stroke="#4B5563"
-										strokeWidth={0.5}
-										rx={1}
-										ry={1}
-									/>
-									{strip.notches.map((notch) => {
-										const isTopNotch = shouldFlip
-											? !notch.fromTop
-											: notch.fromTop;
-										const previewHeight = 10;
-										const notchHeight = 4;
-										const x = notch.dist - bitSize / 2;
-										const y = isTopNotch ? 0 : previewHeight - notchHeight;
-										return (
-											<rect
-												key={notch.id}
-												x={x}
-												y={y}
-												width={bitSize}
-												height={notchHeight}
-												fill="#7C3AED"
-												stroke="#FBBF24"
-												strokeWidth={0.4}
-											/>
-										);
-									})}
-								</svg>
-							</div>
-							<div
-								className={`text-[10px] font-semibold ${
-									allPlaced ? "text-green-400" : "text-amber-400"
-								}`}
+				{/* Overall progress bar */}
+				{totalNeeded > 0 && (
+					<div className="space-y-1">
+						<div className="flex items-center justify-between text-xs">
+							<span className="text-gray-400">Placement progress</span>
+							<span
+								className={
+									progressPercent === 100
+										? "text-emerald-400 font-medium"
+										: "text-gray-400"
+								}
 							>
-								Placed: {uniqueStrip.placedCount} / {uniqueStrip.neededCount}
-							</div>
+								{progressPercent}%
+							</span>
 						</div>
-					</button>
-				);
-			})}
+						<div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+							<div
+								className={`h-full transition-all duration-300 rounded-full ${
+									progressPercent === 100 ? "bg-emerald-500" : "bg-indigo-500"
+								}`}
+								style={{ width: `${progressPercent}%` }}
+							/>
+						</div>
+					</div>
+				)}
+			</div>
+
+			{/* Instructions */}
+			<div className="px-4 py-2 bg-gray-800/30 border-b border-gray-800">
+				<p className="text-xs text-gray-500">
+					Select a strip, then click on a row to place it
+				</p>
+			</div>
+
+			{/* Strip list */}
+			<div className="flex-1 overflow-y-auto p-2 space-y-2">
+				{uniqueStrips.length === 0 ? (
+					<div className="text-center py-8 px-4">
+						<div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-800 flex items-center justify-center">
+							<Circle className="w-6 h-6 text-gray-600" />
+						</div>
+						<p className="text-sm text-gray-400">No strips yet</p>
+						<p className="text-xs text-gray-500 mt-1">
+							Draw lines in the Design view to create strips
+						</p>
+					</div>
+				) : (
+					uniqueStrips.map((uniqueStrip) => {
+						const strip = uniqueStrip.config;
+						const isSelected = uniqueStrip.stripIds.includes(
+							selectedPieceId || "",
+						);
+						const allPlaced =
+							uniqueStrip.placedCount >= uniqueStrip.neededCount;
+						const stripProgress = Math.round(
+							(uniqueStrip.placedCount / uniqueStrip.neededCount) * 100,
+						);
+
+						// Determine predominant notch orientation for preview flipping
+						const topNotches = strip.notches.filter((n) => n.fromTop).length;
+						const bottomNotches = strip.notches.length - topNotches;
+						const shouldFlip = bottomNotches > topNotches;
+
+						const displayId = strip.displayCode;
+
+						return (
+							<button
+								key={strip.id}
+								type="button"
+								data-testid="strip-bank-item"
+								onClick={() => {
+									if (isSelected) {
+										setSelectedPieceId(null);
+									} else {
+										const availableStripId =
+											uniqueStrip.stripIds.find((id) => {
+												const usedCount = pieces.filter(
+													(p) => p.lineId === id,
+												).length;
+												return usedCount === 0;
+											}) || uniqueStrip.stripIds[0];
+										setSelectedPieceId(availableStripId);
+									}
+								}}
+								className={`
+									w-full text-left rounded-lg transition-all duration-200
+									${
+										isSelected
+											? "bg-indigo-600 ring-2 ring-indigo-400 ring-offset-1 ring-offset-gray-900"
+											: allPlaced
+												? "bg-gray-800/50 opacity-60"
+												: "bg-gray-800/80 hover:bg-gray-800"
+									}
+								`}
+							>
+								<div className="p-3 space-y-2">
+									{/* Strip header */}
+									<div className="flex items-center justify-between">
+										<div className="flex items-center gap-2">
+											{allPlaced ? (
+												<CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+											) : (
+												<Circle
+													className={`w-4 h-4 flex-shrink-0 ${isSelected ? "text-white" : "text-gray-500"}`}
+												/>
+											)}
+											<span
+												className={`text-sm font-mono font-semibold ${isSelected ? "text-white" : "text-gray-200"}`}
+												title={strip.id}
+											>
+												{displayId}
+											</span>
+										</div>
+										<span
+											className={`text-xs ${isSelected ? "text-indigo-200" : "text-gray-400"}`}
+										>
+											{formatValue(strip.lengthMM, displayUnit)} {displayUnit}
+										</span>
+									</div>
+
+									{/* Strip preview */}
+									<div className="h-8 bg-gray-950/60 rounded border border-gray-700/50 flex items-center justify-center p-1">
+										<svg
+											viewBox={`0 0 ${strip.lengthMM} 10`}
+											className="w-full h-full"
+											preserveAspectRatio="xMidYMid meet"
+										>
+											<title>Strip {displayId} preview</title>
+											<rect
+												x={0}
+												y={2}
+												width={strip.lengthMM}
+												height={6}
+												fill={isSelected ? "#4F46E5" : "#1E293B"}
+												stroke={isSelected ? "#818CF8" : "#4B5563"}
+												strokeWidth={0.5}
+												rx={1}
+												ry={1}
+											/>
+											{strip.notches.map((notch) => {
+												const isTopNotch = shouldFlip
+													? !notch.fromTop
+													: notch.fromTop;
+												const previewHeight = 10;
+												const notchHeight = 4;
+												const x = notch.dist - bitSize / 2;
+												const y = isTopNotch ? 0 : previewHeight - notchHeight;
+												return (
+													<rect
+														key={notch.id}
+														x={x}
+														y={y}
+														width={bitSize}
+														height={notchHeight}
+														fill={isSelected ? "#A5B4FC" : "#7C3AED"}
+														stroke={isSelected ? "#C7D2FE" : "#FBBF24"}
+														strokeWidth={0.4}
+													/>
+												);
+											})}
+										</svg>
+									</div>
+
+									{/* Progress indicator */}
+									<div className="flex items-center justify-between">
+										<div className="flex items-center gap-1.5">
+											<span
+												className={`text-xs ${isSelected ? "text-indigo-200" : "text-gray-500"}`}
+											>
+												{strip.notches.length} notch
+												{strip.notches.length !== 1 ? "es" : ""}
+											</span>
+										</div>
+										<div className="flex items-center gap-2">
+											<div className="w-16 h-1 bg-gray-700 rounded-full overflow-hidden">
+												<div
+													className={`h-full rounded-full transition-all ${
+														allPlaced
+															? "bg-emerald-500"
+															: isSelected
+																? "bg-white"
+																: "bg-indigo-500"
+													}`}
+													style={{ width: `${stripProgress}%` }}
+												/>
+											</div>
+											<span
+												className={`text-xs font-medium ${
+													allPlaced
+														? "text-emerald-400"
+														: isSelected
+															? "text-white"
+															: "text-gray-400"
+												}`}
+											>
+												{uniqueStrip.placedCount}/{uniqueStrip.neededCount}
+											</span>
+										</div>
+									</div>
+								</div>
+							</button>
+						);
+					})
+				)}
+			</div>
 		</div>
 	);
 }

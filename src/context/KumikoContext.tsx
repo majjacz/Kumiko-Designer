@@ -12,18 +12,20 @@ import { useKumikoDesign } from "../hooks/useKumikoDesign";
 import { useKumikoLayout } from "../hooks/useKumikoLayout";
 import { useKumikoParams } from "../hooks/useKumikoParams";
 import type { NotificationType } from "../lib/errors";
+import type {
+	DesignStrip,
+	GridViewState,
+	Group,
+	Intersection,
+	Line,
+	Point,
+} from "../lib/kumiko/kumiko-core";
 import {
 	createDesignPayload,
-	type DesignStrip,
-	type GridViewState,
-	type Group,
-	generateGroupSVG,
-	type Intersection,
-	type Line,
 	type NamedDesignSummary,
-	type Point,
 	saveDesign,
-} from "../lib/kumiko";
+} from "../lib/kumiko/kumiko-storage";
+import { generateGroupSVG } from "../lib/kumiko/kumiko-svg-export";
 import { downloadSVG } from "../lib/utils/download";
 import { useToastOptional } from "./ToastContext";
 
@@ -131,6 +133,7 @@ export interface KumikoContextValue {
 		setShowLoadDialog: (show: boolean) => void;
 		setShowTemplateDialog: (show: boolean) => void;
 		refreshNamedDesigns: () => void;
+		handleSave: () => void;
 		handleSaveAs: () => void;
 		handleExportJSON: () => void;
 		handleImportJSON: (event: React.ChangeEvent<HTMLInputElement>) => void;

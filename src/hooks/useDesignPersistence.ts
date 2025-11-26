@@ -80,6 +80,7 @@ export interface DesignPersistenceActions {
 	setShowLoadDialog: (show: boolean) => void;
 	setShowTemplateDialog: (show: boolean) => void;
 	handleClear: () => void;
+	handleSave: () => void;
 	handleSaveAs: () => void;
 	handleLoadNamed: (name: string) => void;
 	handleDeleteNamed: (name: string) => void;
@@ -235,7 +236,8 @@ export function useDesignPersistence({
 		setDesignName("");
 	}, [designActions, layoutActions]);
 
-	const handleSaveAs = useCallback(() => {
+	// Quick save - saves to current name silently
+	const handleSave = useCallback(() => {
 		const name = designNameRef.current.trim();
 		if (!name) {
 			notify("warning", "Enter a design name before saving.");
@@ -250,7 +252,40 @@ export function useDesignPersistence({
 
 		saveNamedDesign(name, payload);
 		setNamedDesigns(listNamedDesigns());
-		notify("success", `Saved design "${name}" to this browser.`);
+		notify("success", `Saved "${name}".`);
+	}, [notify]);
+
+	// Save As - prompts for a new name
+	const handleSaveAs = useCallback(() => {
+		const currentName = designNameRef.current.trim();
+		const newName = window.prompt(
+			"Save design as:",
+			currentName || "My Design",
+		);
+
+		if (newName === null) {
+			// User cancelled
+			return;
+		}
+
+		const trimmedName = newName.trim();
+		if (!trimmedName) {
+			notify("warning", "Design name cannot be empty.");
+			return;
+		}
+
+		// Update the design name in state
+		setDesignName(trimmedName);
+
+		const data = getCurrentPayloadDataRef.current();
+		const payload = createDesignPayload({
+			...data,
+			designName: trimmedName,
+		});
+
+		saveNamedDesign(trimmedName, payload);
+		setNamedDesigns(listNamedDesigns());
+		notify("success", `Saved design as "${trimmedName}".`);
 	}, [notify]);
 
 	const handleLoadNamed = useCallback(
@@ -363,6 +398,7 @@ export function useDesignPersistence({
 			setShowLoadDialog,
 			setShowTemplateDialog,
 			handleClear,
+			handleSave,
 			handleSaveAs,
 			handleLoadNamed,
 			handleDeleteNamed,

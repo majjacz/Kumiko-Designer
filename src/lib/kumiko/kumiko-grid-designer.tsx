@@ -1,3 +1,4 @@
+import { HelpCircle, Maximize2, Minus, Plus } from "lucide-react";
 import type React from "react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { GridRenderer } from "../../components/kumiko/GridRenderer";
@@ -209,50 +210,56 @@ export function GridDesigner({
 
 	return (
 		<div
-			className="flex-1 bg-gray-800 p-4 m-4 rounded-lg shadow-inner overflow-hidden relative"
+			className="flex-1 bg-gray-900/50 m-4 rounded-xl shadow-lg overflow-hidden relative border border-gray-800"
 			style={{
 				userSelect: dragState ? "none" : "auto",
 				WebkitUserSelect: dragState ? "none" : "auto",
 				MozUserSelect: dragState ? "none" : "auto",
 			}}
 		>
-			{/* Zoom controls */}
-			<div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
-				<div className="bg-gray-900 border border-gray-600 rounded-lg p-2 text-white text-sm">
-					<div className="text-xs text-gray-400 mb-1">
-						Zoom: {Math.round((zoom / DEFAULT_ZOOM) * 100)}%
-					</div>
-					<div className="flex gap-1">
+			{/* Floating toolbar - top right */}
+			<div className="absolute top-4 right-4 z-10 flex items-start gap-2">
+				{/* Zoom controls */}
+				<div className="bg-gray-900/95 backdrop-blur-sm border border-gray-700 rounded-lg shadow-xl overflow-hidden">
+					<div className="flex items-center gap-1 p-1.5">
 						<button
 							type="button"
 							onClick={() => zoomBy(1.5)}
-							className="px-2 py-1 bg-blue-600 hover:bg-blue-700 rounded text-xs transition-colors"
-							title="Zoom In"
+							className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+							title="Zoom In (+)"
 						>
-							+
+							<Plus className="w-4 h-4" />
 						</button>
+						<div className="px-2 py-1 min-w-[52px] text-center text-sm font-medium text-gray-300">
+							{Math.round((zoom / DEFAULT_ZOOM) * 100)}%
+						</div>
 						<button
 							type="button"
 							onClick={() => zoomBy(1 / 1.5)}
-							className="px-2 py-1 bg-blue-600 hover:bg-blue-700 rounded text-xs transition-colors"
-							title="Zoom Out"
+							className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+							title="Zoom Out (-)"
 						>
-							−
+							<Minus className="w-4 h-4" />
 						</button>
+						<div className="w-px h-6 bg-gray-700 mx-1" />
 						<button
 							type="button"
 							onClick={resetView}
-							className="px-2 py-1 bg-gray-600 hover:bg-gray-700 rounded text-xs transition-colors"
-							title="Reset View"
+							className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+							title="Fit to View (F)"
 						>
-							Fit
+							<Maximize2 className="w-4 h-4" />
 						</button>
 					</div>
-					<div className="mt-2 space-y-1 text-xs text-gray-300">
-						<label className="flex items-center gap-1 cursor-pointer">
+				</div>
+
+				{/* View options */}
+				<div className="bg-gray-900/95 backdrop-blur-sm border border-gray-700 rounded-lg shadow-xl overflow-hidden">
+					<div className="p-2 space-y-1">
+						<label className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 cursor-pointer transition-colors">
 							<input
 								type="checkbox"
-								className="h-3 w-3 rounded border-gray-500 bg-gray-800"
+								className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900"
 								checked={showNotchPositions}
 								onChange={(e) => {
 									const next = e.target.checked;
@@ -269,34 +276,12 @@ export function GridDesigner({
 									}
 								}}
 							/>
-							<span>Show notch markers</span>
+							<span className="text-sm text-gray-300">Notch markers</span>
 						</label>
-						<label className="flex items-center gap-1 cursor-pointer">
+						<label className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 cursor-pointer transition-colors">
 							<input
 								type="checkbox"
-								className="h-3 w-3 rounded border-gray-500 bg-gray-800"
-								checked={showHelpText}
-								onChange={(e) => {
-									const next = e.target.checked;
-									setShowHelpText(next);
-									if (onViewStateChange) {
-										onViewStateChange({
-											zoom,
-											panX,
-											panY,
-											showNotchPositions,
-											showHelpText: next,
-											showLineIds,
-										});
-									}
-								}}
-							/>
-							<span>Show help text</span>
-						</label>
-						<label className="flex items-center gap-1 cursor-pointer">
-							<input
-								type="checkbox"
-								className="h-3 w-3 rounded border-gray-500 bg-gray-800"
+								className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900"
 								checked={showLineIds}
 								onChange={(e) => {
 									const next = e.target.checked;
@@ -313,27 +298,87 @@ export function GridDesigner({
 									}
 								}}
 							/>
-							<span>Show line IDs</span>
+							<span className="text-sm text-gray-300">Strip IDs</span>
+						</label>
+						<div className="border-t border-gray-700 my-1.5" />
+						<label className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 cursor-pointer transition-colors">
+							<input
+								type="checkbox"
+								className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900"
+								checked={showHelpText}
+								onChange={(e) => {
+									const next = e.target.checked;
+									setShowHelpText(next);
+									if (onViewStateChange) {
+										onViewStateChange({
+											zoom,
+											panX,
+											panY,
+											showNotchPositions,
+											showHelpText: next,
+											showLineIds,
+										});
+									}
+								}}
+							/>
+							<span className="text-sm text-gray-300">Help tips</span>
 						</label>
 					</div>
 				</div>
 			</div>
 
-			{/* Help text */}
+			{/* Help panel - bottom left */}
 			{showHelpText && (
-				<div className="absolute bottom-4 left-4 z-10">
-					<div className="bg-gray-900 border border-gray-600 rounded-lg p-2 text-white text-xs text-gray-400 space-y-0.5">
-						<div>
-							Drag on the grid to draw lines. Drag across an existing line to
-							remove a segment.
+				<div className="absolute bottom-4 left-4 z-10 max-w-sm">
+					<div className="bg-gray-900/95 backdrop-blur-sm border border-gray-700 rounded-lg shadow-xl p-4">
+						<div className="flex items-center gap-2 mb-3">
+							<HelpCircle className="w-4 h-4 text-indigo-400" />
+							<span className="text-sm font-medium text-gray-200">
+								How to use
+							</span>
 						</div>
-						<div>
-							Click a notch symbol on a horizontal strip to toggle which strip
-							is on top (triangle pointing down = cut from bottom, triangle
-							pointing up = cut from top).
+						<div className="space-y-2 text-xs text-gray-400">
+							<div className="flex items-start gap-2">
+								<span className="flex-shrink-0 w-5 h-5 rounded bg-gray-800 flex items-center justify-center text-[10px] font-medium text-gray-300">
+									1
+								</span>
+								<span>
+									<strong className="text-gray-300">Draw:</strong> Drag on the
+									grid to create lines
+								</span>
+							</div>
+							<div className="flex items-start gap-2">
+								<span className="flex-shrink-0 w-5 h-5 rounded bg-gray-800 flex items-center justify-center text-[10px] font-medium text-gray-300">
+									2
+								</span>
+								<span>
+									<strong className="text-gray-300">Delete:</strong> Drag across
+									a line to remove it
+								</span>
+							</div>
+							<div className="flex items-start gap-2">
+								<span className="flex-shrink-0 w-5 h-5 rounded bg-gray-800 flex items-center justify-center text-[10px] font-medium text-gray-300">
+									3
+								</span>
+								<span>
+									<strong className="text-gray-300">Notches:</strong> Click
+									markers to toggle which strip is on top
+								</span>
+							</div>
 						</div>
-						<div>Middle mouse drag or two-finger scroll to pan the view.</div>
-						<div>Pinch on trackpad (or Ctrl+scroll) to zoom in and out.</div>
+						<div className="mt-3 pt-3 border-t border-gray-800">
+							<div className="text-xs text-gray-500">
+								<span className="inline-block px-1.5 py-0.5 bg-gray-800 rounded text-gray-400 mr-1">
+									Scroll
+								</span>{" "}
+								to pan
+								<span className="mx-2">·</span>
+								<span className="inline-block px-1.5 py-0.5 bg-gray-800 rounded text-gray-400 mr-1">
+									Ctrl+Scroll
+								</span>{" "}
+								to zoom
+							</div>
+						</div>
 					</div>
 				</div>
 			)}

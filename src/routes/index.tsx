@@ -30,6 +30,7 @@ function AppContent() {
 					step={step}
 					onStepChange={setStep}
 					onDesignNameChange={persistenceActions.setDesignName}
+					onSave={persistenceActions.handleSave}
 					onSaveAs={persistenceActions.handleSaveAs}
 					onOpenLoadDialog={openLoadDialog}
 					onOpenTemplateDialog={openTemplateDialog}
