@@ -76,7 +76,7 @@ This document outlines planned refactoring tasks to improve code extendability a
 - [ ] Update `kumiko-layout-editor.tsx` to compose extracted components
 
 #### 8b. Split GridRenderer (532 lines)
-- [ ] Extract `IntersectionMarker.tsx` component (~150 lines)
+- [x] Extract `IntersectionMarker.tsx` component (~150 lines)
 - [ ] Extract `LineRenderer.tsx` component (~100 lines)
 - [ ] Extract `DragPreview.tsx` component (~50 lines)
 - [ ] Extract `GridBackground.tsx` component
