@@ -5,7 +5,7 @@
  * providing a cleaner separation of concerns and simpler persistence.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const STORAGE_KEY = "kumiko-grid-view-settings";
 
@@ -96,10 +96,21 @@ export function useGridViewSettings(): {
 	state: GridViewSettingsState;
 	actions: GridViewSettingsActions;
 } {
-	const [settings, setSettings] = useState<GridViewSettings>(loadSettings);
+	// Use lazy initialization to load settings from localStorage
+	const [settings, setSettings] = useState<GridViewSettings>(() => {
+		const loaded = loadSettings();
+		return loaded;
+	});
 
-	// Persist settings to localStorage whenever they change
+	// Track if we've completed initial mount to avoid saving defaults over stored values
+	const isInitialMount = useRef(true);
+
+	// Persist settings to localStorage whenever they change (but not on initial mount)
 	useEffect(() => {
+		if (isInitialMount.current) {
+			isInitialMount.current = false;
+			return;
+		}
 		saveSettings(settings);
 	}, [settings]);
 
