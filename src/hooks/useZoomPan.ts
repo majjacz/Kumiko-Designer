@@ -36,6 +36,7 @@ interface UseZoomPanProps {
 		showNotchPositions: boolean;
 		showHelpText: boolean;
 		showLineIds: boolean;
+		showDimensions: boolean;
 	};
 }
 
@@ -189,8 +190,12 @@ export function useZoomPan({
 				setPanY(t.y);
 
 				if (onViewStateChange) {
-					const { showNotchPositions, showHelpText, showLineIds } =
-						flagsRef.current;
+					const {
+						showNotchPositions,
+						showHelpText,
+						showLineIds,
+						showDimensions,
+					} = flagsRef.current;
 
 					onViewStateChange({
 						zoom: t.k,
@@ -199,6 +204,7 @@ export function useZoomPan({
 						showNotchPositions,
 						showHelpText,
 						showLineIds,
+						showDimensions,
 					});
 				}
 			});

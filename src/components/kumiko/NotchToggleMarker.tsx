@@ -65,7 +65,7 @@ export function NotchToggleMarker({
 	// This ensures the badge stays visible and clickable at high zoom
 	const minBadgeSize = sizes.badgeWidth / 80; // minimum size at 200% zoom equivalent
 	const badgeSize = Math.max(minBadgeSize, sizes.badgeWidth / zoom);
-	
+
 	// Stroke width scales more slowly to remain visible at high zoom levels
 	// Uses sqrt scaling so stroke doesn't become paper-thin when zoomed in
 	const strokeWidth = Math.max(0.5, 2 / Math.sqrt(zoom));

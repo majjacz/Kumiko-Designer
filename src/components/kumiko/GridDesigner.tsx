@@ -36,6 +36,7 @@ export interface GridDesignerProps {
 	isDeleting?: boolean;
 	bitSize: number;
 	gridCellSize: number; // Physical size of one grid cell in mm
+	displayUnit: "mm" | "in"; // Unit for displaying dimensions
 	hoveredStripId?: string | null;
 	/**
 	 * Optional mapping from grid Line.id to a user-facing label. This lets the
@@ -65,6 +66,7 @@ export function GridDesigner({
 	isDeleting = false,
 	bitSize,
 	gridCellSize,
+	displayUnit,
 	hoveredStripId,
 	lineLabelById,
 	viewState,
@@ -82,6 +84,9 @@ export function GridDesigner({
 	);
 	const [showLineIds, setShowLineIds] = useState(
 		viewState?.showLineIds ?? true,
+	);
+	const [showDimensions, setShowDimensions] = useState(
+		viewState?.showDimensions ?? false,
 	);
 
 	// Interaction state
@@ -115,7 +120,7 @@ export function GridDesigner({
 		designHeight,
 		viewState,
 		onViewStateChange,
-		flags: { showNotchPositions, showHelpText, showLineIds },
+		flags: { showNotchPositions, showHelpText, showLineIds, showDimensions },
 	});
 
 	/**
@@ -276,6 +281,7 @@ export function GridDesigner({
 											showNotchPositions: next,
 											showHelpText,
 											showLineIds,
+											showDimensions,
 										});
 									}
 								}}
@@ -298,11 +304,35 @@ export function GridDesigner({
 											showNotchPositions,
 											showHelpText,
 											showLineIds: next,
+											showDimensions,
 										});
 									}
 								}}
 							/>
 							<span className="text-sm text-gray-300">Strip IDs</span>
+						</label>
+						<label className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 cursor-pointer transition-colors">
+							<input
+								type="checkbox"
+								className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900"
+								checked={showDimensions}
+								onChange={(e) => {
+									const next = e.target.checked;
+									setShowDimensions(next);
+									if (onViewStateChange) {
+										onViewStateChange({
+											zoom,
+											panX,
+											panY,
+											showNotchPositions,
+											showHelpText,
+											showLineIds,
+											showDimensions: next,
+										});
+									}
+								}}
+							/>
+							<span className="text-sm text-gray-300">Dimensions</span>
 						</label>
 						<div className="border-t border-gray-700 my-1.5" />
 						<label className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 cursor-pointer transition-colors">
@@ -321,6 +351,7 @@ export function GridDesigner({
 											showNotchPositions,
 											showHelpText: next,
 											showLineIds,
+											showDimensions,
 										});
 									}
 								}}
@@ -382,6 +413,14 @@ export function GridDesigner({
 								</span>{" "}
 								to zoom
 							</div>
+							{showDimensions && (
+								<div className="mt-2 text-xs text-gray-500">
+									Dimensions shown in{" "}
+									<span className="text-gray-400 font-medium">
+										{displayUnit === "mm" ? "millimeters (mm)" : "inches (in)"}
+									</span>
+								</div>
+							)}
 						</div>
 					</div>
 				</div>
@@ -423,6 +462,8 @@ export function GridDesigner({
 						gridExtentCells={GRID_EXTENT_CELLS}
 						showNotchPositions={showNotchPositions}
 						showLineIds={showLineIds}
+						showDimensions={showDimensions}
+						displayUnit={displayUnit}
 						hoveredStripId={hoveredStripId}
 						lineLabelById={lineLabelById}
 						onToggleIntersection={onToggleIntersection}
@@ -454,6 +495,7 @@ export function GridDesignerConnected() {
 			isDeleting={designState.isDeleting}
 			bitSize={params.bitSize}
 			gridCellSize={params.gridCellSize}
+			displayUnit={params.units}
 			hoveredStripId={layoutState.hoveredStripId}
 			lineLabelById={designState.lineLabelById}
 			viewState={designState.gridViewState}

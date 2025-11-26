@@ -11,6 +11,7 @@ describe("useZoomPan", () => {
 		showNotchPositions: true,
 		showHelpText: true,
 		showLineIds: true,
+		showDimensions: false,
 	};
 
 	it("should initialize with default zoom and pan", () => {
@@ -46,6 +47,7 @@ describe("useZoomPan", () => {
 			showNotchPositions: true,
 			showHelpText: true,
 			showLineIds: true,
+			showDimensions: false,
 		};
 
 		const { result } = renderHook(() =>

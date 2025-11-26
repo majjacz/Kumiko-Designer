@@ -1,6 +1,10 @@
 import type React from "react";
 import { useMemo } from "react";
-import { distancePointToSegment, type Line } from "../../lib/kumiko";
+import {
+	distancePointToSegment,
+	formatValue,
+	type Line,
+} from "../../lib/kumiko";
 
 export interface SvgLine {
 	line: Line;
@@ -21,6 +25,10 @@ export interface LineRendererProps {
 	hoveredStripId?: string | null;
 	/** Whether to show line ID labels */
 	showLineIds: boolean;
+	/** Whether to show line dimension labels */
+	showDimensions: boolean;
+	/** Display unit for dimensions */
+	displayUnit: "mm" | "in";
 	/** Map of line IDs to their display labels */
 	lineLabelById?: Map<string, string>;
 }
@@ -36,6 +44,8 @@ export function LineRenderer({
 	cellSize,
 	hoveredStripId,
 	showLineIds,
+	showDimensions,
+	displayUnit,
 	lineLabelById,
 }: LineRendererProps) {
 	const { lineStrokes, lineLabels } = useMemo(() => {
@@ -53,9 +63,6 @@ export function LineRenderer({
 			const midX = (start.x + end.x) / 2;
 			const midY = (start.y + end.y) / 2;
 
-			const rawIdSuffix = line.id.length > 4 ? line.id.slice(-4) : line.id;
-			const label = lineLabelById?.get(line.id) ?? rawIdSuffix;
-
 			strokes.push(
 				<line
 					key={line.id}
@@ -71,7 +78,27 @@ export function LineRenderer({
 				/>,
 			);
 
-			if (!showLineIds) continue;
+			// Skip label rendering if neither IDs nor dimensions are shown
+			if (!showLineIds && !showDimensions) continue;
+
+			// Calculate line length in mm (based on grid coordinates)
+			const gridDx = line.x2 - line.x1;
+			const gridDy = line.y2 - line.y1;
+			const lengthInMm = Math.hypot(gridDx, gridDy) * cellSize;
+			const dimensionText = formatValue(lengthInMm, displayUnit);
+
+			// Build label text based on what's enabled
+			const rawIdSuffix = line.id.length > 4 ? line.id.slice(-4) : line.id;
+			const idLabel = lineLabelById?.get(line.id) ?? rawIdSuffix;
+
+			let labelText: string;
+			if (showLineIds && showDimensions) {
+				labelText = `${idLabel} (${dimensionText})`;
+			} else if (showDimensions) {
+				labelText = dimensionText;
+			} else {
+				labelText = idLabel;
+			}
 
 			const baseFontPx = 80;
 			const paddingXPx = 10;
@@ -80,8 +107,7 @@ export function LineRenderer({
 			const fontSize = baseFontPx / zoom;
 			const approxCharWidthPx = baseFontPx * 0.6;
 
-			const labelLength =
-				typeof label === "string" ? label.length : String(label).length;
+			const labelLength = labelText.length;
 
 			const rectWidth =
 				(labelLength * approxCharWidthPx + paddingXPx * 2) / zoom;
@@ -148,7 +174,7 @@ export function LineRenderer({
 						pointerEvents="none"
 						style={{ fontWeight: "bold", userSelect: "none" }}
 					>
-						{label}
+						{labelText}
 					</text>
 				</g>,
 			);
@@ -160,6 +186,8 @@ export function LineRenderer({
 		bitSize,
 		hoveredStripId,
 		showLineIds,
+		showDimensions,
+		displayUnit,
 		lineLabelById,
 		zoom,
 		cellSize,

@@ -26,6 +26,7 @@ export interface GridViewState {
 	showNotchPositions: boolean;
 	showHelpText: boolean;
 	showLineIds: boolean;
+	showDimensions: boolean;
 }
 
 export interface Intersection {

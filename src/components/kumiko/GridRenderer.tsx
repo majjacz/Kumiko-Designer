@@ -20,6 +20,8 @@ interface GridRendererProps {
 	gridExtentCells: number;
 	showNotchPositions: boolean;
 	showLineIds: boolean;
+	showDimensions: boolean;
+	displayUnit: "mm" | "in";
 	hoveredStripId?: string | null;
 	lineLabelById?: Map<string, string>;
 	onToggleIntersection: (id: string) => void;
@@ -42,6 +44,8 @@ export function GridRenderer({
 	gridExtentCells,
 	showNotchPositions,
 	showLineIds,
+	showDimensions,
+	displayUnit,
 	hoveredStripId,
 	lineLabelById,
 	onToggleIntersection,
@@ -152,6 +156,8 @@ export function GridRenderer({
 				cellSize={cellSize}
 				hoveredStripId={hoveredStripId}
 				showLineIds={showLineIds}
+				showDimensions={showDimensions}
+				displayUnit={displayUnit}
 				lineLabelById={lineLabelById}
 			/>
 
