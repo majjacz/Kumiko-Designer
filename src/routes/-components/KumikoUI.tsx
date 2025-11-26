@@ -8,6 +8,8 @@ import {
 	Layout,
 	MoreHorizontal,
 	Mouse,
+	PanelRight,
+	PanelRightClose,
 	Save,
 	Sparkles,
 	Trash2,
@@ -34,6 +36,8 @@ export interface KumikoHeaderProps {
 	onExportJSON: () => void;
 	onImportJSON: (event: React.ChangeEvent<HTMLInputElement>) => void;
 	onClear: () => void;
+	sidebarVisible?: boolean;
+	onToggleSidebar?: () => void;
 }
 
 /**
@@ -257,6 +261,8 @@ export function KumikoHeader({
 	onExportJSON,
 	onImportJSON,
 	onClear,
+	sidebarVisible,
+	onToggleSidebar,
 }: KumikoHeaderProps) {
 	const [showHelp, setShowHelp] = useState(false);
 	const helpDialogTitleId = useId();
@@ -317,6 +323,18 @@ export function KumikoHeader({
 					>
 						<HelpCircle className="w-5 h-5" />
 					</button>
+
+					{/* Sidebar Toggle Button */}
+					{onToggleSidebar && !sidebarVisible && (
+						<button
+							type="button"
+							onClick={onToggleSidebar}
+							className="p-2 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-gray-800 transition-colors"
+							title="Show parameters sidebar"
+						>
+							<PanelRight className="w-6 h-6" />
+						</button>
+					)}
 				</div>
 			</div>
 
@@ -759,6 +777,7 @@ export interface KumikoSidebarParamsProps {
 	onHalfCutDepthChange: (mmValue: number) => void;
 	onGridCellSizeChange: (mmValue: number) => void;
 	onStockLengthChange: (mmValue: number) => void;
+	onClose?: () => void;
 }
 
 /**
@@ -818,6 +837,7 @@ export function KumikoSidebarParams({
 	onHalfCutDepthChange,
 	onGridCellSizeChange,
 	onStockLengthChange,
+	onClose,
 }: KumikoSidebarParamsProps) {
 	const bitSizeId = useId();
 	const cutDepthId = useId();
@@ -831,31 +851,43 @@ export function KumikoSidebarParams({
 			<div className="sticky top-0 bg-gray-900 border-b border-gray-800 px-4 py-4 z-10">
 				<div className="flex items-center justify-between">
 					<h2 className="text-sm font-semibold text-gray-100">Parameters</h2>
-					<button
-						type="button"
-						onClick={onToggleUnits}
-						className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md
-							bg-gray-800 text-gray-300 border border-gray-700
-							hover:bg-gray-700 hover:text-gray-100
-							transition-colors"
-						title="Toggle between millimeters and inches"
-					>
-						<span
-							className={
-								displayUnit === "mm" ? "text-indigo-400" : "text-gray-500"
-							}
+					<div className="flex items-center gap-2">
+						<button
+							type="button"
+							onClick={onToggleUnits}
+							className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md
+								bg-gray-800 text-gray-300 border border-gray-700
+								hover:bg-gray-700 hover:text-gray-100
+								transition-colors"
+							title="Toggle between millimeters and inches"
 						>
-							mm
-						</span>
-						<span className="text-gray-600">/</span>
-						<span
-							className={
-								displayUnit === "in" ? "text-indigo-400" : "text-gray-500"
-							}
-						>
-							in
-						</span>
-					</button>
+							<span
+								className={
+									displayUnit === "mm" ? "text-indigo-400" : "text-gray-500"
+								}
+							>
+								mm
+							</span>
+							<span className="text-gray-600">/</span>
+							<span
+								className={
+									displayUnit === "in" ? "text-indigo-400" : "text-gray-500"
+								}
+							>
+								in
+							</span>
+						</button>
+						{onClose && (
+							<button
+								type="button"
+								onClick={onClose}
+								className="p-1.5 rounded-md text-gray-400 hover:text-gray-100 hover:bg-gray-700 transition-colors"
+								title="Hide parameters sidebar"
+							>
+								<PanelRightClose className="w-4 h-4" />
+							</button>
+						)}
+					</div>
 				</div>
 			</div>
 
@@ -948,7 +980,9 @@ export function KumikoSidebarParams({
  * Context-connected version of KumikoSidebarParams.
  * Automatically consumes params from KumikoContext.
  */
-export function KumikoSidebarParamsConnected() {
+export function KumikoSidebarParamsConnected({
+	onClose,
+}: { onClose?: () => void }) {
 	const { params, paramActions } = useKumiko();
 
 	return (
@@ -973,6 +1007,7 @@ export function KumikoSidebarParamsConnected() {
 			onStockLengthChange={paramActions.handleParamChange(
 				paramActions.setStockLength,
 			)}
+			onClose={onClose}
 		/>
 	);
 }

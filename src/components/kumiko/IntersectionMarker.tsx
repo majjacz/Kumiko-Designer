@@ -62,7 +62,9 @@ export function IntersectionMarker({
 		return intersection.line1Over;
 	})();
 
-	const labelDescription = horizontalOnTop ? "Cut from bottom" : "Cut from top";
+	const labelDescription = horizontalOnTop
+		? "Horizontal strip on top"
+		: "Vertical strip on top";
 
 	const centerX = position.x;
 	const centerY = position.y;
@@ -114,7 +116,7 @@ export function IntersectionMarker({
 			/>
 
 			<title>
-				{labelDescription} (horizontal strip). Click to flip notch direction.
+				{labelDescription}. Click to swap which strip is on top.
 			</title>
 		</g>
 	);

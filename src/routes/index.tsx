@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { KumikoProvider, useKumiko } from "../context/KumikoContext";
 import { ToastProvider } from "../context/ToastContext";
@@ -21,6 +22,8 @@ function AppContent() {
 		openTemplateDialog,
 	} = useKumiko();
 
+	const [sidebarVisible, setSidebarVisible] = useState(true);
+
 	return (
 		<div className="flex flex-col md:flex-row h-screen bg-gray-900 text-gray-100 font-sans">
 			{/* Main content */}
@@ -36,6 +39,8 @@ function AppContent() {
 					onExportJSON={persistenceActions.handleExportJSON}
 					onImportJSON={persistenceActions.handleImportJSON}
 					onClear={persistenceActions.handleClear}
+					sidebarVisible={sidebarVisible}
+					onToggleSidebar={() => setSidebarVisible(true)}
 				/>
 
 				{/* Main workspace */}
@@ -71,9 +76,13 @@ function AppContent() {
 			</main>
 
 			{/* Sidebar */}
-			<ErrorBoundary sectionName="Sidebar">
-				<KumikoSidebarParamsConnected />
-			</ErrorBoundary>
+			{sidebarVisible && (
+				<ErrorBoundary sectionName="Sidebar">
+					<KumikoSidebarParamsConnected
+						onClose={() => setSidebarVisible(false)}
+					/>
+				</ErrorBoundary>
+			)}
 		</div>
 	);
 }
