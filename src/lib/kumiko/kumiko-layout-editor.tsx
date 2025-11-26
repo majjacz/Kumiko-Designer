@@ -178,7 +178,7 @@ export const LayoutEditor = memo(function LayoutEditor({
 	// Clear active piece when group changes or when starting to place a new strip
 	useEffect(() => {
 		setActiveLayoutPieceId(null);
-	}, [activeGroupId, selectedPieceId]);
+	}, []);
 
 	const [hoverPoint, setHoverPoint] = useState<{
 		point: Point;
@@ -526,6 +526,9 @@ export const LayoutEditor = memo(function LayoutEditor({
 						className="w-full h-full"
 						onMouseDown={handleClick}
 						onClick={() => !selectedPieceId && setActiveLayoutPieceId(null)}
+						onKeyDown={(e) =>
+							e.key === "Escape" && setActiveLayoutPieceId(null)
+						}
 						onMouseMove={handleMouseMove}
 						onMouseLeave={handleMouseLeave}
 						role="img"

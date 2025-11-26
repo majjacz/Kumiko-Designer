@@ -4,7 +4,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Group, Line, SavedDesignPayload } from "../lib/kumiko";
 import {
-	createDesignPayload,
 	deleteNamedDesign,
 	getDefaultTemplateId,
 	listNamedDesigns,
@@ -14,7 +13,7 @@ import {
 	saveDesign,
 	saveNamedDesign,
 } from "../lib/kumiko";
-import { downloadJSON, downloadSVG } from "../lib/utils/download";
+import { downloadJSON } from "../lib/utils/download";
 
 export interface DesignPersistenceState {
 	designName: string;
