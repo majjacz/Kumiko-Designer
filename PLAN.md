@@ -18,9 +18,9 @@ This document outlines planned refactoring tasks to improve code extendability a
 ### 3. Add Barrel Exports
 - [x] Create `src/lib/kumiko/index.ts` barrel file
 - [x] Export all public types and functions
-- [ ] Update imports in hooks to use barrel
-- [ ] Update imports in components to use barrel
-- [ ] Update imports in routes to use barrel
+- [x] Update imports in hooks to use barrel
+- [x] Update imports in components to use barrel
+- [x] Update imports in routes to use barrel
 
 ### 4. Extract Magic Numbers into Configuration
 - [x] Create `src/lib/kumiko/config.ts`
@@ -68,7 +68,7 @@ This document outlines planned refactoring tasks to improve code extendability a
 ### 8. Split Large Components
 
 #### 8a. Split LayoutEditor (998 lines)
-- [ ] Extract `StripBank.tsx` component (~150 lines)
+- [x] Extract `StripBank.tsx` component (~150 lines)
 - [ ] Extract `LayoutCanvas.tsx` component (~200 lines)
 - [ ] Extract `GroupToolbar.tsx` component (~100 lines)
 - [ ] Extract `StripPreviewSVG.tsx` component (~80 lines)

@@ -63,11 +63,14 @@ export interface SavedDesignPayload {
 const STORAGE_KEY = "kumiko-designer-v1";
 const STORAGE_KEY_LIST = "kumiko-designer-list-v1";
 
-const isBrowser =
-	typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+function isBrowser(): boolean {
+	return (
+		typeof window !== "undefined" && typeof window.localStorage !== "undefined"
+	);
+}
 
 export function saveDesign(payload: SavedDesignPayload): void {
-	if (!isBrowser) return;
+	if (!isBrowser()) return;
 
 	try {
 		const data = JSON.stringify(payload);
@@ -79,7 +82,7 @@ export function saveDesign(payload: SavedDesignPayload): void {
 }
 
 export function loadDesign(): SavedDesignPayload | null {
-	if (!isBrowser) return null;
+	if (!isBrowser()) return null;
 
 	try {
 		const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -104,7 +107,7 @@ export function loadDesign(): SavedDesignPayload | null {
 }
 
 export function clearDesign(): void {
-	if (!isBrowser) return;
+	if (!isBrowser()) return;
 
 	try {
 		window.localStorage.removeItem(STORAGE_KEY);
@@ -130,7 +133,7 @@ export interface NamedDesignSummary {
  * Return all saved named designs (index only).
  */
 export function listNamedDesigns(): NamedDesignSummary[] {
-	if (!isBrowser) return [];
+	if (!isBrowser()) return [];
 	try {
 		const raw = window.localStorage.getItem(STORAGE_KEY_LIST);
 		if (!raw) return [];
@@ -150,7 +153,7 @@ export function listNamedDesigns(): NamedDesignSummary[] {
  * Internal helper to persist the index of named designs.
  */
 function saveNamedIndex(index: NamedDesignSummary[]): void {
-	if (!isBrowser) return;
+	if (!isBrowser()) return;
 	try {
 		window.localStorage.setItem(STORAGE_KEY_LIST, JSON.stringify(index));
 	} catch (error) {
@@ -167,7 +170,7 @@ export function saveNamedDesign(
 	name: string,
 	payload: SavedDesignPayload,
 ): void {
-	if (!isBrowser) return;
+	if (!isBrowser()) return;
 	if (!name.trim()) return;
 
 	try {
@@ -204,7 +207,7 @@ export function saveNamedDesign(
  * Load a named design payload by name.
  */
 export function loadNamedDesign(name: string): SavedDesignPayload | null {
-	if (!isBrowser) return null;
+	if (!isBrowser()) return null;
 	if (!name.trim()) return null;
 
 	try {
@@ -230,7 +233,7 @@ export function loadNamedDesign(name: string): SavedDesignPayload | null {
  * Delete a named design and update the index.
  */
 export function deleteNamedDesign(name: string): void {
-	if (!isBrowser) return;
+	if (!isBrowser()) return;
 	if (!name.trim()) return;
 
 	try {

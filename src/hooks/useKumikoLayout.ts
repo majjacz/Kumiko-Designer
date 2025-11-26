@@ -5,7 +5,7 @@ import {
 	newId,
 	type Piece,
 	type Point,
-} from "../lib/kumiko/kumiko-core";
+} from "../lib/kumiko";
 
 export function useKumikoLayout() {
 	const [groups, setGroups] = useState<Map<string, Group>>(

@@ -1,9 +1,11 @@
 import { Download, Grid, Layout, Settings, Upload } from "lucide-react";
 import type React from "react";
 import { useId } from "react";
-import { ParamInput } from "../../lib/kumiko/kumiko-params";
-import type { NamedDesignSummary } from "../../lib/kumiko/kumiko-storage";
-import { TEMPLATES } from "../../lib/kumiko/kumiko-templates";
+import {
+	type NamedDesignSummary,
+	ParamInput,
+	TEMPLATES,
+} from "../../lib/kumiko";
 
 export type AppStep = "design" | "layout";
 

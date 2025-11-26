@@ -7,8 +7,13 @@ import {
 	zoomTransform,
 } from "d3-zoom";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { DEFAULT_ZOOM, MAX_ZOOM, MIN_ZOOM } from "../lib/kumiko/config";
-import type { GridViewState, Line } from "../lib/kumiko/kumiko-core";
+import {
+	DEFAULT_ZOOM,
+	type GridViewState,
+	type Line,
+	MAX_ZOOM,
+	MIN_ZOOM,
+} from "../lib/kumiko";
 
 interface UseZoomPanProps {
 	svgRef: React.RefObject<SVGSVGElement | null>;

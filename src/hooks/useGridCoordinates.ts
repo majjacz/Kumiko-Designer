@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { Point } from "../lib/kumiko/kumiko-core";
+import type { Point } from "../lib/kumiko";
 
 interface UseGridCoordinatesProps {
 	svgRef: React.RefObject<SVGSVGElement | null>;

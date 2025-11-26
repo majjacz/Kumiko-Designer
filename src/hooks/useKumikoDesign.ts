@@ -1,18 +1,16 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
-	type DesignStrip,
-	type Intersection,
-	type Line,
-	newId,
-	type Point,
-} from "../lib/kumiko/kumiko-core";
-import {
 	computeDesignStrips,
 	computeIntersections,
 	computeLineOverlaps,
+	type DesignStrip,
+	type GridViewState,
+	type Intersection,
+	type Line,
+	newId,
 	normalizeLines,
-} from "../lib/kumiko/kumiko-design-logic";
-import type { GridViewState } from "../lib/kumiko/kumiko-storage";
+	type Point,
+} from "../lib/kumiko";
 
 export function useKumikoDesign(gridCellSize: number, bitSize: number) {
 	const [lines, setLines] = useState<Map<string, Line>>(new Map());

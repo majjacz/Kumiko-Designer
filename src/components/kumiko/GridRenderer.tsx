@@ -1,7 +1,11 @@
 import type React from "react";
 import { useMemo } from "react";
-import { distancePointToSegment } from "../../lib/kumiko/geometry";
-import type { Intersection, Line, Point } from "../../lib/kumiko/kumiko-core";
+import {
+	distancePointToSegment,
+	type Intersection,
+	type Line,
+	type Point,
+} from "../../lib/kumiko";
 
 interface GridRendererProps {
 	lines: Map<string, Line>;

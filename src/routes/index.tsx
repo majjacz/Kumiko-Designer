@@ -4,25 +4,24 @@ import { useCallback, useEffect, useState } from "react";
 import { useKumikoDesign } from "../hooks/useKumikoDesign";
 import { useKumikoLayout } from "../hooks/useKumikoLayout";
 import { useKumikoParams } from "../hooks/useKumikoParams";
-import type { Group, Line } from "../lib/kumiko/kumiko-core";
-import { GridDesigner } from "../lib/kumiko/kumiko-grid-designer";
-import { LayoutEditor } from "../lib/kumiko/kumiko-layout-editor";
 import {
 	clearDesign,
 	createDesignPayload,
 	deleteNamedDesign,
+	GridDesigner,
+	type Group,
+	generateGroupSVG,
+	getDefaultTemplateId,
+	LayoutEditor,
+	type Line,
 	listNamedDesigns,
 	loadDesign,
 	loadNamedDesign,
+	loadTemplate,
 	type SavedDesignPayload,
 	saveDesign,
 	saveNamedDesign,
-} from "../lib/kumiko/kumiko-storage";
-import { generateGroupSVG } from "../lib/kumiko/kumiko-svg-export";
-import {
-	getDefaultTemplateId,
-	loadTemplate,
-} from "../lib/kumiko/kumiko-templates";
+} from "../lib/kumiko";
 import { downloadJSON, downloadSVG } from "../lib/utils/download";
 import {
 	type AppStep,

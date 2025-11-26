@@ -6,7 +6,7 @@ import {
 	DEFAULT_HALF_CUT_DEPTH,
 	DEFAULT_STOCK_LENGTH,
 	DEFAULT_UNITS,
-} from "../lib/kumiko/config";
+} from "../lib/kumiko";
 
 export interface KumikoParams {
 	units: "mm" | "in";
