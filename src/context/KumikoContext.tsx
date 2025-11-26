@@ -314,7 +314,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 			onNotify,
 		});
 
-	// Autosave effect
+	// Autosave effect - triggers whenever design data changes
 	useEffect(() => {
 		if (!persistenceState.isInitialized) return;
 		const payload = createDesignPayload({

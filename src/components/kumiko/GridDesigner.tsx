@@ -1,6 +1,6 @@
 import { HelpCircle, Maximize2, Minus, Plus } from "lucide-react";
 import type React from "react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useKumiko } from "../../context/KumikoContext";
 import { useGridCoordinates } from "../../hooks/useGridCoordinates";
 import { useZoomPan } from "../../hooks/useZoomPan";
@@ -79,18 +79,18 @@ export function GridDesigner({
 	const contentGroupRef = useRef<SVGGElement | null>(null);
 
 	// Viewport state flags (zoom/pan are handled by useZoomPan)
-	const [showNotchPositions, setShowNotchPositions] = useState(
-		viewState?.showNotchPositions ?? true,
-	);
-	const [showHelpText, setShowHelpText] = useState(
-		viewState?.showHelpText ?? true,
-	);
-	const [showLineIds, setShowLineIds] = useState(
-		viewState?.showLineIds ?? true,
-	);
-	const [showDimensions, setShowDimensions] = useState(
-		viewState?.showDimensions ?? false,
-	);
+	// We maintain local state for uncontrolled usage, but prefer viewState prop if available.
+	const [localShowNotchPositions, setLocalShowNotchPositions] = useState(true);
+	const [localShowHelpText, setLocalShowHelpText] = useState(true);
+	const [localShowLineIds, setLocalShowLineIds] = useState(true);
+	const [localShowDimensions, setLocalShowDimensions] = useState(false);
+
+	// Effective values (Prop > Local)
+	const showNotchPositions =
+		viewState?.showNotchPositions ?? localShowNotchPositions;
+	const showHelpText = viewState?.showHelpText ?? localShowHelpText;
+	const showLineIds = viewState?.showLineIds ?? localShowLineIds;
+	const showDimensions = viewState?.showDimensions ?? localShowDimensions;
 
 	// Interaction state
 	const [hoverPoint, setHoverPoint] = useState<Point | null>(null);
@@ -125,6 +125,51 @@ export function GridDesigner({
 		onViewStateChange,
 		flags: { showNotchPositions, showHelpText, showLineIds, showDimensions },
 	});
+
+	// Helper to update view state flags
+	const updateViewStateFlag = useCallback(
+		(key: keyof GridViewState, value: boolean) => {
+			// Update local state
+			switch (key) {
+				case "showNotchPositions":
+					setLocalShowNotchPositions(value);
+					break;
+				case "showHelpText":
+					setLocalShowHelpText(value);
+					break;
+				case "showLineIds":
+					setLocalShowLineIds(value);
+					break;
+				case "showDimensions":
+					setLocalShowDimensions(value);
+					break;
+			}
+
+			// Notify parent if controlled
+			if (onViewStateChange) {
+				onViewStateChange({
+					zoom,
+					panX,
+					panY,
+					showNotchPositions:
+						key === "showNotchPositions" ? value : showNotchPositions,
+					showHelpText: key === "showHelpText" ? value : showHelpText,
+					showLineIds: key === "showLineIds" ? value : showLineIds,
+					showDimensions: key === "showDimensions" ? value : showDimensions,
+				});
+			}
+		},
+		[
+			onViewStateChange,
+			zoom,
+			panX,
+			panY,
+			showNotchPositions,
+			showHelpText,
+			showLineIds,
+			showDimensions,
+		],
+	);
 
 	/**
 	 * Handle mouse down - start drawing
@@ -273,21 +318,9 @@ export function GridDesigner({
 								type="checkbox"
 								className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900"
 								checked={showNotchPositions}
-								onChange={(e) => {
-									const next = e.target.checked;
-									setShowNotchPositions(next);
-									if (onViewStateChange) {
-										onViewStateChange({
-											zoom,
-											panX,
-											panY,
-											showNotchPositions: next,
-											showHelpText,
-											showLineIds,
-											showDimensions,
-										});
-									}
-								}}
+								onChange={(e) =>
+									updateViewStateFlag("showNotchPositions", e.target.checked)
+								}
 							/>
 							<span className="text-sm text-gray-300">Notch markers</span>
 						</label>
@@ -296,21 +329,9 @@ export function GridDesigner({
 								type="checkbox"
 								className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900"
 								checked={showLineIds}
-								onChange={(e) => {
-									const next = e.target.checked;
-									setShowLineIds(next);
-									if (onViewStateChange) {
-										onViewStateChange({
-											zoom,
-											panX,
-											panY,
-											showNotchPositions,
-											showHelpText,
-											showLineIds: next,
-											showDimensions,
-										});
-									}
-								}}
+								onChange={(e) =>
+									updateViewStateFlag("showLineIds", e.target.checked)
+								}
 							/>
 							<span className="text-sm text-gray-300">Strip IDs</span>
 						</label>
@@ -319,21 +340,9 @@ export function GridDesigner({
 								type="checkbox"
 								className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900"
 								checked={showDimensions}
-								onChange={(e) => {
-									const next = e.target.checked;
-									setShowDimensions(next);
-									if (onViewStateChange) {
-										onViewStateChange({
-											zoom,
-											panX,
-											panY,
-											showNotchPositions,
-											showHelpText,
-											showLineIds,
-											showDimensions: next,
-										});
-									}
-								}}
+								onChange={(e) =>
+									updateViewStateFlag("showDimensions", e.target.checked)
+								}
 							/>
 							<span className="text-sm text-gray-300">Dimensions</span>
 						</label>
@@ -343,21 +352,9 @@ export function GridDesigner({
 								type="checkbox"
 								className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900"
 								checked={showHelpText}
-								onChange={(e) => {
-									const next = e.target.checked;
-									setShowHelpText(next);
-									if (onViewStateChange) {
-										onViewStateChange({
-											zoom,
-											panX,
-											panY,
-											showNotchPositions,
-											showHelpText: next,
-											showLineIds,
-											showDimensions,
-										});
-									}
-								}}
+								onChange={(e) =>
+									updateViewStateFlag("showHelpText", e.target.checked)
+								}
 							/>
 							<span className="text-sm text-gray-300">Help tips</span>
 						</label>

@@ -59,10 +59,15 @@ export function useZoomPan({
 		null,
 	);
 	const flagsRef = useRef(flags);
+	const onViewStateChangeRef = useRef(onViewStateChange);
 
 	useEffect(() => {
 		flagsRef.current = flags;
 	}, [flags]);
+
+	useEffect(() => {
+		onViewStateChangeRef.current = onViewStateChange;
+	}, [onViewStateChange]);
 
 	/**
 	 * Reset view (Fit)
@@ -160,7 +165,7 @@ export function useZoomPan({
 		[svgRef],
 	);
 
-	// Set up d3-zoom behavior
+	// Set up d3-zoom behavior (only once)
 	useEffect(() => {
 		const svgEl = svgRef.current;
 		const groupEl = contentGroupRef.current;
@@ -189,7 +194,7 @@ export function useZoomPan({
 				setPanX(t.x);
 				setPanY(t.y);
 
-				if (onViewStateChange) {
+				if (onViewStateChangeRef.current) {
 					const {
 						showNotchPositions,
 						showHelpText,
@@ -197,7 +202,7 @@ export function useZoomPan({
 						showDimensions,
 					} = flagsRef.current;
 
-					onViewStateChange({
+					onViewStateChangeRef.current({
 						zoom: t.k,
 						panX: t.x,
 						panY: t.y,
@@ -214,30 +219,37 @@ export function useZoomPan({
 		const selection = select(svgEl) as SVGSelection;
 		applyZoomBehavior(selection, behavior);
 
-		if (viewState?.zoom !== undefined) {
-			const initialZoom = Number.isFinite(viewState.zoom)
-				? viewState.zoom
-				: DEFAULT_ZOOM;
-			const clampedZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, initialZoom));
-			const targetTransform = zoomIdentity
-				.translate(viewState.panX ?? 0, viewState.panY ?? 0)
-				.scale(clampedZoom);
-
-			const currentTransform = zoomTransform(svgEl);
-			const kDiff = Math.abs(currentTransform.k - targetTransform.k);
-			const xDiff = Math.abs(currentTransform.x - targetTransform.x);
-			const yDiff = Math.abs(currentTransform.y - targetTransform.y);
-
-			if (kDiff > 0.001 || xDiff > 0.1 || yDiff > 0.1) {
-				applyZoomTransform(selection, behavior, targetTransform);
-			}
-		}
-
 		return () => {
 			selection.on(".zoom", null);
 			zoomBehaviorRef.current = null;
 		};
-	}, [onViewStateChange, viewState, svgRef, contentGroupRef]);
+	}, [svgRef, contentGroupRef]);
+
+	// Sync viewState prop to d3 transform
+	useEffect(() => {
+		const svgEl = svgRef.current;
+		const behavior = zoomBehaviorRef.current;
+		if (!svgEl || !behavior || !viewState?.zoom) return;
+
+		const selection = select(svgEl) as SVGSelection;
+
+		const initialZoom = Number.isFinite(viewState.zoom)
+			? viewState.zoom
+			: DEFAULT_ZOOM;
+		const clampedZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, initialZoom));
+		const targetTransform = zoomIdentity
+			.translate(viewState.panX ?? 0, viewState.panY ?? 0)
+			.scale(clampedZoom);
+
+		const currentTransform = zoomTransform(svgEl);
+		const kDiff = Math.abs(currentTransform.k - targetTransform.k);
+		const xDiff = Math.abs(currentTransform.x - targetTransform.x);
+		const yDiff = Math.abs(currentTransform.y - targetTransform.y);
+
+		if (kDiff > 0.001 || xDiff > 0.1 || yDiff > 0.1) {
+			applyZoomTransform(selection, behavior, targetTransform);
+		}
+	}, [viewState, svgRef]);
 
 	// Trackpad pan/zoom
 	useEffect(() => {
