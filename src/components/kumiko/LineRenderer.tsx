@@ -33,9 +33,47 @@ export interface LineRendererProps {
 	lineLabelById?: Map<string, string>;
 }
 
+interface LabelPlacement {
+	lineId: string;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
+
+/** Check if two axis-aligned rectangles overlap */
+function rectsOverlap(
+	a: { x: number; y: number; width: number; height: number },
+	b: { x: number; y: number; width: number; height: number },
+	padding = 0,
+): boolean {
+	return !(
+		a.x + a.width + padding < b.x ||
+		b.x + b.width + padding < a.x ||
+		a.y + a.height + padding < b.y ||
+		b.y + b.height + padding < a.y
+	);
+}
+
+/** Calculate overlap area between two rectangles */
+function overlapArea(
+	a: { x: number; y: number; width: number; height: number },
+	b: { x: number; y: number; width: number; height: number },
+): number {
+	const xOverlap = Math.max(
+		0,
+		Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x),
+	);
+	const yOverlap = Math.max(
+		0,
+		Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y),
+	);
+	return xOverlap * yOverlap;
+}
+
 /**
  * LineRenderer renders user-drawn lines as SVG strokes with optional labels.
- * Labels are positioned to avoid overlapping with other lines.
+ * Labels are positioned to avoid overlapping with each other and with lines.
  */
 export function LineRenderer({
 	svgLines,
@@ -50,18 +88,28 @@ export function LineRenderer({
 }: LineRendererProps) {
 	const { lineStrokes, lineLabels } = useMemo(() => {
 		const strokes: React.ReactElement[] = [];
-		const labels: React.ReactElement[] = [];
+
+		// Pre-calculate label data for all lines
+		interface LabelData {
+			line: Line;
+			start: { x: number; y: number };
+			end: { x: number; y: number };
+			labelText: string;
+			rectWidth: number;
+			rectHeight: number;
+			isHovered: boolean;
+		}
+
+		const baseFontPx = 80;
+		const paddingXPx = 10;
+		const paddingYPx = 6;
+		const fontSize = baseFontPx / zoom;
+		const approxCharWidthPx = baseFontPx * 0.6;
+
+		const labelDataList: LabelData[] = [];
 
 		for (const { line, start, end } of svgLines) {
 			const isHovered = line.id === hoveredStripId;
-
-			// Direction and midpoint in SVG space
-			const dx = end.x - start.x;
-			const dy = end.y - start.y;
-			const length = Math.hypot(dx, dy) || 1;
-
-			const midX = (start.x + end.x) / 2;
-			const midY = (start.y + end.y) / 2;
 
 			strokes.push(
 				<line
@@ -100,56 +148,137 @@ export function LineRenderer({
 				labelText = idLabel;
 			}
 
-			const baseFontPx = 80;
-			const paddingXPx = 10;
-			const paddingYPx = 6;
-
-			const fontSize = baseFontPx / zoom;
-			const approxCharWidthPx = baseFontPx * 0.6;
-
 			const labelLength = labelText.length;
-
 			const rectWidth =
 				(labelLength * approxCharWidthPx + paddingXPx * 2) / zoom;
 			const rectHeight = (baseFontPx + paddingYPx * 2) / zoom;
 
+			labelDataList.push({
+				line,
+				start,
+				end,
+				labelText,
+				rectWidth,
+				rectHeight,
+				isHovered,
+			});
+		}
+
+		// Place labels using a greedy algorithm that avoids overlaps
+		const placedLabels: LabelPlacement[] = [];
+		const labels: React.ReactElement[] = [];
+
+		// Positions along line to try: center, then offset positions
+		const tPositions = [0.5, 0.3, 0.7, 0.2, 0.8, 0.15, 0.85];
+		// Directions perpendicular to line to try
+		const directions = [1, -1];
+		// Multiple offset distances to try
+		const offsetMultipliers = [1, 1.5, 2, 2.5, 3];
+
+		for (const data of labelDataList) {
+			const { line, start, end, labelText, rectWidth, rectHeight, isHovered } =
+				data;
+
+			const dx = end.x - start.x;
+			const dy = end.y - start.y;
+			const length = Math.hypot(dx, dy) || 1;
+
+			// Normal vector (perpendicular to line)
 			const normalX = -dy / length;
 			const normalY = dx / length;
 
 			const isHorizontal = line.y1 === line.y2 && line.x1 !== line.x2;
 			const isVertical = line.x1 === line.x2 && line.y1 !== line.y2;
 
-			let offsetDistance: number;
+			// Base offset distance from line
+			let baseOffset: number;
 			if (isHorizontal || isVertical) {
-				offsetDistance = Math.max(cellSize * 0.4, rectHeight * 0.6);
+				baseOffset = Math.max(cellSize * 0.4, rectHeight * 0.6);
 			} else {
 				const baseOffsetPx = 4;
-				offsetDistance = Math.max(baseOffsetPx / zoom, rectHeight * 0.6);
+				baseOffset = Math.max(baseOffsetPx / zoom, rectHeight * 0.6);
 			}
 
-			let bestCenterX = midX + normalX * offsetDistance;
-			let bestCenterY = midY + normalY * offsetDistance;
+			let bestPosition: { x: number; y: number } | null = null;
 			let bestScore = -Infinity;
 
-			for (const dir of [1, -1]) {
-				const cx = midX + normalX * offsetDistance * dir;
-				const cy = midY + normalY * offsetDistance * dir;
+			// Try all candidate positions
+			for (const t of tPositions) {
+				// Point along the line at parameter t
+				const pointX = start.x + dx * t;
+				const pointY = start.y + dy * t;
 
-				let closest = Infinity;
-				for (const { start: s, end: e } of svgLines) {
-					const d = distancePointToSegment(cx, cy, s.x, s.y, e.x, e.y);
-					if (d < closest) closest = d;
-				}
+				for (const dir of directions) {
+					for (const mult of offsetMultipliers) {
+						const offsetDistance = baseOffset * mult;
+						const cx = pointX + normalX * offsetDistance * dir;
+						const cy = pointY + normalY * offsetDistance * dir;
 
-				if (closest > bestScore) {
-					bestScore = closest;
-					bestCenterX = cx;
-					bestCenterY = cy;
+						// Create candidate rectangle (top-left corner)
+						const candidateRect = {
+							x: cx - rectWidth / 2,
+							y: cy - rectHeight / 2,
+							width: rectWidth,
+							height: rectHeight,
+						};
+
+						// Check overlap with already placed labels
+						let hasLabelOverlap = false;
+						let totalOverlapArea = 0;
+						for (const placed of placedLabels) {
+							if (rectsOverlap(candidateRect, placed, 2)) {
+								hasLabelOverlap = true;
+								totalOverlapArea += overlapArea(candidateRect, placed);
+							}
+						}
+
+						// Calculate minimum distance to all lines
+						let minLineDistance = Infinity;
+						for (const { start: s, end: e } of svgLines) {
+							const d = distancePointToSegment(cx, cy, s.x, s.y, e.x, e.y);
+							if (d < minLineDistance) minLineDistance = d;
+						}
+
+						// Score: prefer positions with no label overlap, closer to line center (t=0.5),
+						// and farther from lines
+						let score = 0;
+
+						// Heavy penalty for label overlaps
+						if (hasLabelOverlap) {
+							score -= 10000 + totalOverlapArea;
+						}
+
+						// Prefer positions closer to center of line
+						const centerPreference = 1 - Math.abs(t - 0.5) * 2; // 1 at center, 0 at ends
+						score += centerPreference * 100;
+
+						// Prefer smaller offset multipliers (closer to line)
+						score -= mult * 10;
+
+						// Prefer farther from other lines
+						score += Math.min(minLineDistance, rectHeight * 2);
+
+						if (score > bestScore) {
+							bestScore = score;
+							bestPosition = { x: cx, y: cy };
+						}
+					}
 				}
 			}
 
-			const labelCenterX = bestCenterX;
-			const labelCenterY = bestCenterY;
+			// Use best position found
+			const labelCenterX = bestPosition?.x ?? start.x + dx * 0.5;
+			const labelCenterY = bestPosition?.y ?? start.y + dy * 0.5;
+
+			// Record this placement for future collision detection
+			placedLabels.push({
+				lineId: line.id,
+				x: labelCenterX - rectWidth / 2,
+				y: labelCenterY - rectHeight / 2,
+				width: rectWidth,
+				height: rectHeight,
+			});
+
 			const rectX = labelCenterX - rectWidth / 2;
 			const rectY = labelCenterY - rectHeight / 2;
 
