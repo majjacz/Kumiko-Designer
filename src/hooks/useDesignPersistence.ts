@@ -141,7 +141,17 @@ export function useDesignPersistence({
 					next.set(g.id, {
 						id: g.id,
 						name: g.name,
-						pieces: new Map(g.pieces.map((p) => [p.id, { ...p }])),
+						pieces: new Map(
+							g.pieces.map((p) => {
+								// Ensure rowIndex is present, computing from y if needed
+								// GRID_CELL_HEIGHT is 20mm
+								const rowIndex =
+									typeof p.rowIndex === "number"
+										? p.rowIndex
+										: Math.floor(p.y / 20);
+								return [p.id, { ...p, rowIndex }];
+							}),
+						),
 						fullCuts: new Map(g.fullCuts.map((c) => [c.id, { ...c }])),
 					});
 				}
