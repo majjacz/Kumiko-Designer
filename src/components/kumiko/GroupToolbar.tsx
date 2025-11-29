@@ -29,8 +29,10 @@ export interface GroupToolbarProps {
 	deleteGroup: (id: string) => void;
 	/** Handler to rename a group */
 	renameGroup: (id: string, newName: string) => void;
-	/** Total length of strips in mm */
+	/** Total length of strips in current group (mm) */
 	totalStripLength: number;
+	/** Total length of strips across all groups (mm) */
+	allGroupsTotalLength: number;
 	/** Display unit for formatting */
 	displayUnit: "mm" | "in";
 	/** Number of pieces in current group (for disabling clear button) */
@@ -57,6 +59,7 @@ export function GroupToolbar({
 	deleteGroup,
 	renameGroup,
 	totalStripLength,
+	allGroupsTotalLength,
 	displayUnit,
 	piecesCount,
 	onClearLayout,
@@ -237,12 +240,21 @@ export function GroupToolbar({
 			</div>
 
 			{/* Layout info */}
-			<div className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg">
+			<div className="flex items-center gap-3 px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg">
 				<Ruler className="w-4 h-4 text-emerald-400" />
-				<span className="text-sm font-medium text-gray-200">
-					{formatValue(totalStripLength, displayUnit)} {displayUnit}
-				</span>
-				<span className="text-xs text-gray-500">total</span>
+				<div className="flex items-center gap-1">
+					<span className="text-sm font-medium text-gray-200">
+						{formatValue(totalStripLength, displayUnit)} {displayUnit}
+					</span>
+					<span className="text-xs text-gray-500">group</span>
+				</div>
+				<span className="text-gray-600">|</span>
+				<div className="flex items-center gap-1">
+					<span className="text-sm font-medium text-gray-200">
+						{formatValue(allGroupsTotalLength, displayUnit)} {displayUnit}
+					</span>
+					<span className="text-xs text-gray-500">total</span>
+				</div>
 			</div>
 
 			{/* Export actions */}

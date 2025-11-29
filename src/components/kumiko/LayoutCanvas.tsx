@@ -36,8 +36,6 @@ export interface LayoutCanvasProps {
 	onDeletePiece: (pieceId: string) => void;
 	/** Display unit */
 	displayUnit: "mm" | "in";
-	/** Whether to visually flip the strips (for bottom-only optimization) */
-	flipped?: boolean;
 	/** Optional callback for showing notifications to the user */
 	onNotify?: NotifyCallback;
 }
@@ -60,7 +58,6 @@ export const LayoutCanvas = memo(function LayoutCanvas({
 	onLayoutClick,
 	onDeletePiece,
 	displayUnit,
-	flipped = false,
 	onNotify,
 }: LayoutCanvasProps) {
 	const [svgElement, setSvgElementInternal] = useState<SVGSVGElement | null>(
@@ -313,14 +310,14 @@ export const LayoutCanvas = memo(function LayoutCanvas({
 									rx={1}
 									ry={1}
 								/>
-								{/* Notches */}
+								{/* Notches - notches are already normalized at design time */}
 								{strip.notches.map((notch) => {
 									const center = notch.dist;
 									const left = piece.x + center - bitSize / 2;
 									const topHeight = halfCutDepth;
-									// Apply flip if the group is flipped (bottom-only optimization)
-									const isTopNotch = flipped ? !notch.fromTop : notch.fromTop;
-									const rectY = isTopNotch ? piece.y : piece.y + h - topHeight;
+									const rectY = notch.fromTop
+										? piece.y
+										: piece.y + h - topHeight;
 									return (
 										<rect
 											key={notch.id}
@@ -405,12 +402,6 @@ export const LayoutCanvas = memo(function LayoutCanvas({
 						const w = previewStrip.lengthMM;
 						const h = GRID_CELL_HEIGHT;
 
-						const topNotches = previewStrip.notches.filter(
-							(n) => n.fromTop,
-						).length;
-						const bottomNotches = previewStrip.notches.length - topNotches;
-						const shouldFlip = bottomNotches > 0 && topNotches === 0;
-
 						return (
 							<g opacity={0.5}>
 								{/* Strip preview body */}
@@ -427,15 +418,12 @@ export const LayoutCanvas = memo(function LayoutCanvas({
 									ry={1}
 									pointerEvents="none"
 								/>
-								{/* Notches preview */}
+								{/* Notches preview - notches are already normalized at design time */}
 								{previewStrip.notches.map((notch) => {
 									const center = notch.dist;
 									const left = hoverPoint.point.x + center - bitSize / 2;
 									const topHeight = halfCutDepth;
-									const isTopNotch = shouldFlip
-										? !notch.fromTop
-										: notch.fromTop;
-									const rectY = isTopNotch
+									const rectY = notch.fromTop
 										? hoverPoint.point.y
 										: hoverPoint.point.y + h - topHeight;
 									return (

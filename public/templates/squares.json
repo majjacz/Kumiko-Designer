@@ -4,8 +4,8 @@
   "bitSize": 3.175,
   "cutDepth": 18,
   "halfCutDepth": 9,
-  "gridCellSize": 7.5,
-  "stockLength": 330,
+  "gridCellSize": 10,
+  "stockLength": 400,
   "lines": [
     {
       "id": "id_b0ke2hdo6",
@@ -235,70 +235,164 @@
           "lineId": "id_b0ke2hdo6",
           "x": 0,
           "y": 0,
-          "rotation": 0
+          "rotation": 0,
+          "rowIndex": 0
         },
         {
           "id": "id_cvlmo8gah",
           "lineId": "id_b0ke2hdo6",
           "x": 0,
           "y": 20,
-          "rotation": 1
+          "rotation": 1,
+          "rowIndex": 1
         },
         {
           "id": "id_8srooxix9",
           "lineId": "id_24zw2hyza",
           "x": 240,
           "y": 100,
-          "rotation": 5
+          "rotation": 5,
+          "rowIndex": 5
         },
         {
           "id": "id_2n1fzgkpm",
           "lineId": "id_24zw2hyza",
           "x": 420,
           "y": 100,
-          "rotation": 5
+          "rotation": 5,
+          "rowIndex": 5
         },
         {
           "id": "id_1pir86erp",
           "lineId": "id_2hv8tjyrv",
           "x": 0,
           "y": 40,
-          "rotation": 2
+          "rotation": 2,
+          "rowIndex": 2
         },
         {
           "id": "id_ehab4jz0z",
           "lineId": "id_2hv8tjyrv",
           "x": 0,
           "y": 60,
-          "rotation": 3
+          "rotation": 3,
+          "rowIndex": 3
         },
         {
           "id": "id_u99x70v2e",
           "lineId": "270.000|15.000:T|30.000:T|45.000:T|120.000:T|135.000:T|150.000:T|225.000:T|240.000:T|255.000:T",
           "x": 0,
           "y": 0,
-          "rotation": 0
+          "rotation": 0,
+          "rowIndex": 0
         },
         {
           "id": "id_fgxmpjjct",
           "lineId": "270.000|15.000:T|30.000:T|45.000:T|120.000:T|135.000:T|150.000:T|225.000:T|240.000:T|255.000:T",
           "x": 0,
           "y": 20,
-          "rotation": 1
+          "rotation": 1,
+          "rowIndex": 1
         },
         {
           "id": "id_5tyqf9wjh",
           "lineId": "270.000|15.000:T|30.000:T|45.000:T|120.000:T|135.000:T|150.000:T|225.000:T|240.000:T|255.000:T",
           "x": 0,
           "y": 40,
-          "rotation": 2
+          "rotation": 2,
+          "rowIndex": 2
         },
         {
           "id": "id_e4go9g4zg",
           "lineId": "270.000|15.000:T|30.000:T|45.000:T|120.000:T|135.000:T|150.000:T|225.000:T|240.000:T|255.000:T",
           "x": 0,
           "y": 60,
-          "rotation": 3
+          "rotation": 3,
+          "rowIndex": 3
+        },
+        {
+          "id": "id_ebxieqkzm",
+          "lineId": "270.000|15.000:B|30.000:B|45.000:B|120.000:B|135.000:B|150.000:B|225.000:B|240.000:B|255.000:B",
+          "x": 0,
+          "y": 0,
+          "rowIndex": 0
+        },
+        {
+          "id": "id_xbk6pklcg",
+          "lineId": "270.000|15.000:B|30.000:B|45.000:B|120.000:B|135.000:B|150.000:B|225.000:B|240.000:B|255.000:B",
+          "x": 0,
+          "y": 20,
+          "rowIndex": 1
+        },
+        {
+          "id": "id_chfl5q3wz",
+          "lineId": "270.000|15.000:B|30.000:B|45.000:B|120.000:B|135.000:B|150.000:B|225.000:B|240.000:B|255.000:B",
+          "x": 0,
+          "y": 40,
+          "rowIndex": 2
+        },
+        {
+          "id": "id_3jlqj026b",
+          "lineId": "270.000|15.000:B|30.000:B|45.000:B|120.000:B|135.000:B|150.000:B|225.000:B|240.000:B|255.000:B",
+          "x": 0,
+          "y": 60,
+          "rowIndex": 3
+        },
+        {
+          "id": "id_t9tp4sjey",
+          "lineId": "60.000|7.500:B|22.500:B|37.500:B|52.500:B",
+          "x": 273.175,
+          "y": 0,
+          "rowIndex": 0
+        },
+        {
+          "id": "id_strkvla0a",
+          "lineId": "60.000|7.500:B|22.500:B|37.500:B|52.500:B",
+          "x": 273.175,
+          "y": 20,
+          "rowIndex": 1
+        },
+        {
+          "id": "id_cgosanywn",
+          "lineId": "60.000|7.500:B|22.500:B|37.500:B|52.500:B",
+          "x": 273.175,
+          "y": 40,
+          "rowIndex": 2
+        },
+        {
+          "id": "id_pq2natrnl",
+          "lineId": "60.000|7.500:B|22.500:B|37.500:B|52.500:B",
+          "x": 273.175,
+          "y": 60,
+          "rowIndex": 3
+        },
+        {
+          "id": "id_ex3xyzx51",
+          "lineId": "360.000|20.000:B|40.000:B|60.000:B|160.000:B|180.000:B|200.000:B|300.000:B|320.000:B|340.000:B",
+          "x": 0,
+          "y": 0,
+          "rowIndex": 0
+        },
+        {
+          "id": "id_onrut82rg",
+          "lineId": "360.000|20.000:B|40.000:B|60.000:B|160.000:B|180.000:B|200.000:B|300.000:B|320.000:B|340.000:B",
+          "x": 0,
+          "y": 20,
+          "rowIndex": 1
+        },
+        {
+          "id": "id_yufqc4eq8",
+          "lineId": "360.000|20.000:B|40.000:B|60.000:B|160.000:B|180.000:B|200.000:B|300.000:B|320.000:B|340.000:B",
+          "x": 0,
+          "y": 40,
+          "rowIndex": 2
+        },
+        {
+          "id": "id_ff7ewgj13",
+          "lineId": "360.000|20.000:B|40.000:B|60.000:B|160.000:B|180.000:B|200.000:B|300.000:B|320.000:B|340.000:B",
+          "x": 0,
+          "y": 60,
+          "rowIndex": 3
         }
       ],
       "fullCuts": []
@@ -308,214 +402,81 @@
       "name": "Long -",
       "pieces": [
         {
-          "id": "id_78nv7doh0",
-          "lineId": "id_0z80cq8bu",
-          "x": 0,
-          "y": 0,
-          "rotation": 0
-        },
-        {
-          "id": "id_bes0ly8gj",
-          "lineId": "id_0z80cq8bu",
-          "x": 0,
-          "y": 20,
-          "rotation": 1
-        },
-        {
-          "id": "id_ba6kad9q3",
-          "lineId": "id_0z80cq8bu",
-          "x": 0,
-          "y": 40,
-          "rotation": 2
-        },
-        {
-          "id": "id_t89663580",
-          "lineId": "id_0z80cq8bu",
-          "x": 0,
-          "y": 60,
-          "rotation": 3
-        },
-        {
-          "id": "id_7j0oyoxwi",
-          "lineId": "id_0z80cq8bu",
-          "x": 0,
-          "y": 80,
-          "rotation": 4
-        },
-        {
-          "id": "id_d4vpfgecp",
-          "lineId": "id_0p83wsrq4",
-          "x": 168.175,
-          "y": 0,
-          "rotation": 0
-        },
-        {
-          "id": "id_g3iprxd8b",
-          "lineId": "id_0p83wsrq4",
-          "x": 231.35000000000002,
-          "y": 0,
-          "rotation": 0
-        },
-        {
-          "id": "id_1s3tnhsyp",
-          "lineId": "id_0p83wsrq4",
-          "x": 168.175,
-          "y": 20,
-          "rotation": 1
-        },
-        {
-          "id": "id_zepd636da",
-          "lineId": "id_0p83wsrq4",
-          "x": 231.35000000000002,
-          "y": 20,
-          "rotation": 1
-        },
-        {
-          "id": "id_i8bgoj0v4",
-          "lineId": "id_0p83wsrq4",
-          "x": 168.175,
-          "y": 40,
-          "rotation": 2
-        },
-        {
-          "id": "id_c9ff3nyim",
-          "lineId": "id_0p83wsrq4",
-          "x": 231.35000000000002,
-          "y": 40,
-          "rotation": 2
-        },
-        {
-          "id": "id_g6rlbnnwe",
-          "lineId": "id_0p83wsrq4",
-          "x": 168.175,
-          "y": 60,
-          "rotation": 3
-        },
-        {
-          "id": "id_ukdpmclxm",
-          "lineId": "id_0p83wsrq4",
-          "x": 231.35000000000002,
-          "y": 60,
-          "rotation": 3
-        },
-        {
-          "id": "id_v86ie8adg",
-          "lineId": "id_0p83wsrq4",
-          "x": 168.175,
-          "y": 80,
-          "rotation": 4
-        },
-        {
-          "id": "id_kwbfy3xw2",
-          "lineId": "id_0p83wsrq4",
-          "x": 231.35000000000002,
-          "y": 80,
-          "rotation": 4
-        },
-        {
-          "id": "id_xav9jo8qg",
+          "id": "id_ry3zn5c4s",
           "lineId": "165.000|15.000:B|30.000:B|45.000:B|120.000:B|135.000:B|150.000:B",
           "x": 0,
           "y": 0,
-          "rotation": 0
+          "rowIndex": 0
         },
         {
-          "id": "id_2206a2l5b",
+          "id": "id_fwpufpps0",
           "lineId": "165.000|15.000:B|30.000:B|45.000:B|120.000:B|135.000:B|150.000:B",
-          "x": 0,
-          "y": 20,
-          "rotation": 1
-        },
-        {
-          "id": "id_01ayvtaru",
-          "lineId": "165.000|15.000:B|30.000:B|45.000:B|120.000:B|135.000:B|150.000:B",
-          "x": 0,
-          "y": 40,
-          "rotation": 2
-        },
-        {
-          "id": "id_tkzgaguq0",
-          "lineId": "165.000|15.000:B|30.000:B|45.000:B|120.000:B|135.000:B|150.000:B",
-          "x": 0,
-          "y": 60,
-          "rotation": 3
-        },
-        {
-          "id": "id_cqbtnpam7",
-          "lineId": "165.000|15.000:B|30.000:B|45.000:B|120.000:B|135.000:B|150.000:B",
-          "x": 0,
-          "y": 80,
-          "rotation": 4
-        },
-        {
-          "id": "id_5ue2nryv2",
-          "lineId": "60.000|52.500:B|37.500:B|22.500:B|7.500:B",
           "x": 168.175,
           "y": 0,
-          "rotation": 0
+          "rowIndex": 0
         },
         {
-          "id": "id_avhmi065v",
-          "lineId": "60.000|52.500:B|37.500:B|22.500:B|7.500:B",
-          "x": 231.35000000000002,
+          "id": "id_noyuldcvy",
+          "lineId": "165.000|15.000:B|30.000:B|45.000:B|120.000:B|135.000:B|150.000:B",
+          "x": 0,
+          "y": 20,
+          "rowIndex": 1
+        },
+        {
+          "id": "id_pcv41obc3",
+          "lineId": "165.000|15.000:B|30.000:B|45.000:B|120.000:B|135.000:B|150.000:B",
+          "x": 168.175,
+          "y": 20,
+          "rowIndex": 1
+        },
+        {
+          "id": "id_3phhp40fy",
+          "lineId": "165.000|15.000:B|30.000:B|45.000:B|120.000:B|135.000:B|150.000:B",
+          "x": 0,
+          "y": 40,
+          "rowIndex": 2
+        },
+        {
+          "id": "id_wyz7n6p9s",
+          "lineId": "165.000|15.000:B|30.000:B|45.000:B|120.000:B|135.000:B|150.000:B",
+          "x": 168.175,
+          "y": 40,
+          "rowIndex": 2
+        },
+        {
+          "id": "id_vv60ylafd",
+          "lineId": "220.000|20.000:B|40.000:B|60.000:B|160.000:B|180.000:B|200.000:B",
+          "x": 0,
           "y": 0,
-          "rotation": 0
+          "rowIndex": 0
         },
         {
-          "id": "id_67bupbt6h",
-          "lineId": "60.000|52.500:B|37.500:B|22.500:B|7.500:B",
-          "x": 168.175,
+          "id": "id_nyltebztq",
+          "lineId": "220.000|20.000:B|40.000:B|60.000:B|160.000:B|180.000:B|200.000:B",
+          "x": 0,
           "y": 20,
-          "rotation": 1
+          "rowIndex": 1
         },
         {
-          "id": "id_jpoz5xwfy",
-          "lineId": "60.000|52.500:B|37.500:B|22.500:B|7.500:B",
-          "x": 231.35000000000002,
-          "y": 20,
-          "rotation": 1
-        },
-        {
-          "id": "id_iexn2286s",
-          "lineId": "60.000|52.500:B|37.500:B|22.500:B|7.500:B",
-          "x": 168.175,
+          "id": "id_1iwkfh0vd",
+          "lineId": "220.000|20.000:B|40.000:B|60.000:B|160.000:B|180.000:B|200.000:B",
+          "x": 0,
           "y": 40,
-          "rotation": 2
+          "rowIndex": 2
         },
         {
-          "id": "id_9ehhflt6z",
-          "lineId": "60.000|52.500:B|37.500:B|22.500:B|7.500:B",
-          "x": 231.35000000000002,
-          "y": 40,
-          "rotation": 2
-        },
-        {
-          "id": "id_dqq9higb4",
-          "lineId": "60.000|52.500:B|37.500:B|22.500:B|7.500:B",
-          "x": 168.175,
+          "id": "id_6wno7b1zq",
+          "lineId": "220.000|20.000:B|40.000:B|60.000:B|160.000:B|180.000:B|200.000:B",
+          "x": 0,
           "y": 60,
-          "rotation": 3
+          "rowIndex": 3
         },
         {
-          "id": "id_6r8j5tgje",
-          "lineId": "60.000|52.500:B|37.500:B|22.500:B|7.500:B",
-          "x": 231.35000000000002,
-          "y": 60,
-          "rotation": 3
-        },
-        {
-          "id": "id_q0sb3xanh",
-          "lineId": "60.000|52.500:B|37.500:B|22.500:B|7.500:B",
-          "x": 168.175,
+          "id": "id_0go926snq",
+          "lineId": "220.000|20.000:B|40.000:B|60.000:B|160.000:B|180.000:B|200.000:B",
+          "x": 0,
           "y": 80,
-          "rotation": 4
-        },
-        {
-          "id": "id_2ci08icre",
-          "lineId": "60.000|52.500:B|37.500:B|22.500:B|7.500:B",
-          "x": 231.35000000000002,
-          "y": 80,
-          "rotation": 4
+          "rowIndex": 4
         }
       ],
       "fullCuts": []
@@ -529,230 +490,505 @@
           "lineId": "id_hmo1o9q09",
           "x": 0,
           "y": 0,
-          "rotation": 0
+          "rotation": 0,
+          "rowIndex": 0
         },
         {
           "id": "id_yki8kduwj",
           "lineId": "id_hmo1o9q09",
           "x": 244.625,
           "y": 0,
-          "rotation": 0
+          "rotation": 0,
+          "rowIndex": 0
         },
         {
           "id": "id_gbrgb7fr1",
           "lineId": "id_hmo1o9q09",
           "x": 0,
           "y": 20,
-          "rotation": 1
+          "rotation": 1,
+          "rowIndex": 1
         },
         {
           "id": "id_4ceru9f4y",
           "lineId": "id_hmo1o9q09",
           "x": 244.625,
           "y": 20,
-          "rotation": 1
+          "rotation": 1,
+          "rowIndex": 1
         },
         {
           "id": "id_uzo8vp04o",
           "lineId": "id_hmo1o9q09",
           "x": 0,
           "y": 40,
-          "rotation": 2
+          "rotation": 2,
+          "rowIndex": 2
         },
         {
           "id": "id_oewdonnxd",
           "lineId": "id_hmo1o9q09",
           "x": 244.625,
           "y": 40,
-          "rotation": 2
+          "rotation": 2,
+          "rowIndex": 2
         },
         {
           "id": "id_srfhwjsra",
           "lineId": "id_0p83wsrq4",
           "x": 186.35000000000002,
           "y": 0,
-          "rotation": 0
+          "rotation": 0,
+          "rowIndex": 0
         },
         {
           "id": "id_fx99rz733",
           "lineId": "id_0p83wsrq4",
           "x": 186.35000000000002,
           "y": 20,
-          "rotation": 1
+          "rotation": 1,
+          "rowIndex": 1
         },
         {
           "id": "id_8kauh19so",
           "lineId": "id_0p83wsrq4",
           "x": 186.35000000000002,
           "y": 40,
-          "rotation": 2
+          "rotation": 2,
+          "rowIndex": 2
         },
         {
           "id": "id_t2nug6uio",
           "lineId": "id_0aw2jwqv2",
           "x": 0,
           "y": 60,
-          "rotation": 3
+          "rotation": 3,
+          "rowIndex": 3
         },
         {
           "id": "id_6kx3rn2qf",
           "lineId": "id_pp9qc8yiq",
           "x": 93.175,
           "y": 60,
-          "rotation": 3
+          "rotation": 3,
+          "rowIndex": 3
         },
         {
           "id": "id_6ipqnh1jn",
           "lineId": "id_r4lrl7t07",
           "x": 156.35000000000002,
           "y": 60,
-          "rotation": 3
+          "rotation": 3,
+          "rowIndex": 3
         },
         {
           "id": "id_lo8q5wowz",
           "lineId": "id_4clis3m0l",
           "x": 249.525,
           "y": 0,
-          "rotation": 0
+          "rotation": 0,
+          "rowIndex": 0
         },
         {
           "id": "id_lzpjjn5ft",
           "lineId": "id_4clis3m0l",
           "x": 249.525,
           "y": 20,
-          "rotation": 1
+          "rotation": 1,
+          "rowIndex": 1
         },
         {
           "id": "id_kg6lo0kyz",
           "lineId": "id_4clis3m0l",
           "x": 249.525,
           "y": 40,
-          "rotation": 2
+          "rotation": 2,
+          "rowIndex": 2
         },
         {
           "id": "id_tx98szwfc",
           "lineId": "id_4clis3m0l",
           "x": 249.525,
           "y": 60,
-          "rotation": 3
+          "rotation": 3,
+          "rowIndex": 3
         },
         {
           "id": "id_88wkb45je",
           "lineId": "90.000|7.500:B|22.500:B|67.500:B|82.500:B",
           "x": 0,
           "y": 0,
-          "rotation": 0
+          "rotation": 0,
+          "rowIndex": 0
         },
         {
           "id": "id_9vd2q8rua",
           "lineId": "90.000|7.500:B|22.500:B|67.500:B|82.500:B",
           "x": 0,
           "y": 20,
-          "rotation": 1
+          "rotation": 1,
+          "rowIndex": 1
         },
         {
           "id": "id_ytsq7ybzb",
           "lineId": "90.000|7.500:B|22.500:B|67.500:B|82.500:B",
           "x": 0,
           "y": 40,
-          "rotation": 2
+          "rotation": 2,
+          "rowIndex": 2
         },
         {
           "id": "id_m63g17p75",
           "lineId": "90.000|7.500:B|22.500:B|67.500:B|82.500:B",
           "x": 93.175,
           "y": 0,
-          "rotation": 0
+          "rotation": 0,
+          "rowIndex": 0
         },
         {
           "id": "id_0ee1x02h6",
           "lineId": "90.000|7.500:B|22.500:B|67.500:B|82.500:B",
           "x": 93.175,
           "y": 20,
-          "rotation": 1
+          "rotation": 1,
+          "rowIndex": 1
         },
         {
           "id": "id_u52ty3w10",
           "lineId": "90.000|7.500:B|22.500:B|67.500:B|82.500:B",
           "x": 93.175,
           "y": 40,
-          "rotation": 2
+          "rotation": 2,
+          "rowIndex": 2
         },
         {
           "id": "id_z5vezxy3d",
           "lineId": "90.000|7.500:B|22.500:B|67.500:B|82.500:B",
           "x": 0,
           "y": 60,
-          "rotation": 3
+          "rotation": 3,
+          "rowIndex": 3
         },
         {
           "id": "id_bkp2e8bfz",
           "lineId": "90.000|7.500:B|22.500:B|67.500:B|82.500:B",
           "x": 93.175,
           "y": 60,
-          "rotation": 3
+          "rotation": 3,
+          "rowIndex": 3
         },
         {
           "id": "id_0upu8jggm",
           "lineId": "75.000|67.500:T|52.500:T|37.500:T|22.500:T|7.500:T",
           "x": 186.35000000000002,
           "y": 0,
-          "rotation": 0
+          "rotation": 0,
+          "rowIndex": 0
         },
         {
           "id": "id_y7v86p6ol",
           "lineId": "75.000|67.500:T|52.500:T|37.500:T|22.500:T|7.500:T",
           "x": 186.35000000000002,
           "y": 20,
-          "rotation": 1
+          "rotation": 1,
+          "rowIndex": 1
         },
         {
           "id": "id_kns9w5nsn",
           "lineId": "75.000|67.500:T|52.500:T|37.500:T|22.500:T|7.500:T",
           "x": 186.35000000000002,
           "y": 40,
-          "rotation": 2
+          "rotation": 2,
+          "rowIndex": 2
         },
         {
           "id": "id_h2l96m1w1",
           "lineId": "75.000|67.500:T|52.500:T|37.500:T|22.500:T|7.500:T",
           "x": 186.35000000000002,
           "y": 60,
-          "rotation": 3
+          "rotation": 3,
+          "rowIndex": 3
         },
         {
           "id": "id_zhuvweasq",
           "lineId": "60.000|52.500:B|37.500:B|22.500:B|7.500:B",
           "x": 264.52500000000003,
           "y": 0,
-          "rotation": 0
+          "rotation": 0,
+          "rowIndex": 0
         },
         {
           "id": "id_m2ir6znwh",
           "lineId": "60.000|52.500:B|37.500:B|22.500:B|7.500:B",
           "x": 264.52500000000003,
           "y": 20,
-          "rotation": 1
+          "rotation": 1,
+          "rowIndex": 1
         },
         {
           "id": "id_ewd8txq4i",
           "lineId": "60.000|52.500:B|37.500:B|22.500:B|7.500:B",
           "x": 264.52500000000003,
           "y": 40,
-          "rotation": 2
+          "rotation": 2,
+          "rowIndex": 2
         },
         {
           "id": "id_led65flwa",
           "lineId": "60.000|52.500:B|37.500:B|22.500:B|7.500:B",
           "x": 264.52500000000003,
           "y": 60,
-          "rotation": 3
+          "rotation": 3,
+          "rowIndex": 3
+        },
+        {
+          "id": "id_2e9qh9jty",
+          "lineId": "60.000|7.500:B|22.500:B|37.500:B|52.500:B",
+          "x": 186.35000000000002,
+          "y": 0,
+          "rowIndex": 0
+        },
+        {
+          "id": "id_darwibsra",
+          "lineId": "60.000|7.500:B|22.500:B|37.500:B|52.500:B",
+          "x": 249.525,
+          "y": 0,
+          "rowIndex": 0
+        },
+        {
+          "id": "id_gp7aofxjk",
+          "lineId": "60.000|7.500:B|22.500:B|37.500:B|52.500:B",
+          "x": 186.35000000000002,
+          "y": 20,
+          "rowIndex": 1
+        },
+        {
+          "id": "id_t1pevk91b",
+          "lineId": "60.000|7.500:B|22.500:B|37.500:B|52.500:B",
+          "x": 249.525,
+          "y": 20,
+          "rowIndex": 1
+        },
+        {
+          "id": "id_ei8a2lhrz",
+          "lineId": "60.000|7.500:B|22.500:B|37.500:B|52.500:B",
+          "x": 186.35000000000002,
+          "y": 40,
+          "rowIndex": 2
+        },
+        {
+          "id": "id_xzdvngyew",
+          "lineId": "60.000|7.500:B|22.500:B|37.500:B|52.500:B",
+          "x": 249.525,
+          "y": 40,
+          "rowIndex": 2
+        },
+        {
+          "id": "id_26y0i1mqk",
+          "lineId": "60.000|7.500:B|22.500:B|37.500:B|52.500:B",
+          "x": 186.35000000000002,
+          "y": 60,
+          "rowIndex": 3
+        },
+        {
+          "id": "id_7f7pnkwa5",
+          "lineId": "60.000|7.500:B|22.500:B|37.500:B|52.500:B",
+          "x": 249.525,
+          "y": 60,
+          "rowIndex": 3
+        },
+        {
+          "id": "id_79imqw3oi",
+          "lineId": "80.000|10.000:B|30.000:B|50.000:B|70.000:B",
+          "x": 0,
+          "y": 0,
+          "rowIndex": 0
+        },
+        {
+          "id": "id_nh2zunw4e",
+          "lineId": "80.000|10.000:B|30.000:B|50.000:B|70.000:B",
+          "x": 0,
+          "y": 20,
+          "rowIndex": 1
+        },
+        {
+          "id": "id_s9m84lzdd",
+          "lineId": "80.000|10.000:B|30.000:B|50.000:B|70.000:B",
+          "x": 0,
+          "y": 40,
+          "rowIndex": 2
+        },
+        {
+          "id": "id_j3bzjp3dw",
+          "lineId": "80.000|10.000:B|30.000:B|50.000:B|70.000:B",
+          "x": 0,
+          "y": 60,
+          "rowIndex": 3
+        },
+        {
+          "id": "id_iapb9aidq",
+          "lineId": "80.000|10.000:B|30.000:B|50.000:B|70.000:B",
+          "x": 0,
+          "y": 80,
+          "rowIndex": 4
+        },
+        {
+          "id": "id_8zyx8zsqx",
+          "lineId": "80.000|10.000:B|30.000:B|50.000:B|70.000:B",
+          "x": 0,
+          "y": 100,
+          "rowIndex": 5
+        },
+        {
+          "id": "id_b5ctehh50",
+          "lineId": "80.000|10.000:B|30.000:B|50.000:B|70.000:B",
+          "x": 83.175,
+          "y": 0,
+          "rowIndex": 0
+        },
+        {
+          "id": "id_fm0etai8o",
+          "lineId": "80.000|10.000:B|30.000:B|50.000:B|70.000:B",
+          "x": 83.175,
+          "y": 20,
+          "rowIndex": 1
+        },
+        {
+          "id": "id_idrprxj6v",
+          "lineId": "80.000|10.000:B|30.000:B|50.000:B|70.000:B",
+          "x": 83.175,
+          "y": 40,
+          "rowIndex": 2
+        },
+        {
+          "id": "id_o671k6izt",
+          "lineId": "80.000|10.000:B|30.000:B|50.000:B|70.000:B",
+          "x": 83.175,
+          "y": 60,
+          "rowIndex": 3
+        },
+        {
+          "id": "id_t8u7sqsgh",
+          "lineId": "80.000|10.000:B|30.000:B|50.000:B|70.000:B",
+          "x": 83.175,
+          "y": 80,
+          "rowIndex": 4
+        },
+        {
+          "id": "id_vmyr5q1at",
+          "lineId": "80.000|10.000:B|30.000:B|50.000:B|70.000:B",
+          "x": 83.175,
+          "y": 100,
+          "rowIndex": 5
+        },
+        {
+          "id": "id_zce9nieue",
+          "lineId": "120.000|10.000:B|30.000:B|90.000:B|110.000:B",
+          "x": 166.35000000000002,
+          "y": 0,
+          "rowIndex": 0
+        },
+        {
+          "id": "id_lti1chhtu",
+          "lineId": "120.000|10.000:B|30.000:B|90.000:B|110.000:B",
+          "x": 166.35000000000002,
+          "y": 20,
+          "rowIndex": 1
+        },
+        {
+          "id": "id_lusc8t9x5",
+          "lineId": "120.000|10.000:B|30.000:B|90.000:B|110.000:B",
+          "x": 166.35000000000002,
+          "y": 40,
+          "rowIndex": 2
+        },
+        {
+          "id": "id_ynxnzvrh7",
+          "lineId": "120.000|10.000:B|30.000:B|90.000:B|110.000:B",
+          "x": 166.35000000000002,
+          "y": 60,
+          "rowIndex": 3
+        },
+        {
+          "id": "id_h536j733c",
+          "lineId": "120.000|10.000:B|30.000:B|90.000:B|110.000:B",
+          "x": 166.35000000000002,
+          "y": 80,
+          "rowIndex": 4
+        },
+        {
+          "id": "id_yg97cawy2",
+          "lineId": "120.000|10.000:B|30.000:B|90.000:B|110.000:B",
+          "x": 166.35000000000002,
+          "y": 100,
+          "rowIndex": 5
+        },
+        {
+          "id": "id_875hu546y",
+          "lineId": "80.000|10.000:B|30.000:B|50.000:B|70.000:B",
+          "x": 0,
+          "y": 120,
+          "rowIndex": 6
+        },
+        {
+          "id": "id_edf7idsib",
+          "lineId": "80.000|10.000:B|30.000:B|50.000:B|70.000:B",
+          "x": 83.175,
+          "y": 120,
+          "rowIndex": 6
+        },
+        {
+          "id": "id_7kumqpml5",
+          "lineId": "80.000|10.000:B|30.000:B|50.000:B|70.000:B",
+          "x": 0,
+          "y": 140,
+          "rowIndex": 7
+        },
+        {
+          "id": "id_2o9vbk304",
+          "lineId": "80.000|10.000:B|30.000:B|50.000:B|70.000:B",
+          "x": 83.175,
+          "y": 140,
+          "rowIndex": 7
+        },
+        {
+          "id": "id_hh820z57t",
+          "lineId": "120.000|10.000:B|30.000:B|90.000:B|110.000:B",
+          "x": 166.35000000000002,
+          "y": 120,
+          "rowIndex": 6
+        },
+        {
+          "id": "id_dm0h37qd3",
+          "lineId": "120.000|10.000:B|30.000:B|90.000:B|110.000:B",
+          "x": 166.35000000000002,
+          "y": 140,
+          "rowIndex": 7
+        },
+        {
+          "id": "id_a4wuwyv2e",
+          "lineId": "100.000|10.000:B|30.000:B|50.000:B|70.000:B|90.000:B",
+          "x": 289.52500000000003,
+          "y": 0,
+          "rowIndex": 0
+        },
+        {
+          "id": "id_joip7fuhq",
+          "lineId": "100.000|10.000:B|30.000:B|50.000:B|70.000:B|90.000:B",
+          "x": 289.52500000000003,
+          "y": 20,
+          "rowIndex": 1
         }
       ],
       "fullCuts": []
     }
   ],
   "activeGroupId": "id_0twjyjrpt",
-  "designName": "Nested Squares",
-  "intersectionStates": []
+  "designName": "squares",
+  "intersectionStates": [],
+  "gridViewState": {
+    "zoom": 23.923444976076553,
+    "panX": -45478.468899521526,
+    "panY": -47392.34449760765
+  }
 }

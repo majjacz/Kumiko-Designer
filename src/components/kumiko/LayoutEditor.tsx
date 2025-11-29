@@ -93,7 +93,7 @@ const LayoutEditor = memo(function LayoutEditor({
 		[pieces, designStrips, bitSize],
 	);
 
-	// Calculate total length of strips in layout
+	// Calculate total length of strips in current group
 	const totalStripLength = useMemo(() => {
 		let total = 0;
 		for (const piece of pieces) {
@@ -104,6 +104,18 @@ const LayoutEditor = memo(function LayoutEditor({
 		}
 		return total;
 	}, [pieces, designStrips]);
+
+	// Calculate total length across all groups
+	const allGroupsTotalLength = useMemo(() => {
+		let total = 0;
+		for (const piece of allPieces) {
+			const strip = designStrips.find((s) => s.id === piece.lineId);
+			if (strip) {
+				total += strip.lengthMM;
+			}
+		}
+		return total;
+	}, [allPieces, designStrips]);
 
 	// Calculate the length of each row
 	const rowLengths = useMemo(
@@ -124,14 +136,14 @@ const LayoutEditor = memo(function LayoutEditor({
 		return analyzeGroupPasses(safeActiveGroup, designStrips);
 	}, [safeActiveGroup, designStrips]);
 
-	const shouldFlip = groupPasses.hasBottom && !groupPasses.hasTop;
-
 	const svgPreview = useMemo(() => {
 		if (!safeActiveGroup) return null;
 
 		const { hasTop, hasBottom } = groupPasses;
 
-		// Case 1: Mixed (Double-sided)
+		// Case 1: Mixed (Double-sided) - strips with both top and bottom notches
+		// Note: After normalization, this only occurs for truly double-sided strips
+		// (i.e., strips that cannot be flipped to single-sided)
 		if (hasTop && hasBottom) {
 			const top = generateGroupSVG({
 				group: safeActiveGroup,
@@ -154,19 +166,9 @@ const LayoutEditor = memo(function LayoutEditor({
 			return top || bottom || null;
 		}
 
-		// Case 2: Bottom Only -> Auto-flip to Top (Standard)
-		if (shouldFlip) {
-			return generateGroupSVG({
-				group: safeActiveGroup,
-				designStrips,
-				bitSize,
-				stockLength,
-				pass: "all",
-				flip: true,
-			});
-		}
-
-		// Case 3: Top Only (or empty) -> Standard "all" pass
+		// Case 2: Single-sided (all notches on one side after normalization)
+		// Bottom-only strips are automatically normalized to top-only at design time,
+		// so we just need a standard pass without flipping
 		return generateGroupSVG({
 			group: safeActiveGroup,
 			designStrips,
@@ -174,14 +176,7 @@ const LayoutEditor = memo(function LayoutEditor({
 			stockLength,
 			pass: "all",
 		});
-	}, [
-		safeActiveGroup,
-		designStrips,
-		bitSize,
-		stockLength,
-		groupPasses,
-		shouldFlip,
-	]);
+	}, [safeActiveGroup, designStrips, bitSize, stockLength, groupPasses]);
 
 	const handleClearLayout = () => {
 		// Delete all pieces in the current group
@@ -214,6 +209,7 @@ const LayoutEditor = memo(function LayoutEditor({
 				deleteGroup={deleteGroup}
 				renameGroup={renameGroup}
 				totalStripLength={totalStripLength}
+				allGroupsTotalLength={allGroupsTotalLength}
 				displayUnit={displayUnit}
 				piecesCount={pieces.length}
 				onClearLayout={handleClearLayout}
@@ -248,7 +244,6 @@ const LayoutEditor = memo(function LayoutEditor({
 					onLayoutClick={onLayoutClick}
 					onDeletePiece={handleDeletePiece}
 					displayUnit={displayUnit}
-					flipped={shouldFlip}
 					onNotify={onNotify}
 				/>
 			</div>

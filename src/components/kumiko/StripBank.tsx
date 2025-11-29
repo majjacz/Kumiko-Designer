@@ -190,21 +190,14 @@ export function StripBank({
 												ry={1}
 											/>
 											{strip.notches.map((notch) => {
-												// Determine if this strip is "bottom only" and should be visually flipped
-												const topNotches = strip.notches.filter(
-													(n) => n.fromTop,
-												).length;
-												const bottomNotches = strip.notches.length - topNotches;
-												const shouldFlip =
-													bottomNotches > 0 && topNotches === 0;
-
-												const isTopNotch = shouldFlip
-													? !notch.fromTop
-													: notch.fromTop;
+												// Notches are already normalized at design time
+												// (bottom-only strips are flipped to have top notches)
 												const previewHeight = 10;
 												const notchHeight = 4;
 												const x = notch.dist - bitSize / 2;
-												const y = isTopNotch ? 0 : previewHeight - notchHeight;
+												const y = notch.fromTop
+													? 0
+													: previewHeight - notchHeight;
 												return (
 													<rect
 														key={notch.id}

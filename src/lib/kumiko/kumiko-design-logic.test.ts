@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
 	computeDesignStrips,
 	computeIntersections,
+	normalizeStripNotches,
 } from "./kumiko-design-logic";
 import { makeLine } from "./test-fixtures";
-import type { Intersection, Line } from "./types";
+import type { Intersection, Line, Notch } from "./types";
 
 describe("computeIntersections()", () => {
 	it("detects a single intersection with horizontal-over-vertical heuristic", () => {
@@ -123,9 +124,11 @@ describe("computeDesignStrips()", () => {
 		expect(horizontal.notches[0].dist).toBeCloseTo(5, 5);
 		expect(vertical.notches[0].dist).toBeCloseTo(5, 5);
 
-		// with horizontal on top, vertical should get a notch from the top,
-		// horizontal from the bottom
-		expect(horizontal.notches[0].fromTop).toBe(false);
+		// Both strips get notches from the top after normalization.
+		// The horizontal strip originally had a bottom notch (since it was on top),
+		// but was normalized to have a top notch (single-sided optimization).
+		// The vertical strip naturally had a top notch (since it was on bottom).
+		expect(horizontal.notches[0].fromTop).toBe(true);
 		expect(vertical.notches[0].fromTop).toBe(true);
 	});
 
@@ -218,5 +221,97 @@ describe("computeDesignStrips()", () => {
 		);
 
 		expect(strips).toHaveLength(0);
+	});
+
+	it("automatically flips strips that have only bottom notches to have top notches", () => {
+		// Create two crossing lines where one will have only bottom notches
+		const lines = new Map<string, Line>();
+		lines.set("h", makeLine("h", 0, 0, 10, 0)); // horizontal
+		lines.set("v", makeLine("v", 5, -5, 5, 5)); // vertical crossing at (5,0)
+
+		// Set the intersection so horizontal is on top (default heuristic)
+		// This means horizontal strip gets bottom notch, vertical gets top notch
+		const intersectionStates = new Map<string, boolean>();
+		const intersections = computeIntersections(lines, intersectionStates);
+
+		const gridCellSize = 1;
+		const bitSize = 3.175;
+
+		const strips = computeDesignStrips(
+			lines,
+			intersections,
+			gridCellSize,
+			bitSize,
+		);
+
+		expect(strips).toHaveLength(2);
+
+		// Find horizontal strip (the one that originally had bottom notch)
+		const horizontal = strips.find((s) => s.y1 === s.y2);
+		if (!horizontal) throw new Error("Horizontal strip not found");
+
+		// After normalization, horizontal strip should have top notch
+		// (it was flipped because it only had bottom notches)
+		expect(horizontal.notches).toHaveLength(1);
+		expect(horizontal.notches[0].fromTop).toBe(true);
+
+		// Vertical strip already had top notch, should remain unchanged
+		const vertical = strips.find((s) => s.x1 === s.x2);
+		if (!vertical) throw new Error("Vertical strip not found");
+		expect(vertical.notches).toHaveLength(1);
+		expect(vertical.notches[0].fromTop).toBe(true);
+	});
+});
+
+describe("normalizeStripNotches()", () => {
+	it("returns empty array unchanged", () => {
+		const notches: Notch[] = [];
+		const result = normalizeStripNotches(notches);
+		expect(result).toHaveLength(0);
+	});
+
+	it("leaves top-only notches unchanged", () => {
+		const notches: Notch[] = [
+			{ id: "n1", otherLineId: "x", dist: 10, fromTop: true },
+			{ id: "n2", otherLineId: "y", dist: 50, fromTop: true },
+		];
+		const result = normalizeStripNotches(notches);
+		expect(result).toHaveLength(2);
+		expect(result[0].fromTop).toBe(true);
+		expect(result[1].fromTop).toBe(true);
+	});
+
+	it("flips bottom-only notches to top", () => {
+		const notches: Notch[] = [
+			{ id: "n1", otherLineId: "x", dist: 10, fromTop: false },
+			{ id: "n2", otherLineId: "y", dist: 50, fromTop: false },
+		];
+		const result = normalizeStripNotches(notches);
+		expect(result).toHaveLength(2);
+		expect(result[0].fromTop).toBe(true);
+		expect(result[1].fromTop).toBe(true);
+	});
+
+	it("leaves mixed notches unchanged", () => {
+		const notches: Notch[] = [
+			{ id: "n1", otherLineId: "x", dist: 10, fromTop: true },
+			{ id: "n2", otherLineId: "y", dist: 50, fromTop: false },
+		];
+		const result = normalizeStripNotches(notches);
+		expect(result).toHaveLength(2);
+		expect(result[0].fromTop).toBe(true);
+		expect(result[1].fromTop).toBe(false);
+	});
+
+	it("preserves other notch properties when flipping", () => {
+		const notches: Notch[] = [
+			{ id: "n1", otherLineId: "lineA", dist: 25.5, fromTop: false },
+		];
+		const result = normalizeStripNotches(notches);
+		expect(result).toHaveLength(1);
+		expect(result[0].id).toBe("n1");
+		expect(result[0].otherLineId).toBe("lineA");
+		expect(result[0].dist).toBe(25.5);
+		expect(result[0].fromTop).toBe(true);
 	});
 });

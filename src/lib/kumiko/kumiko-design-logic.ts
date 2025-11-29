@@ -1,6 +1,35 @@
 import { findIntersection, gcd } from "./geometry";
-import type { DesignStrip, Intersection, Line } from "./types";
+import type { DesignStrip, Intersection, Line, Notch } from "./types";
 import { newId } from "./utils";
+
+/**
+ * Normalize notches so that strips with only bottom notches are flipped
+ * to have only top notches. This allows single-pass CNC cutting.
+ *
+ * Physical reality: A wooden strip can always be flipped 180° so that
+ * bottom notches become top notches. We apply this normalization at
+ * design time so that all strips are oriented with notches preferring
+ * the top side where possible.
+ *
+ * @param notches - The original notches array
+ * @returns Normalized notches array with flipped orientation if needed
+ */
+export function normalizeStripNotches(notches: Notch[]): Notch[] {
+	if (notches.length === 0) return notches;
+
+	const hasTop = notches.some((n) => n.fromTop);
+	const hasBottom = notches.some((n) => !n.fromTop);
+
+	// If we have only bottom notches, flip them all to top
+	if (hasBottom && !hasTop) {
+		return notches.map((n) => ({
+			...n,
+			fromTop: true,
+		}));
+	}
+
+	return notches;
+}
 
 /**
  * Compute intersections between all pairs of lines, ensuring only one notch per coordinate.
@@ -215,8 +244,12 @@ export function computeDesignStrips(
 					)
 					.sort((a, b) => a.dist - b.dist);
 
+				// Normalize notches: flip bottom-only strips to have top notches
+				// This enables single-pass CNC cutting for these strips
+				const normalizedNotches = normalizeStripNotches(notches);
+
 				// Compute a stable, geometry-derived strip id from length and notch pattern.
-				const stripId = computeStripGeometryId(lengthMM, notches);
+				const stripId = computeStripGeometryId(lengthMM, normalizedNotches);
 				// Compute a short, user-friendly display code derived from the geometry id.
 				const displayCode = computeStripDisplayCode(stripId);
 
@@ -224,7 +257,7 @@ export function computeDesignStrips(
 					...line,
 					id: stripId,
 					lengthMM,
-					notches,
+					notches: normalizedNotches,
 					// Preserve the originating grid line id separately so the UI
 					// can still correlate strips back to specific lines.
 					sourceLineId: line.id,
