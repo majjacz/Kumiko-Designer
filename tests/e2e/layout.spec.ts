@@ -4,8 +4,8 @@ async function goToLayout(page: Page) {
   await page.goto("/");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
-  // Wait for the design to load (squares template is default)
-  await expect(page.getByPlaceholder("Untitled design")).toHaveValue("squares", { timeout: 10000 });
+  // Wait for the design to load (Basic Grid template is default)
+  await expect(page.getByPlaceholder("Untitled design")).toHaveValue("Basic Grid", { timeout: 10000 });
   await page.getByRole("tab", { name: "Layout" }).click();
 }
 

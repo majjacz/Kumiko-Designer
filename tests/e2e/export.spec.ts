@@ -3,7 +3,7 @@ import { test, expect, type Page } from "@playwright/test";
 async function setupLayoutWithPiece(page: Page) {
   await page.goto("/");
   // Wait for the default template to load to ensure stability
-  await expect(page.getByPlaceholder("Untitled design")).toHaveValue("squares");
+  await expect(page.getByPlaceholder("Untitled design")).toHaveValue("Basic Grid");
   
   await page.evaluate(() => localStorage.clear());
   await page.getByRole("tab", { name: "Layout" }).click();

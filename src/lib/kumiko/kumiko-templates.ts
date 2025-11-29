@@ -9,21 +9,21 @@ export interface TemplateInfo {
 
 export const TEMPLATES: TemplateInfo[] = [
 	{
+		id: "basic-grid",
+		name: "Basic Grid",
+		description: "Simple rectangular grid pattern - great for beginners",
+		path: "/templates/basic-grid.json",
+	},
+	{
 		id: "squares",
-		name: "Squares",
-		description: "Geometric pattern featuring square shapes",
+		name: "Nested Squares",
+		description: "Concentric square pattern with multiple layers",
 		path: "/templates/squares.json",
 	},
 	{
-		id: "template-1",
-		name: "Template 1",
-		description: "Template design 1",
-		path: "/templates/template-1.json",
-	},
-	{
 		id: "complex",
-		name: "Complex",
-		description: "Complex",
+		name: "Interlocking Lattice",
+		description: "Advanced multi-segment pattern with intricate intersections",
 		path: "/templates/complex.json",
 	},
 ];
