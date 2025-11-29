@@ -401,6 +401,8 @@ function GridDesigner({
 					// otherwise show the crosshair cursor for drawing on the grid.
 					cursor: isHoveringNotch ? "pointer" : "crosshair",
 					touchAction: "none",
+					userSelect: "none",
+					WebkitUserSelect: "none",
 				}}
 			>
 				<title>Kumiko grid designer - Drag to draw lines</title>

@@ -168,6 +168,7 @@ export function useLineRenderer({
 						isHovered ? Math.max(2, bitSize / 2) : Math.max(1, bitSize / 4)
 					}
 					strokeLinecap="round"
+					style={{ userSelect: "none", outline: "none" }}
 					pointerEvents="stroke"
 					onMouseEnter={() => onHoverLine?.(line.id)}
 					onMouseLeave={() => onHoverLine?.(null)}
