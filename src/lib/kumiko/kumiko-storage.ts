@@ -79,6 +79,21 @@ export function saveDesign(payload: SavedDesignPayload): void {
 	}
 }
 
+/**
+ * Validates that a parsed design payload has all required fields.
+ * Returns true if valid, false otherwise.
+ */
+function isValidDesignPayload(
+	parsed: SavedDesignPayload | null,
+): parsed is SavedDesignPayload {
+	if (!parsed) return false;
+	if (parsed.version !== 1) return false;
+	if (!parsed.lines || !parsed.groups) return false;
+	if (typeof parsed.gridCellSize !== "number") return false;
+	if (typeof parsed.stockLength !== "number") return false;
+	return true;
+}
+
 export function loadDesign(): SavedDesignPayload | null {
 	if (!isBrowser()) return null;
 
@@ -90,13 +105,7 @@ export function loadDesign(): SavedDesignPayload | null {
 		}
 
 		const parsed = JSON.parse(raw) as SavedDesignPayload;
-		if (parsed.version !== 1) return null;
-
-		if (!parsed.lines || !parsed.groups) return null;
-		if (typeof parsed.gridCellSize !== "number") return null;
-		if (typeof parsed.stockLength !== "number") return null;
-
-		return parsed;
+		return isValidDesignPayload(parsed) ? parsed : null;
 	} catch (error) {
 		// eslint-disable-next-line no-console
 		console.error("[kumiko-storage] Failed to load design", error);
@@ -215,11 +224,7 @@ export function loadNamedDesign(name: string): SavedDesignPayload | null {
 		if (!raw) return null;
 
 		const parsed = JSON.parse(raw) as SavedDesignPayload;
-		if (parsed.version !== 1) return null;
-		if (!parsed.lines || !parsed.groups) return null;
-		if (typeof parsed.gridCellSize !== "number") return null;
-		if (typeof parsed.stockLength !== "number") return null;
-		return parsed;
+		return isValidDesignPayload(parsed) ? parsed : null;
 	} catch (error) {
 		// eslint-disable-next-line no-console
 		console.error("[kumiko-storage] Failed to load named design", error);

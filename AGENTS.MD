@@ -94,6 +94,20 @@ Kumiko Designer is a client-only web application for designing traditional Kumik
   - Run E2E tests: `pnpm test:e2e`
   - Run E2E with UI: `pnpm test:e2e:ui`
 
+## Verification After Changes
+After every code change, run the full verification suite to ensure code quality:
+
+```bash
+pnpm check && pnpm knip && pnpm jscpd && pnpm test && pnpm test:e2e
+```
+
+All checks must pass before considering a change complete:
+- `pnpm check`: Biome linting and formatting
+- `pnpm knip`: Detect unused exports, dependencies, and files
+- `pnpm jscpd`: Detect copy-paste / duplicate code
+- `pnpm test`: Unit tests
+- `pnpm test:e2e`: End-to-end tests
+
 ## Hook Return Type Convention
 
 Custom hooks that manage state should follow a consistent return pattern:
@@ -138,3 +152,5 @@ interface UseMyHookOptions {
 - `pnpm test:e2e`: Run E2E tests.
 - `pnpm test:e2e:ui`: Run E2E tests with interactive UI.
 - `pnpm check`: Run Biome check (lint + format).
+- `pnpm knip`: Detect unused exports, dependencies, and files.
+- `pnpm jscpd`: Detect copy-paste / duplicate code.

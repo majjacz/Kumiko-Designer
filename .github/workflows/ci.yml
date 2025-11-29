@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+  workflow_call:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Set up Node
+        uses: actions/setup-node@v6
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4.2.0
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check (lint + format)
+        run: pnpm check
+      - name: Knip (unused exports/dependencies)
+        run: pnpm knip
+      - name: jscpd (duplicate code)
+        run: pnpm jscpd
+      - name: Unit tests
+        run: pnpm test
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+      - name: E2E tests
+        run: pnpm test:e2e

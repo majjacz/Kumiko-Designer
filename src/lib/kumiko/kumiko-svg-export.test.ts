@@ -1,28 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { analyzeGroupPasses, generateGroupSVG } from "./kumiko-svg-export";
-import type { DesignStrip, Group, Piece } from "./types";
-
-const makeStrip = (overrides?: Partial<DesignStrip>): DesignStrip => ({
-	id: overrides?.id ?? "strip",
-	x1: overrides?.x1 ?? 0,
-	y1: overrides?.y1 ?? 0,
-	x2: overrides?.x2 ?? 100,
-	y2: overrides?.y2 ?? 0,
-	lengthMM: overrides?.lengthMM ?? 100,
-	notches: overrides?.notches ?? [],
-	// Test helper: default sourceLineId to the same value as id unless overridden.
-	sourceLineId: overrides?.sourceLineId ?? overrides?.id ?? "strip",
-	// Short, user-friendly display code; tests can override if needed.
-	displayCode: overrides?.displayCode ?? "CODE",
-});
-
-const makePiece = (overrides?: Partial<Piece>): Piece => ({
-	id: overrides?.id ?? "piece",
-	lineId: overrides?.lineId ?? "strip",
-	x: overrides?.x ?? 0,
-	y: overrides?.y ?? 0,
-	rowIndex: overrides?.rowIndex ?? 0,
-});
+import { makePiece, makeStrip } from "./test-fixtures";
+import type { Group } from "./types";
 
 const makeGroup = (overrides?: Partial<Group>): Group => ({
 	id: overrides?.id ?? "g1",

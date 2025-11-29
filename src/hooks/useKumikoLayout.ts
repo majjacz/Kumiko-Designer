@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useRef, useState } from "react";
-import type { NotificationType, NotifyCallback } from "../lib/errors";
+import { useCallback, useMemo, useState } from "react";
+import type { NotifyCallback } from "../lib/errors";
 import {
 	type Cut,
 	type Group,
@@ -7,6 +7,7 @@ import {
 	type Piece,
 	type Point,
 } from "../lib/kumiko";
+import { useNotify } from "./useNotify";
 
 export interface UseKumikoLayoutOptions {
 	/** Optional callback for showing notifications to the user */
@@ -16,14 +17,8 @@ export interface UseKumikoLayoutOptions {
 export function useKumikoLayout(options: UseKumikoLayoutOptions = {}) {
 	const { onNotify } = options;
 
-	// Keep ref for notify callback
-	const onNotifyRef = useRef(onNotify);
-	onNotifyRef.current = onNotify;
-
-	/** Helper to show notification if callback is provided */
-	const notify = useCallback((type: NotificationType, message: string) => {
-		onNotifyRef.current?.(type, message);
-	}, []);
+	// Use shared notify hook
+	const notify = useNotify({ onNotify });
 
 	const [groups, setGroups] = useState<Map<string, Group>>(
 		() =>

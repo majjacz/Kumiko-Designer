@@ -6,5 +6,12 @@
   },
   "tags": [
     "-lintignore"
+  ],
+  "ignoreDependencies": [
+    "@tanstack/react-devtools",
+    "@tanstack/react-router-devtools",
+    "@tanstack/react-router-ssr-query",
+    "@tanstack/router-plugin",
+    "web-vitals"
   ]
 }

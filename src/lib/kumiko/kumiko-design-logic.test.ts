@@ -3,21 +3,8 @@ import {
 	computeDesignStrips,
 	computeIntersections,
 } from "./kumiko-design-logic";
+import { makeLine } from "./test-fixtures";
 import type { Intersection, Line } from "./types";
-
-const makeLine = (
-	id: string,
-	x1: number,
-	y1: number,
-	x2: number,
-	y2: number,
-): Line => ({
-	id,
-	x1,
-	y1,
-	x2,
-	y2,
-});
 
 describe("computeIntersections()", () => {
 	it("detects a single intersection with horizontal-over-vertical heuristic", () => {

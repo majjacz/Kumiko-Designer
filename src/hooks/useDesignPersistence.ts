@@ -2,7 +2,7 @@
  * Hook for managing design persistence - save, load, import, export operations
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { NotificationType, NotifyCallback } from "../lib/errors";
+import type { NotifyCallback } from "../lib/errors";
 import type {
 	Group,
 	Line,
@@ -21,6 +21,7 @@ import {
 	saveNamedDesign,
 } from "../lib/kumiko";
 import { downloadJSON } from "../lib/utils/download";
+import { useNotify } from "./useNotify";
 
 export interface DesignPersistenceState {
 	designName: string;
@@ -118,14 +119,8 @@ export function useDesignPersistence({
 	const getCurrentPayloadDataRef = useRef(getCurrentPayloadData);
 	getCurrentPayloadDataRef.current = getCurrentPayloadData;
 
-	// Keep ref for notify callback
-	const onNotifyRef = useRef(onNotify);
-	onNotifyRef.current = onNotify;
-
-	/** Helper to show notification if callback is provided */
-	const notify = useCallback((type: NotificationType, message: string) => {
-		onNotifyRef.current?.(type, message);
-	}, []);
+	// Use shared notify hook
+	const notify = useNotify({ onNotify });
 
 	// Helper to apply a loaded design payload into state
 	const applyLoadedDesign = useCallback(

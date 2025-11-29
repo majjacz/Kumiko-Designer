@@ -5,23 +5,9 @@ import {
 	findIntersection,
 	gcd,
 } from "./geometry";
-import type { Line } from "./types";
+import { makeLine } from "./test-fixtures";
 
 describe("findIntersection()", () => {
-	const makeLine = (
-		id: string,
-		x1: number,
-		y1: number,
-		x2: number,
-		y2: number,
-	): Line => ({
-		id,
-		x1,
-		y1,
-		x2,
-		y2,
-	});
-
 	it("returns an intersection point for crossing segments", () => {
 		const h = makeLine("h", 0, 0, 10, 0);
 		const v = makeLine("v", 5, -5, 5, 5);
@@ -66,20 +52,6 @@ describe("findIntersection()", () => {
 });
 
 describe("computeLineOverlapForSingleLine()", () => {
-	const makeLine = (
-		id: string,
-		x1: number,
-		y1: number,
-		x2: number,
-		y2: number,
-	): Line => ({
-		id,
-		x1,
-		y1,
-		x2,
-		y2,
-	});
-
 	it("returns null for non-collinear segments", () => {
 		const line = makeLine("h", 0, 0, 10, 0);
 		const result = computeLineOverlapForSingleLine(

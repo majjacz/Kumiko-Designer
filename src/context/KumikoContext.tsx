@@ -352,12 +352,24 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 	]);
 
 	// SVG download handlers
+	// Helper to create base SVG generation options for a group
+	const createSvgOptions = useCallback(
+		(group: Group) => ({
+			group,
+			designStrips: designState.designStrips,
+			bitSize: params.bitSize,
+			stockLength: params.stockLength,
+		}),
+		[designState.designStrips, params.bitSize, params.stockLength],
+	);
+
 	const handleDownloadSVG = useCallback(
 		(passType?: ExportPassType) => {
 			const group = layoutState.activeGroup;
 			if (!group) return;
 
 			const baseName = group.name || "kumiko-group";
+			const baseOptions = createSvgOptions(group);
 			const { hasTop, hasBottom } = analyzeGroupPasses(
 				group,
 				designState.designStrips,
@@ -365,13 +377,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 
 			// If passType is explicitly provided, use it
 			if (passType === "top") {
-				const svgTop = generateGroupSVG({
-					group,
-					designStrips: designState.designStrips,
-					bitSize: params.bitSize,
-					stockLength: params.stockLength,
-					pass: "top",
-				});
+				const svgTop = generateGroupSVG({ ...baseOptions, pass: "top" });
 				if (svgTop) {
 					downloadSVG(svgTop, `${baseName}_top.svg`);
 					onNotify("success", "Exported Pass 1 (Top) SVG.");
@@ -380,13 +386,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 			}
 
 			if (passType === "bottom") {
-				const svgBottom = generateGroupSVG({
-					group,
-					designStrips: designState.designStrips,
-					bitSize: params.bitSize,
-					stockLength: params.stockLength,
-					pass: "bottom",
-				});
+				const svgBottom = generateGroupSVG({ ...baseOptions, pass: "bottom" });
 				if (svgBottom) {
 					downloadSVG(svgBottom, `${baseName}_bottom.svg`);
 					onNotify("success", "Exported Pass 2 (Bottom) SVG.");
@@ -396,13 +396,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 
 			if (passType === "both" || (hasTop && hasBottom)) {
 				// Pass 1: Top
-				const svgTop = generateGroupSVG({
-					group,
-					designStrips: designState.designStrips,
-					bitSize: params.bitSize,
-					stockLength: params.stockLength,
-					pass: "top",
-				});
+				const svgTop = generateGroupSVG({ ...baseOptions, pass: "top" });
 				if (svgTop) {
 					downloadSVG(svgTop, `${baseName}_top.svg`);
 				}
@@ -410,10 +404,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 				// Pass 2: Bottom (delayed slightly to ensure browser handles both)
 				setTimeout(() => {
 					const svgBottom = generateGroupSVG({
-						group,
-						designStrips: designState.designStrips,
-						bitSize: params.bitSize,
-						stockLength: params.stockLength,
+						...baseOptions,
 						pass: "bottom",
 					});
 					if (svgBottom) {
@@ -428,10 +419,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 			} else if (hasBottom && !hasTop) {
 				// Bottom Only -> Auto-flip to Top (Standard)
 				const svg = generateGroupSVG({
-					group,
-					designStrips: designState.designStrips,
-					bitSize: params.bitSize,
-					stockLength: params.stockLength,
+					...baseOptions,
 					pass: "all",
 					flip: true,
 				});
@@ -443,13 +431,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 				);
 			} else {
 				// Top Only (Standard)
-				const svg = generateGroupSVG({
-					group,
-					designStrips: designState.designStrips,
-					bitSize: params.bitSize,
-					stockLength: params.stockLength,
-					pass: "all",
-				});
+				const svg = generateGroupSVG({ ...baseOptions, pass: "all" });
 				if (!svg) return;
 				downloadSVG(svg, `${baseName}.svg`);
 			}
@@ -457,8 +439,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 		[
 			layoutState.activeGroup,
 			designState.designStrips,
-			params.bitSize,
-			params.stockLength,
+			createSvgOptions,
 			onNotify,
 		],
 	);
@@ -468,40 +449,26 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 
 		for (const group of layoutState.groups.values()) {
 			const baseName = group.name || "kumiko-group";
+			const baseOptions = createSvgOptions(group);
 			const { hasTop, hasBottom } = analyzeGroupPasses(
 				group,
 				designState.designStrips,
 			);
 
 			if (hasTop && hasBottom) {
-				const svgTop = generateGroupSVG({
-					group,
-					designStrips: designState.designStrips,
-					bitSize: params.bitSize,
-					stockLength: params.stockLength,
-					pass: "top",
-				});
+				const svgTop = generateGroupSVG({ ...baseOptions, pass: "top" });
 				if (svgTop) {
 					files.push({ filename: `${baseName}_top.svg`, svg: svgTop });
 				}
 
-				const svgBottom = generateGroupSVG({
-					group,
-					designStrips: designState.designStrips,
-					bitSize: params.bitSize,
-					stockLength: params.stockLength,
-					pass: "bottom",
-				});
+				const svgBottom = generateGroupSVG({ ...baseOptions, pass: "bottom" });
 				if (svgBottom) {
 					files.push({ filename: `${baseName}_bottom.svg`, svg: svgBottom });
 				}
 			} else if (hasBottom && !hasTop) {
 				// Bottom Only -> Auto-flip
 				const svg = generateGroupSVG({
-					group,
-					designStrips: designState.designStrips,
-					bitSize: params.bitSize,
-					stockLength: params.stockLength,
+					...baseOptions,
 					pass: "all",
 					flip: true,
 				});
@@ -509,13 +476,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 					files.push({ filename: `${baseName}.svg`, svg });
 				}
 			} else {
-				const svg = generateGroupSVG({
-					group,
-					designStrips: designState.designStrips,
-					bitSize: params.bitSize,
-					stockLength: params.stockLength,
-					pass: "all",
-				});
+				const svg = generateGroupSVG({ ...baseOptions, pass: "all" });
 				if (svg) {
 					files.push({ filename: `${baseName}.svg`, svg });
 				}
@@ -537,8 +498,7 @@ export function KumikoProvider({ children }: KumikoProviderProps) {
 	}, [
 		layoutState.groups,
 		designState.designStrips,
-		params.bitSize,
-		params.stockLength,
+		createSvgOptions,
 		onNotify,
 	]);
 
