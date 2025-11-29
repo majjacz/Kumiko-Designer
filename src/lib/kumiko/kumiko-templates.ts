@@ -11,7 +11,7 @@ export const TEMPLATES: TemplateInfo[] = [
 	{
 		id: "basic-grid",
 		name: "Basic Grid",
-		description: "Simple rectangular grid pattern - great for beginners",
+		description: "Simple rectangular grid pattern - great a starting point",
 		path: "/templates/basic-grid.json",
 	},
 	{
