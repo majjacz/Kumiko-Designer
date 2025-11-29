@@ -4,6 +4,9 @@ async function goToDesignGrid(page: Page) {
   await page.goto("/");
   await page.evaluate(() => localStorage.clear());
   await page.getByRole("tab", { name: "Design" }).click();
+  // Wait for initial fit-to-view animation to complete
+  // (triggered when a design or template is loaded on page load)
+  await page.waitForTimeout(150);
 }
 
 async function drawHorizontalLine(page: Page) {
@@ -87,11 +90,19 @@ test.describe("Grid designer", () => {
     await drawHorizontalLine(page);
     await drawVerticalLine(page);
 
-    const notch = grid.getByRole("button", { name: /Toggle notch/ }).first();
+    // Click the "Fit to View" button to ensure all content is visible
+    await page.getByRole("button", { name: "Fit to View" }).click();
+    await page.waitForTimeout(200);
+
+    // Find a notch toggle - use last() to get one from the newly drawn lines
+    // (template notches are at coordinates around 200, new lines are around 300-500)
+    const notch = grid.getByRole("button", { name: /Toggle notch/ }).last();
 
     // Get the aria-label which includes state info via the title element
     const beforeTitle = await notch.locator("title").textContent();
-    await notch.click();
+    // Use dispatchEvent because SVG elements with transforms can confuse
+    // Playwright's built-in click position calculation
+    await notch.dispatchEvent("click");
     const afterTitle = await notch.locator("title").textContent();
 
     expect(afterTitle).not.toEqual(beforeTitle);

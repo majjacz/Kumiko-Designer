@@ -19,8 +19,10 @@ export interface LineRendererProps {
 	bitSize: number;
 	/** Current zoom level */
 	zoom: number;
-	/** Grid cell size in mm */
+	/** Visual grid cell size in mm (for positioning) */
 	cellSize: number;
+	/** Physical grid cell size in mm (for dimension calculations) */
+	physicalCellSize: number;
 	/** ID of the strip being hovered (for highlighting) */
 	hoveredStripId?: string | null;
 	/** Whether to show line ID labels */
@@ -83,6 +85,7 @@ export function useLineRenderer({
 	bitSize,
 	zoom,
 	cellSize,
+	physicalCellSize,
 	hoveredStripId,
 	showLineIds,
 	showDimensions,
@@ -174,10 +177,10 @@ export function useLineRenderer({
 			// Skip label rendering if neither IDs nor dimensions are shown
 			if (!showLineIds && !showDimensions) continue;
 
-			// Calculate line length in mm (based on grid coordinates)
+			// Calculate line length in mm (based on grid coordinates and physical cell size)
 			const gridDx = line.x2 - line.x1;
 			const gridDy = line.y2 - line.y1;
-			const lengthInMm = Math.hypot(gridDx, gridDy) * cellSize;
+			const lengthInMm = Math.hypot(gridDx, gridDy) * physicalCellSize;
 			const dimensionText = formatValue(lengthInMm, displayUnit);
 
 			// Build label text based on what's enabled
@@ -379,6 +382,7 @@ export function useLineRenderer({
 		lineLabelById,
 		zoom,
 		cellSize,
+		physicalCellSize,
 		onHoverLine,
 	]);
 

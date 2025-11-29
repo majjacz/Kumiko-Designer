@@ -54,6 +54,12 @@ export function useZoomPan({
 		null,
 	);
 	const onZoomPanChangeRef = useRef(onZoomPanChange);
+	// Track previous cellSize to detect changes
+	const prevCellSizeRef = useRef(cellSize);
+	// Track if initial fit-to-view has been done (to avoid race with persisted state)
+	const initialFitDoneRef = useRef(false);
+	// Track the lines count when the hook first mounted (to detect loaded designs)
+	const initialLineCountRef = useRef<number | null>(null);
 
 	useEffect(() => {
 		onZoomPanChangeRef.current = onZoomPanChange;
@@ -320,12 +326,59 @@ export function useZoomPan({
 		};
 	}, [svgRef]);
 
-	// Initialize view on mount
+	// Initialize view on mount - fit to view once if a design was loaded with lines.
+	// This handles the page refresh scenario where persisted zoomPanState
+	// might not match the current viewport dimensions.
 	useEffect(() => {
-		if (zoomPanState) return;
+		// Capture initial line count on first run
+		if (initialLineCountRef.current === null) {
+			initialLineCountRef.current = lines.size;
+		}
+
+		// Only run the fit logic once
+		if (initialFitDoneRef.current) {
+			return;
+		}
+
+		// Check if lines were present on initial mount (design loaded from persistence)
+		const hadLinesOnMount = initialLineCountRef.current > 0;
+		if (!hadLinesOnMount) {
+			// No lines on mount - mark as done but don't fit
+			// (user will draw lines manually, no auto-fit needed)
+			initialFitDoneRef.current = true;
+			return;
+		}
+
+		// Wait for lines to be available (they might load asynchronously)
+		if (lines.size === 0) {
+			return;
+		}
+
+		// Delay to ensure SVG and zoom behavior are ready
+		const timer = setTimeout(() => {
+			resetView();
+			initialFitDoneRef.current = true;
+		}, 100);
+		return () => clearTimeout(timer);
+	}, [resetView, lines.size]);
+
+	// Re-fit when cellSize changes (e.g., user changes grid cell size parameter)
+	useEffect(() => {
+		// Skip on initial render - only react to actual changes
+		if (prevCellSizeRef.current === cellSize) {
+			return;
+		}
+		prevCellSizeRef.current = cellSize;
+
+		// Only re-fit if initial fit is done to avoid race conditions
+		if (!initialFitDoneRef.current) {
+			return;
+		}
+
+		// Delay to let the DOM update with new dimensions
 		const timer = setTimeout(resetView, 50);
 		return () => clearTimeout(timer);
-	}, [resetView, zoomPanState]);
+	}, [cellSize, resetView]);
 
 	return {
 		state: { zoom, panX, panY },

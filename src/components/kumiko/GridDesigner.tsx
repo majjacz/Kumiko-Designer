@@ -5,7 +5,11 @@ import { useKumiko } from "../../context/KumikoContext";
 import { useGridCoordinates } from "../../hooks/useGridCoordinates";
 import type { GridViewSettings } from "../../hooks/useGridViewSettings";
 import { useZoomPan } from "../../hooks/useZoomPan";
-import { DEFAULT_ZOOM, GRID_EXTENT_CELLS } from "../../lib/kumiko/config";
+import {
+	DEFAULT_ZOOM,
+	GRID_EXTENT_CELLS,
+	VISUAL_GRID_CELL_SIZE,
+} from "../../lib/kumiko/config";
 import type {
 	Intersection,
 	Line,
@@ -34,7 +38,8 @@ export interface GridDesignerProps {
 	onDragUpdate?: (start: Point, end: Point, isDeleting: boolean) => void;
 	isDeleting?: boolean;
 	bitSize: number;
-	gridCellSize: number; // Physical size of one grid cell in mm
+	/** Physical grid cell size in mm (for dimension calculations) */
+	gridCellSize: number;
 	displayUnit: "mm" | "in"; // Unit for displaying dimensions
 	hoveredStripId?: string | null;
 	/** Callback when hovering over a line or label */
@@ -97,9 +102,9 @@ function GridDesigner({
 	const [dragState, setDragState] = useState<DragState | null>(null);
 	const [isHoveringNotch, setIsHoveringNotch] = useState(false);
 
-	// For the designer view, keep individual grid cells visually square.
-	// Use a large fixed grid extent so users are not constrained by a small canvas.
-	const cellSize = useMemo(() => gridCellSize, [gridCellSize]);
+	// For the designer view, use a fixed visual cell size for grid rendering.
+	// The configurable gridCellSize parameter is only used for physical strip calculations.
+	const cellSize = VISUAL_GRID_CELL_SIZE;
 	const designWidth = useMemo(() => GRID_EXTENT_CELLS * cellSize, [cellSize]);
 	const designHeight = useMemo(() => GRID_EXTENT_CELLS * cellSize, [cellSize]);
 
@@ -411,6 +416,7 @@ function GridDesigner({
 						bitSize={bitSize}
 						zoom={zoom}
 						cellSize={cellSize}
+						physicalCellSize={gridCellSize}
 						designWidth={designWidth}
 						designHeight={designHeight}
 						gridExtentCells={GRID_EXTENT_CELLS}

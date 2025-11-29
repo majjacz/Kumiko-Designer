@@ -15,6 +15,8 @@ interface GridRendererProps {
 	bitSize: number;
 	zoom: number;
 	cellSize: number;
+	/** Physical grid cell size in mm for dimension calculations */
+	physicalCellSize: number;
 	designWidth: number;
 	designHeight: number;
 	gridExtentCells: number;
@@ -40,6 +42,7 @@ export function GridRenderer({
 	bitSize,
 	zoom,
 	cellSize,
+	physicalCellSize,
 	designWidth,
 	designHeight,
 	gridExtentCells,
@@ -71,6 +74,7 @@ export function GridRenderer({
 		bitSize,
 		zoom,
 		cellSize,
+		physicalCellSize,
 		hoveredStripId,
 		showLineIds,
 		showDimensions,

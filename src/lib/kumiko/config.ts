@@ -12,6 +12,13 @@
 /** Effective "infinite" grid extent in each direction (number of cells) */
 export const GRID_EXTENT_CELLS = 1000;
 
+/**
+ * Visual grid cell size in mm for the design grid display.
+ * This is the fixed visual size of each grid cell - it does not change.
+ * The configurable gridCellSize parameter is used for physical strip calculations.
+ */
+export const VISUAL_GRID_CELL_SIZE = 10;
+
 /** Height of each row in the layout editor (mm) */
 export const GRID_CELL_HEIGHT = 20;
 
