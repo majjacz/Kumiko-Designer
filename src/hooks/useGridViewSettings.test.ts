@@ -44,6 +44,7 @@ describe("useGridViewSettings", () => {
 			showHelpText: false,
 			showLineIds: true,
 			showDimensions: true,
+			enableHighlighting: false,
 		};
 		localStorageMock.setItem(
 			"kumiko-grid-view-settings",
@@ -93,6 +94,16 @@ describe("useGridViewSettings", () => {
 		});
 
 		expect(result.current.state.settings.showDimensions).toBe(true);
+	});
+
+	it("should update enableHighlighting", () => {
+		const { result } = renderHook(() => useGridViewSettings());
+
+		act(() => {
+			result.current.actions.setEnableHighlighting(false);
+		});
+
+		expect(result.current.state.settings.enableHighlighting).toBe(false);
 	});
 
 	it("should reset settings to defaults", () => {
@@ -160,6 +171,9 @@ describe("useGridViewSettings", () => {
 		);
 		expect(result.current.state.settings.showDimensions).toBe(
 			DEFAULT_SETTINGS.showDimensions,
+		);
+		expect(result.current.state.settings.enableHighlighting).toBe(
+			DEFAULT_SETTINGS.enableHighlighting,
 		);
 	});
 });

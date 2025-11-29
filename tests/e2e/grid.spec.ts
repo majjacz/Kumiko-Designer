@@ -14,7 +14,8 @@ async function drawHorizontalLine(page: Page) {
   const box = await grid.boundingBox();
   if (!box) throw new Error("No grid bounding box");
 
-  const y = box.y + box.height * 0.3;
+  // Draw in the middle of the canvas to avoid overlapping with floating toolbars
+  const y = box.y + box.height * 0.5;
   const x1 = box.x + box.width * 0.2;
   const x2 = box.x + box.width * 0.8;
 

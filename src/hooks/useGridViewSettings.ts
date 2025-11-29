@@ -18,6 +18,7 @@ export interface GridViewSettings {
 	showHelpText: boolean;
 	showLineIds: boolean;
 	showDimensions: boolean;
+	enableHighlighting: boolean;
 }
 
 const DEFAULT_SETTINGS: GridViewSettings = {
@@ -25,6 +26,7 @@ const DEFAULT_SETTINGS: GridViewSettings = {
 	showHelpText: true,
 	showLineIds: true,
 	showDimensions: false,
+	enableHighlighting: true,
 };
 
 /**
@@ -56,6 +58,10 @@ function loadSettings(): GridViewSettings {
 				typeof parsed.showDimensions === "boolean"
 					? parsed.showDimensions
 					: DEFAULT_SETTINGS.showDimensions,
+			enableHighlighting:
+				typeof parsed.enableHighlighting === "boolean"
+					? parsed.enableHighlighting
+					: DEFAULT_SETTINGS.enableHighlighting,
 		};
 	} catch {
 		return DEFAULT_SETTINGS;
@@ -84,6 +90,7 @@ export interface GridViewSettingsActions {
 	setShowHelpText: (value: boolean) => void;
 	setShowLineIds: (value: boolean) => void;
 	setShowDimensions: (value: boolean) => void;
+	setEnableHighlighting: (value: boolean) => void;
 	resetSettings: () => void;
 }
 
@@ -130,6 +137,10 @@ export function useGridViewSettings(): {
 		setSettings((prev) => ({ ...prev, showDimensions: value }));
 	}, []);
 
+	const setEnableHighlighting = useCallback((value: boolean) => {
+		setSettings((prev) => ({ ...prev, enableHighlighting: value }));
+	}, []);
+
 	const resetSettings = useCallback(() => {
 		setSettings(DEFAULT_SETTINGS);
 	}, []);
@@ -142,6 +153,7 @@ export function useGridViewSettings(): {
 			setShowHelpText,
 			setShowLineIds,
 			setShowDimensions,
+			setEnableHighlighting,
 			resetSettings,
 		}),
 		[
@@ -149,6 +161,7 @@ export function useGridViewSettings(): {
 			setShowHelpText,
 			setShowLineIds,
 			setShowDimensions,
+			setEnableHighlighting,
 			resetSettings,
 		],
 	);

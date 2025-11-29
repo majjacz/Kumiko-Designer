@@ -62,6 +62,7 @@ export interface GridDesignerProps {
 		setShowHelpText: (value: boolean) => void;
 		setShowLineIds: (value: boolean) => void;
 		setShowDimensions: (value: boolean) => void;
+		setEnableHighlighting: (value: boolean) => void;
 	};
 }
 
@@ -94,8 +95,13 @@ function GridDesigner({
 	const contentGroupRef = useRef<SVGGElement | null>(null);
 
 	// View settings from props (managed by context with localStorage persistence)
-	const { showNotchPositions, showHelpText, showLineIds, showDimensions } =
-		viewSettings;
+	const {
+		showNotchPositions,
+		showHelpText,
+		showLineIds,
+		showDimensions,
+		enableHighlighting,
+	} = viewSettings;
 
 	// Interaction state
 	const [hoverPoint, setHoverPoint] = useState<Point | null>(null);
@@ -298,6 +304,17 @@ function GridDesigner({
 							<input
 								type="checkbox"
 								className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900"
+								checked={enableHighlighting}
+								onChange={(e) =>
+									viewSettingsActions.setEnableHighlighting(e.target.checked)
+								}
+							/>
+							<span className="text-sm text-gray-300">Hover highlighting</span>
+						</label>
+						<label className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 cursor-pointer transition-colors">
+							<input
+								type="checkbox"
+								className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900"
 								checked={showDimensions}
 								onChange={(e) =>
 									viewSettingsActions.setShowDimensions(e.target.checked)
@@ -426,7 +443,7 @@ function GridDesigner({
 						showLineIds={showLineIds}
 						showDimensions={showDimensions}
 						displayUnit={displayUnit}
-						hoveredStripId={hoveredStripId}
+						hoveredStripId={enableHighlighting ? hoveredStripId : null}
 						lineLabelById={lineLabelById}
 						onToggleIntersection={onToggleIntersection}
 						setIsHoveringNotch={setIsHoveringNotch}
