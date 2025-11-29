@@ -109,7 +109,7 @@ pnpm lint         # Lint only
 
 ## 📜 License
 
-MIT – Do whatever you want with it. The robots don't mind.
+[The Unlicense](https://unlicense.org/) – This is free and unencumbered software released into the public domain. Do whatever you want with it. The robots don't mind.
 
 ---
 
