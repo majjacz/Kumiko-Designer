@@ -832,7 +832,7 @@ function ParamSection({
  * Sidebar params component that accepts explicit props.
  * Use KumikoSidebarParamsConnected for automatic context consumption.
  */
-export function KumikoSidebarParams({
+function KumikoSidebarParams({
 	displayUnit,
 	onToggleUnits,
 	bitSize,

@@ -43,7 +43,7 @@ export interface LayoutEditorProps {
 	onNotify?: NotifyCallback;
 }
 
-export const LayoutEditor = memo(function LayoutEditor({
+const LayoutEditor = memo(function LayoutEditor({
 	designStrips,
 	activeGroup,
 	groups,

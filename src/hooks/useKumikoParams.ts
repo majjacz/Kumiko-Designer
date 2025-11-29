@@ -8,31 +8,6 @@ import {
 	DEFAULT_UNITS,
 } from "../lib/kumiko";
 
-export interface KumikoParams {
-	units: "mm" | "in";
-	bitSize: number;
-	cutDepth: number;
-	halfCutDepth: number;
-	gridCellSize: number;
-	stockLength: number;
-}
-
-export interface KumikoParamsActions {
-	setUnits: (units: "mm" | "in") => void;
-	setBitSize: (size: number) => void;
-	setCutDepth: (depth: number) => void;
-	setHalfCutDepth: (depth: number) => void;
-	setGridCellSize: (size: number) => void;
-	setStockLength: (length: number) => void;
-	toggleUnits: () => void;
-	handleParamChange: (
-		setter: (value: number) => void,
-	) => (mmValue: number) => void;
-	handleHalfCutParamChange: (
-		setter: (value: number) => void,
-	) => (mmValue: number) => void;
-}
-
 export function useKumikoParams() {
 	const [units, setUnits] = useState<"mm" | "in">(DEFAULT_UNITS);
 	// Parameters (stored internally in mm)

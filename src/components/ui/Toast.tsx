@@ -21,7 +21,7 @@ const bgColorMap: Record<NotificationType, string> = {
 	info: "bg-blue-900/90 border-blue-700",
 };
 
-export function Toast({ notification, onDismiss }: ToastProps) {
+function Toast({ notification, onDismiss }: ToastProps) {
 	const [isExiting, setIsExiting] = useState(false);
 
 	useEffect(() => {

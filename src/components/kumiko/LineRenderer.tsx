@@ -384,18 +384,3 @@ export function useLineRenderer({
 
 	return { lineStrokes, lineLabels };
 }
-
-/**
- * LineRenderer component that renders both strokes and labels together.
- * Use useLineRenderer hook directly if you need separate z-order control.
- */
-export function LineRenderer(props: LineRendererProps) {
-	const { lineStrokes, lineLabels } = useLineRenderer(props);
-
-	return (
-		<>
-			{lineStrokes}
-			{lineLabels}
-		</>
-	);
-}

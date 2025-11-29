@@ -72,18 +72,6 @@ export function ToastProvider({ children }: ToastProviderProps) {
 }
 
 /**
- * Hook to access toast notification functions
- * @throws Error if used outside of ToastProvider
- */
-export function useToast(): ToastContextValue {
-	const context = useContext(ToastContext);
-	if (!context) {
-		throw new Error("useToast must be used within a ToastProvider");
-	}
-	return context;
-}
-
-/**
  * Optional hook that returns null if used outside of ToastProvider
  * Useful for library code that may or may not have toast support
  */

@@ -65,7 +65,7 @@ interface DragState {
 	currentPoint: Point;
 }
 
-export function GridDesigner({
+function GridDesigner({
 	lines,
 	intersections,
 	drawingLine,

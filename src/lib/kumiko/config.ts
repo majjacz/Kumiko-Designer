@@ -38,9 +38,6 @@ export const MAX_ZOOM = DEFAULT_ZOOM * 8;
 /** Small threshold for endpoint detection in geometry calculations */
 export const EPSILON = 0.01;
 
-/** Tolerance for edge notch positioning */
-export const EDGE_NOTCH_EPS = 0.001;
-
 // =============================================================================
 // Default Parameter Values
 // =============================================================================
