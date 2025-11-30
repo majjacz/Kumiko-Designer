@@ -21,6 +21,12 @@ export const TEMPLATES: TemplateInfo[] = [
 		path: "/templates/squares.json",
 	},
 	{
+		id: "squares-45",
+		name: "Nested Squares 45°",
+		description: "Concentric square pattern rotated 45 degrees",
+		path: "/templates/squares 45.json",
+	},
+	{
 		id: "complex",
 		name: "Interlocking Lattice",
 		description: "Advanced multi-segment pattern with intricate intersections",
