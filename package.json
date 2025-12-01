@@ -45,7 +45,7 @@
     "@vitejs/plugin-react": "^5.1.1",
     "jscpd": "^4.0.5",
     "jsdom": "^27.2.0",
-    "knip": "^5.70.2",
+    "knip": "^5.71.0",
     "typescript": "^5.9.3",
     "vite": "^7.2.4",
     "vitest": "^4.0.14",
