@@ -2,6 +2,164 @@ import { findIntersection, gcd, isPointOnLineInterior } from "./geometry";
 import type { DesignStrip, Intersection, Line, Notch } from "./types";
 import { newId } from "./utils";
 
+// ============================================================================
+// Constants
+// ============================================================================
+
+/** Threshold in mm for treating distances as effectively zero (floating point tolerance) */
+const EDGE_EPSILON_MM = 1e-3;
+
+/** Minimum strip length in mm to be considered valid (filters out degenerate strips) */
+const MIN_STRIP_LENGTH_MM = 1;
+
+// ============================================================================
+// Types
+// ============================================================================
+
+/** Information about a butt joint at a line endpoint */
+interface ButtJointInfo {
+	/** Whether the line's start endpoint butts against another line's interior */
+	hasStartButt: boolean;
+	/** Whether the line's end endpoint butts against another line's interior */
+	hasEndButt: boolean;
+	/** Amount to trim from the start (mm) */
+	trimStartMM: number;
+	/** Amount to trim from the end (mm) */
+	trimEndMM: number;
+}
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Check if a point is at either endpoint of a line.
+ */
+function isPointAtEndpoint(px: number, py: number, line: Line): boolean {
+	return (
+		(px === line.x1 && py === line.y1) || (px === line.x2 && py === line.y2)
+	);
+}
+
+/**
+ * Calculate the distance in mm from a line's start point to a given point.
+ */
+function distanceFromLineStart(
+	line: Line,
+	px: number,
+	py: number,
+	cellSize: number,
+): number {
+	const dxMM = (px - line.x1) * cellSize;
+	const dyMM = (py - line.y1) * cellSize;
+	return Math.sqrt(dxMM * dxMM + dyMM * dyMM);
+}
+
+/**
+ * Calculate the geometric length of a line in mm.
+ */
+function lineGeometricLengthMM(line: Line, cellSize: number): number {
+	const dxMM = (line.x2 - line.x1) * cellSize;
+	const dyMM = (line.y2 - line.y1) * cellSize;
+	return Math.sqrt(dxMM * dxMM + dyMM * dyMM);
+}
+
+/**
+ * Detect butt joints for a line (T-joints where this line ends at another line's interior).
+ * Returns trimming information for both endpoints.
+ */
+function detectButtJoints(
+	line: Line,
+	allLines: Map<string, Line>,
+	bitSize: number,
+): ButtJointInfo {
+	const otherLines = Array.from(allLines.values()).filter(
+		(l) => l.id !== line.id,
+	);
+
+	const hasStartButt = otherLines.some((other) =>
+		isPointOnLineInterior(line.x1, line.y1, other),
+	);
+	const hasEndButt = otherLines.some((other) =>
+		isPointOnLineInterior(line.x2, line.y2, other),
+	);
+
+	return {
+		hasStartButt,
+		hasEndButt,
+		trimStartMM: hasStartButt ? bitSize / 2 : 0,
+		trimEndMM: hasEndButt ? bitSize / 2 : 0,
+	};
+}
+
+/**
+ * Compute notches for a line based on its intersections with other lines.
+ * Handles trimming adjustments and filters out edge notches.
+ */
+function computeNotchesForLine(
+	line: Line,
+	intersections: Map<string, Intersection>,
+	allLines: Map<string, Line>,
+	cellSize: number,
+	geometricLengthMM: number,
+	trimStartMM: number,
+	finalLengthMM: number,
+): Notch[] {
+	// Find all intersections involving this line
+	const relatedIntersections = Array.from(intersections.values()).filter(
+		(int) => int.line1Id === line.id || int.line2Id === line.id,
+	);
+
+	const notches: Notch[] = [];
+
+	for (const int of relatedIntersections) {
+		const isLine1 = int.line1Id === line.id;
+		const otherLineId = isLine1 ? int.line2Id : int.line1Id;
+		const otherLine = allLines.get(otherLineId);
+
+		// Calculate distance from this line's start to the intersection
+		const distMM = distanceFromLineStart(line, int.x, int.y, cellSize);
+
+		// Skip if intersection is at this line's start or end
+		const isAtStart = distMM <= EDGE_EPSILON_MM;
+		const isAtEnd = geometricLengthMM - distMM <= EDGE_EPSILON_MM;
+		if (isAtStart || isAtEnd) continue;
+
+		// Skip if intersection is at the other line's endpoint (just touching, not crossing)
+		if (otherLine && isPointAtEndpoint(int.x, int.y, otherLine)) continue;
+
+		// Adjust distance for any trimming at the start
+		const distFromStart = distMM - trimStartMM;
+
+		// Skip if trimming would push this notch onto an endpoint
+		if (
+			distFromStart <= EDGE_EPSILON_MM ||
+			finalLengthMM - distFromStart <= EDGE_EPSILON_MM
+		) {
+			continue;
+		}
+
+		// Determine notch orientation:
+		// - When line1Over=true: line1 is on top, so line1 needs bottom notch, line2 needs top notch
+		// - fromTop should be opposite of line1Over for line1, same for line2
+		const fromTop = int.line1Over !== isLine1;
+
+		notches.push({
+			id: `${int.id}_${line.id}`,
+			otherLineId,
+			dist: distFromStart,
+			fromTop,
+		});
+	}
+
+	// Sort notches by distance from start
+	return notches.sort((a, b) => a.dist - b.dist);
+}
+
+// ============================================================================
+// Public Functions
+// ============================================================================
+
 /**
  * Normalize notches so that strips with only bottom notches are flipped
  * to have only top notches. This allows single-pass CNC cutting.
@@ -10,9 +168,6 @@ import { newId } from "./utils";
  * bottom notches become top notches. We apply this normalization at
  * design time so that all strips are oriented with notches preferring
  * the top side where possible.
- *
- * @param notches - The original notches array
- * @returns Normalized notches array with flipped orientation if needed
  */
 export function normalizeStripNotches(notches: Notch[]): Notch[] {
 	if (notches.length === 0) return notches;
@@ -32,8 +187,11 @@ export function normalizeStripNotches(notches: Notch[]): Notch[] {
 }
 
 /**
- * Compute intersections between all pairs of lines, ensuring only one notch per coordinate.
- * Mirrors the logic previously in the `intersections` useMemo in index.tsx.
+ * Compute intersections between all pairs of lines.
+ *
+ * Only creates intersection records where lines actually cross through each other
+ * (not at endpoints). Uses a heuristic where horizontal lines default to being
+ * on top of vertical lines.
  */
 export function computeIntersections(
 	lines: Map<string, Line>,
@@ -51,51 +209,42 @@ export function computeIntersections(
 
 			if (!point) continue;
 
-			// Check if intersection is at an endpoint of each line
-			const isAtEndpointLine1 =
-				(point.x === line1.x1 && point.y === line1.y1) ||
-				(point.x === line1.x2 && point.y === line1.y2);
-			const isAtEndpointLine2 =
-				(point.x === line2.x1 && point.y === line2.y1) ||
-				(point.x === line2.x2 && point.y === line2.y2);
-
 			// Skip if either line has this point as an endpoint (butting, not crossing)
-			// Notches are only needed where lines actually cross through each other
-			if (isAtEndpointLine1 || isAtEndpointLine2) continue;
-
-			// Create a coordinate key to detect duplicate intersection points
-			const coordKey = `${point.x},${point.y}`;
+			if (
+				isPointAtEndpoint(point.x, point.y, line1) ||
+				isPointAtEndpoint(point.x, point.y, line2)
+			) {
+				continue;
+			}
 
 			// Only create one intersection per coordinate
+			const coordKey = `${point.x},${point.y}`;
 			if (coordinateMap.has(coordKey)) continue;
 
 			const id = `int_${line1.id}_${line2.id}`;
 
-			// Default to true, but apply heuristic for horizontal/vertical intersections
-			let line1OverDefault = true;
+			// Determine default stacking: horizontal lines on top of vertical
 			const isLine1Horizontal = line1.y1 === line1.y2;
-			const isLine1Vertical = line1.x1 === line1.x2;
 			const isLine2Horizontal = line2.y1 === line2.y2;
+			const isLine1Vertical = line1.x1 === line1.x2;
 			const isLine2Vertical = line2.x1 === line2.x2;
 
+			let line1OverDefault = true;
 			if (isLine1Horizontal && isLine2Vertical) {
-				// Horizontal line is on top
 				line1OverDefault = true;
 			} else if (isLine1Vertical && isLine2Horizontal) {
-				// Vertical line is on bottom (so line2 is on top)
 				line1OverDefault = false;
 			}
 
-			// Use stored state if it exists, otherwise default to the heuristic
-			const line1Over = intersectionStates.get(id) ?? line1OverDefault;
 			const intersection: Intersection = {
 				id,
 				x: point.x,
 				y: point.y,
 				line1Id: line1.id,
 				line2Id: line2.id,
-				line1Over,
+				line1Over: intersectionStates.get(id) ?? line1OverDefault,
 			};
+
 			newIntersections.set(id, intersection);
 			coordinateMap.set(coordKey, intersection);
 		}
@@ -105,8 +254,13 @@ export function computeIntersections(
 }
 
 /**
- * Compute physical design strips from grid lines & intersections.
- * Mirrors the `designStrips` useMemo in index.tsx.
+ * Compute physical design strips from grid lines and intersections.
+ *
+ * This function:
+ * 1. Converts grid lines to physical strips with lengths in mm
+ * 2. Detects butt joints (T-joints) and trims strip lengths accordingly
+ * 3. Computes notch positions for each strip
+ * 4. Assigns stable geometry-based IDs for strip deduplication
  */
 export function computeDesignStrips(
 	lines: Map<string, Line>,
@@ -114,166 +268,46 @@ export function computeDesignStrips(
 	gridCellSize: number,
 	bitSize: number,
 ): DesignStrip[] {
-	// Physical size of one grid cell in each axis (square cells)
-	const cellWidth = gridCellSize;
-	const cellHeight = gridCellSize;
+	return Array.from(lines.values())
+		.map((line) => {
+			// Calculate geometric length
+			const geometricLengthMM = lineGeometricLengthMM(line, gridCellSize);
 
-	// Threshold in mm for treating an intersection as lying exactly on an endpoint.
-	const EDGE_NOTCH_EPS = 1e-3;
+			// Detect and apply butt joint trimming
+			const buttJoints = detectButtJoints(line, lines, bitSize);
+			const lengthMM = Math.max(
+				0,
+				geometricLengthMM - buttJoints.trimStartMM - buttJoints.trimEndMM,
+			);
 
-	return (
-		Array.from(lines.values())
-			.map((line: Line) => {
-				const { x1, y1, x2, y2 } = line;
+			// Compute notches with trimming adjustments
+			const notches = computeNotchesForLine(
+				line,
+				intersections,
+				lines,
+				gridCellSize,
+				geometricLengthMM,
+				buttJoints.trimStartMM,
+				lengthMM,
+			);
 
-				// Convert grid-space delta into mm for accurate physical length
-				const dxMM = (x2 - x1) * cellWidth;
-				const dyMM = (y2 - y1) * cellHeight;
-				const geometricLengthMM = Math.sqrt(dxMM * dxMM + dyMM * dyMM);
+			// Normalize notch orientations for single-pass CNC cutting
+			const normalizedNotches = normalizeStripNotches(notches);
 
-				const related = Array.from(intersections.values()).filter(
-					(int) => int.line1Id === line.id || int.line2Id === line.id,
-				);
+			// Generate stable IDs
+			const stripId = computeStripGeometryId(lengthMM, normalizedNotches);
+			const displayCode = computeStripDisplayCode(stripId);
 
-				type IntersectionInfo = {
-					int: Intersection;
-					isLine1: boolean;
-					otherLineId: string;
-					distMM: number;
-					isAtStart: boolean;
-					isAtEnd: boolean;
-					isAtEndpointOther: boolean;
-				};
-
-				const intersectionInfos: IntersectionInfo[] = related.map((int) => {
-					const isLine1 = int.line1Id === line.id;
-					const otherLineId = isLine1 ? int.line2Id : int.line1Id;
-
-					// Distance from line start to intersection, in mm
-					const dxIntMM = (int.x - x1) * cellWidth;
-					const dyIntMM = (int.y - y1) * cellHeight;
-					const distMM = Math.sqrt(dxIntMM * dxIntMM + dyIntMM * dyIntMM);
-
-					const isAtStart = distMM <= EDGE_NOTCH_EPS;
-					const isAtEnd = geometricLengthMM - distMM <= EDGE_NOTCH_EPS;
-
-					// Determine if the intersection lies on an endpoint of the *other* line.
-					let isAtEndpointOther = false;
-					const otherLine = lines.get(otherLineId);
-					if (otherLine) {
-						const onFirstEndpoint =
-							int.x === otherLine.x1 && int.y === otherLine.y1;
-						const onSecondEndpoint =
-							int.x === otherLine.x2 && int.y === otherLine.y2;
-						isAtEndpointOther = onFirstEndpoint || onSecondEndpoint;
-					}
-
-					return {
-						int,
-						isLine1,
-						otherLineId,
-						distMM,
-						isAtStart,
-						isAtEnd,
-						isAtEndpointOther,
-					};
-				});
-
-				// Butt joints: this line ends at another line's interior (T-joint).
-				// We shorten the physical strip at that end by bitSize/2 so it butts
-				// cleanly without a notch.
-				//
-				// We detect this directly by checking if each endpoint lies on the
-				// interior of any other line, rather than relying on intersection
-				// records (which are not created for T-joints).
-				const otherLines = Array.from(lines.values()).filter(
-					(l) => l.id !== line.id,
-				);
-				const hasStartButt = otherLines.some((other) =>
-					isPointOnLineInterior(x1, y1, other),
-				);
-				const hasEndButt = otherLines.some((other) =>
-					isPointOnLineInterior(x2, y2, other),
-				);
-
-				const trimStartMM = hasStartButt ? bitSize / 2 : 0;
-				const trimEndMM = hasEndButt ? bitSize / 2 : 0;
-
-				const lengthMM = Math.max(
-					0,
-					geometricLengthMM - trimStartMM - trimEndMM,
-				);
-
-				const notches = intersectionInfos
-					// Skip any intersection that should behave like an edge joint for
-					// *this* strip: either it is at one of this strip's endpoints, or
-					// it is at the endpoint of the other strip (so they merely touch).
-					.filter(
-						(info) =>
-							!info.isAtStart && !info.isAtEnd && !info.isAtEndpointOther,
-					)
-					.map((info) => {
-						const { int, isLine1, otherLineId } = info;
-
-						// Rebase the notch distance after trimming from the start.
-						const distFromStart = info.distMM - trimStartMM;
-
-						// If trimming would push this notch effectively onto an endpoint,
-						// treat it as an edge and drop it.
-						if (
-							distFromStart <= EDGE_NOTCH_EPS ||
-							lengthMM - distFromStart <= EDGE_NOTCH_EPS
-						) {
-							return null;
-						}
-
-						// When line1Over=true: line1 is on top, needs notch on bottom to receive line2
-						// When line1Over=true: line2 is on bottom, needs notch on top to fit into line1
-						// So fromTop should be opposite of line1Over for line1, same for line2
-						const fromTop = int.line1Over !== isLine1;
-
-						return {
-							id: `${int.id}_${line.id}`,
-							otherLineId,
-							dist: distFromStart,
-							fromTop,
-						};
-					})
-					.filter(
-						(
-							n,
-						): n is {
-							id: string;
-							otherLineId: string;
-							dist: number;
-							fromTop: boolean;
-						} => n !== null,
-					)
-					.sort((a, b) => a.dist - b.dist);
-
-				// Normalize notches: flip bottom-only strips to have top notches
-				// This enables single-pass CNC cutting for these strips
-				const normalizedNotches = normalizeStripNotches(notches);
-
-				// Compute a stable, geometry-derived strip id from length and notch pattern.
-				const stripId = computeStripGeometryId(lengthMM, normalizedNotches);
-				// Compute a short, user-friendly display code derived from the geometry id.
-				const displayCode = computeStripDisplayCode(stripId);
-
-				return {
-					...line,
-					id: stripId,
-					lengthMM,
-					notches: normalizedNotches,
-					// Preserve the originating grid line id separately so the UI
-					// can still correlate strips back to specific lines.
-					sourceLineId: line.id,
-					displayCode,
-				};
-			})
-			// Filter out strips shorter than 1mm (effectively zero-length or degenerate)
-			.filter((strip) => strip.lengthMM > 1)
-	);
+			return {
+				...line,
+				id: stripId,
+				lengthMM,
+				notches: normalizedNotches,
+				sourceLineId: line.id,
+				displayCode,
+			};
+		})
+		.filter((strip) => strip.lengthMM > MIN_STRIP_LENGTH_MM);
 }
 
 /**
