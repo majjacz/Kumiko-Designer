@@ -2,6 +2,59 @@ import { EPSILON } from "./config";
 import type { Line, Point } from "./types";
 
 /**
+ * Check if a point lies on the interior of a line segment (not at endpoints).
+ * Uses grid coordinates, so epsilon comparison is not needed for exact checks.
+ *
+ * @param px - Point X coordinate
+ * @param py - Point Y coordinate
+ * @param line - The line segment to check
+ * @returns true if the point is on the segment's interior (strictly between endpoints)
+ */
+export function isPointOnLineInterior(
+	px: number,
+	py: number,
+	line: Line,
+): boolean {
+	const { x1, y1, x2, y2 } = line;
+
+	// Check if point is at either endpoint (not interior)
+	if ((px === x1 && py === y1) || (px === x2 && py === y2)) {
+		return false;
+	}
+
+	// For the point to be on the line segment interior:
+	// 1. It must be collinear with the segment
+	// 2. Its projection must fall strictly between the endpoints
+
+	const dx = x2 - x1;
+	const dy = y2 - y1;
+
+	// Degenerate segment (zero length)
+	if (dx === 0 && dy === 0) {
+		return false;
+	}
+
+	// Check collinearity using cross product
+	const dpx = px - x1;
+	const dpy = py - y1;
+	const cross = dx * dpy - dy * dpx;
+	if (cross !== 0) {
+		return false;
+	}
+
+	// Calculate parametric position t along the segment
+	let t: number;
+	if (Math.abs(dx) > Math.abs(dy)) {
+		t = dpx / dx;
+	} else {
+		t = dpy / dy;
+	}
+
+	// Point is on interior if t is strictly between 0 and 1
+	return t > 0 && t < 1;
+}
+
+/**
  * Find the intersection point between two line segments.
  * Returns null if the segments don't intersect within their bounds,
  * or if they are parallel.

@@ -4,6 +4,7 @@ import {
 	distancePointToSegment,
 	findIntersection,
 	gcd,
+	isPointOnLineInterior,
 } from "./geometry";
 import { makeLine } from "./test-fixtures";
 
@@ -202,5 +203,48 @@ describe("distancePointToSegment()", () => {
 		// Point (5, 15) to vertical segment from (0, 0) to (0, 10)
 		const d = distancePointToSegment(5, 15, 0, 0, 0, 10);
 		expect(d).toBeCloseTo(Math.hypot(5, 5));
+	});
+});
+
+describe("isPointOnLineInterior()", () => {
+	it("returns true for point on horizontal segment interior", () => {
+		const line = makeLine("h", 0, 0, 10, 0);
+		expect(isPointOnLineInterior(5, 0, line)).toBe(true);
+	});
+
+	it("returns true for point on vertical segment interior", () => {
+		const line = makeLine("v", 0, 0, 0, 10);
+		expect(isPointOnLineInterior(0, 5, line)).toBe(true);
+	});
+
+	it("returns true for point on diagonal segment interior", () => {
+		const line = makeLine("d", 0, 0, 10, 10);
+		expect(isPointOnLineInterior(5, 5, line)).toBe(true);
+	});
+
+	it("returns false for point at start endpoint", () => {
+		const line = makeLine("h", 0, 0, 10, 0);
+		expect(isPointOnLineInterior(0, 0, line)).toBe(false);
+	});
+
+	it("returns false for point at end endpoint", () => {
+		const line = makeLine("h", 0, 0, 10, 0);
+		expect(isPointOnLineInterior(10, 0, line)).toBe(false);
+	});
+
+	it("returns false for point not on the line", () => {
+		const line = makeLine("h", 0, 0, 10, 0);
+		expect(isPointOnLineInterior(5, 1, line)).toBe(false);
+	});
+
+	it("returns false for point collinear but outside segment", () => {
+		const line = makeLine("h", 0, 0, 10, 0);
+		expect(isPointOnLineInterior(-1, 0, line)).toBe(false);
+		expect(isPointOnLineInterior(11, 0, line)).toBe(false);
+	});
+
+	it("returns false for degenerate segment (zero length)", () => {
+		const line = makeLine("p", 5, 5, 5, 5);
+		expect(isPointOnLineInterior(5, 5, line)).toBe(false);
 	});
 });

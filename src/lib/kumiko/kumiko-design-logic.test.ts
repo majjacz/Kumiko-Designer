@@ -132,6 +132,81 @@ describe("computeDesignStrips()", () => {
 		expect(vertical.notches[0].fromTop).toBe(true);
 	});
 
+	it("trims T-joint butted strip length by bitSize/2", () => {
+		const lines = new Map<string, Line>();
+		// Horizontal line spans 0..10 in X (10 grid units at Y=0)
+		lines.set("h", makeLine("h", 0, 0, 10, 0));
+		// Vertical line starts exactly at (5, 0) on horizontal's interior,
+		// extends up to (5, 5). This is a T-joint: vertical butts against horizontal.
+		lines.set("v", makeLine("v", 5, 0, 5, 5));
+
+		const intersectionStates = new Map<string, boolean>();
+		const intersections = computeIntersections(lines, intersectionStates);
+
+		// No intersection record should be created for T-joints
+		expect(intersections.size).toBe(0);
+
+		const gridCellSize = 1; // 1 grid unit = 1 mm
+		const bitSize = 3.175;
+		const strips = computeDesignStrips(
+			lines,
+			intersections,
+			gridCellSize,
+			bitSize,
+		);
+
+		expect(strips).toHaveLength(2);
+
+		const horizontal = strips.find((s) => s.y1 === s.y2);
+		const vertical = strips.find((s) => s.x1 === s.x2);
+
+		if (!horizontal || !vertical) {
+			throw new Error("Horizontal or vertical strip not found");
+		}
+
+		// Horizontal strip is not butted, should have full geometric length
+		expect(horizontal.lengthMM).toBeCloseTo(10, 5);
+
+		// Vertical strip butts against horizontal at its start (5, 0).
+		// Its geometric length is 5 mm, but should be trimmed by bitSize/2.
+		const expectedVerticalLength = 5 - bitSize / 2;
+		expect(vertical.lengthMM).toBeCloseTo(expectedVerticalLength, 5);
+
+		// Neither strip should have notches (no crossing)
+		expect(horizontal.notches).toHaveLength(0);
+		expect(vertical.notches).toHaveLength(0);
+	});
+
+	it("trims both ends of a strip butted at both endpoints", () => {
+		const lines = new Map<string, Line>();
+		// Two horizontal lines at Y=0 and Y=5
+		lines.set("h1", makeLine("h1", 0, 0, 10, 0));
+		lines.set("h2", makeLine("h2", 0, 5, 10, 5));
+		// Vertical line from (5, 0) to (5, 5) - butts against both horizontal lines
+		lines.set("v", makeLine("v", 5, 0, 5, 5));
+
+		const intersectionStates = new Map<string, boolean>();
+		const intersections = computeIntersections(lines, intersectionStates);
+
+		const gridCellSize = 1;
+		const bitSize = 3.175;
+		const strips = computeDesignStrips(
+			lines,
+			intersections,
+			gridCellSize,
+			bitSize,
+		);
+
+		const vertical = strips.find(
+			(s) => s.x1 === s.x2 && s.sourceLineId === "v",
+		);
+		if (!vertical) throw new Error("Vertical strip not found");
+
+		// Geometric length is 5 mm, trimmed by bitSize/2 at both ends
+		const expectedLength = 5 - bitSize;
+		expect(vertical.lengthMM).toBeCloseTo(expectedLength, 5);
+	});
+
 	it("produces stable geometry-based ids for identical strip geometry", () => {
 		// First map: line from (0,0) to (10,0)
 		const lines1 = new Map<string, Line>();

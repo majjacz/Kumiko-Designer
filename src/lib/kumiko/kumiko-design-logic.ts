@@ -1,4 +1,4 @@
-import { findIntersection, gcd } from "./geometry";
+import { findIntersection, gcd, isPointOnLineInterior } from "./geometry";
 import type { DesignStrip, Intersection, Line, Notch } from "./types";
 import { newId } from "./utils";
 
@@ -182,11 +182,18 @@ export function computeDesignStrips(
 				// Butt joints: this line ends at another line's interior (T-joint).
 				// We shorten the physical strip at that end by bitSize/2 so it butts
 				// cleanly without a notch.
-				const hasStartButt = intersectionInfos.some(
-					(info) => info.isAtStart && !info.isAtEndpointOther,
+				//
+				// We detect this directly by checking if each endpoint lies on the
+				// interior of any other line, rather than relying on intersection
+				// records (which are not created for T-joints).
+				const otherLines = Array.from(lines.values()).filter(
+					(l) => l.id !== line.id,
 				);
-				const hasEndButt = intersectionInfos.some(
-					(info) => info.isAtEnd && !info.isAtEndpointOther,
+				const hasStartButt = otherLines.some((other) =>
+					isPointOnLineInterior(x1, y1, other),
+				);
+				const hasEndButt = otherLines.some((other) =>
+					isPointOnLineInterior(x2, y2, other),
 				);
 
 				const trimStartMM = hasStartButt ? bitSize / 2 : 0;
